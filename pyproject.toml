@@ -1,0 +1,60 @@
+[project]
+name = "sparky-universe"
+version = "0.0.1"
+description = "Sparky Universe — a collection of small, composable domain modules."
+readme = "README.md"
+requires-python = ">=3.11"
+
+authors = [
+  { name = "Parťák" }
+]
+
+dependencies = [
+  "segno>=1.6",
+  "pyyaml>=6.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4",
+  "pytest-cov>=4.1",
+  "ruff>=0.4.0",
+  "mypy>=1.8",
+  "types-PyYAML>=6.0.12.20240311"
+]
+
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["modules", "universe"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = ["modules", "universe"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+fixable = ["ALL"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.coverage.run]
+branch = true
+source = ["modules", "universe"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = true
+no_implicit_optional = true
+check_untyped_defs = true

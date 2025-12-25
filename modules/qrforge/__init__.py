@@ -1,0 +1,1 @@
+"""QR Forge module package."""
