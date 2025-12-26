@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QR Forge</title>
+    <style>
+      :root {
+        --bg: #0f1116;
+        --card: #171b22;
+        --text: #f5f7fb;
+        --muted: #9aa6bf;
+        --accent: #5ac8fa;
+        --border: rgba(255, 255, 255, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: radial-gradient(circle at 20% 10%, rgba(90, 200, 250, 0.2), transparent 40%),
+          radial-gradient(circle at 80% 20%, rgba(131, 89, 255, 0.2), transparent 45%),
+          var(--bg);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+      }
+
+      .panel {
+        width: min(560px, 100%);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .brand-mark {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 56px;
+        height: 56px;
+        object-fit: contain;
+        opacity: 0.2;
+        filter: drop-shadow(0 6px 16px rgba(90, 200, 250, 0.4));
+        pointer-events: none;
+      }
+
+      .brand-label {
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        font-size: 0.75rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(245, 247, 251, 0.45);
+        pointer-events: none;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 2rem;
+        letter-spacing: -0.02em;
+      }
+
+      p {
+        margin: 0 0 24px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0e1218;
+        color: var(--text);
+        margin-bottom: 16px;
+        font-size: 1rem;
+      }
+
+      input:focus {
+        outline: 2px solid rgba(90, 200, 250, 0.4);
+        border-color: rgba(90, 200, 250, 0.6);
+      }
+
+      button {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(135deg, #3cc9ff, #7b5cff);
+        color: #0a0f14;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      .meta {
+        margin-top: 16px;
+        font-size: 0.9rem;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <img class="brand-mark" src="/brand/logo/sparky-universe.icon.png" alt="">
+      <span class="brand-label">Sparky Universe</span>
+      <h1>QR Forge</h1>
+      <p>Create a signed QR payload for a new identity.</p>
+      <form action="/qr" method="post">
+        <label for="name">Name</label>
+        <input id="name" name="name" placeholder="Sparky Module">
+
+        <label for="supplier">Supplier</label>
+        <input id="supplier" name="supplier" placeholder="Acme Labs">
+
+        <label for="supplier_sku">Supplier SKU</label>
+        <input id="supplier_sku" name="supplier_sku" placeholder="SKU-001">
+
+        <button type="submit">Generate QR</button>
+      </form>
+      <div class="meta">
+        <span>Output: signed PNG</span>
+        <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+      </div>
+    </main>
+  </body>
+</html>

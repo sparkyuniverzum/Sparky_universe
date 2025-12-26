@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sparky Universe</title>
+    <meta name="description" content="A collection of small, composable domain modules.">
+    <link rel="icon" href="/brand/logo/sparky-universe.favicon.png">
+    <meta property="og:title" content="Sparky Universe">
+    <meta property="og:image" content="/brand/logo/sparky-universe.og.png">
+    <meta property="og:type" content="website">
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap");
+
+      :root {
+        color-scheme: dark;
+        --bg: #0a0f14;
+        --bg-2: #0f1520;
+        --text: #f0f6ff;
+        --muted: #a7b3c7;
+        --accent-1: #00eaff;
+        --accent-2: #7a5cff;
+        --accent-3: #ff5cab;
+        --accent-4: #ff9f4a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Space Grotesk", sans-serif;
+        background:
+          radial-gradient(1000px 400px at 20% 10%, rgba(0, 234, 255, 0.15), transparent 60%),
+          radial-gradient(800px 500px at 80% 20%, rgba(122, 92, 255, 0.2), transparent 55%),
+          radial-gradient(600px 500px at 65% 80%, rgba(255, 92, 171, 0.18), transparent 55%),
+          linear-gradient(140deg, var(--bg), var(--bg-2));
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 20px;
+      }
+
+      .hero {
+        max-width: 860px;
+        width: 100%;
+        display: grid;
+        gap: 24px;
+        text-align: left;
+      }
+
+      .logo {
+        width: min(360px, 80vw);
+        height: auto;
+      }
+
+      h1 {
+        font-size: clamp(2.4rem, 4vw, 3.6rem);
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+
+      p {
+        margin: 0;
+        font-size: clamp(1rem, 2vw, 1.2rem);
+        color: var(--muted);
+        max-width: 60ch;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(0, 234, 255, 0.18), rgba(255, 159, 74, 0.18));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font-size: 0.95rem;
+        width: fit-content;
+      }
+
+      .accent {
+        background: linear-gradient(120deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-4));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 36px 16px;
+        }
+        .hero {
+          text-align: center;
+          justify-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="hero">
+      <img src="/brand/logo/sparky-universe.logo.png" alt="Sparky Universe" class="logo">
+      <h1>Build the <span class="accent">Sparky Universe</span></h1>
+      <p>Small, composable domain modules that snap together into a bigger machine.</p>
+      <div class="pill">Charcoal base, neon gradient, and a logo that travels light.</div>
+    </main>
+  </body>
+</html>
