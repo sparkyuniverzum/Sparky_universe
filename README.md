@@ -30,8 +30,7 @@ flows:
 
 ## UI standard (recommended)
 - Title + one-line description.
-- Inline ad slot: `data-ad-slot="inline"`.
-- Footer ad slot: `data-ad-slot="footer"`.
+- Ad layout (top + bottom) around the form, non-intrusive.
 - "Continue in Sparky Universe" section fed by `resolve_flow_links(...)`.
 - Link to `/docs` for API visibility.
 
@@ -52,6 +51,17 @@ Use the scaffold script for a ready-to-run module:
 ```bash
 python scripts/new_module.py qr_batch --title "QR Batch" --description "Batch-generate QR codes."
 ```
+
+## Run all modules (default)
+```bash
+bash scripts/run_module.sh
+```
+
+## Run a single module (same pattern as QR Forge)
+```bash
+SPARKY_MODULE=qrforge bash scripts/run_module.sh
+```
+Set `SPARKY_MODULE` to `qrverify`, `qr_batch`, or any new module name.
 
 ## Shared UI templates
 Reusable partials live in `universe/templates/partials/`:

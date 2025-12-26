@@ -1,4 +1,4 @@
-{% from "partials/ads.html" import ad_block %}
+{% from "partials/ads.html" import ad_layout %}
 {% from "partials/flow.html" import flow_section %}
 <!doctype html>
 <html lang="en">
@@ -229,7 +229,7 @@
       <span class="brand-label">Sparky Universe</span>
       <h1>QR Forge</h1>
       <p>Create a signed QR payload for a new identity.</p>
-      {{ ad_block("inline") }}
+      {% call ad_layout() %}
       <form id="forge-form" action="/qr" method="post">
         <label for="name">Name</label>
         <input id="name" name="name" placeholder="Sparky Module">
@@ -247,7 +247,7 @@
         <span>Output: signed PNG</span>
         <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
       </div>
-      {{ ad_block("footer") }}
+      {% endcall %}
     </main>
     <script>
       const form = document.getElementById("forge-form");

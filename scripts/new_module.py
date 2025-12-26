@@ -68,7 +68,7 @@ def run(input_text: str | None = Form(None)):
 )
 
 HTML_TEMPLATE = Template(
-    """{% from "partials/ads.html" import ad_block %}
+    """{% from "partials/ads.html" import ad_layout %}
 {% from "partials/flow.html" import flow_section %}
 <!doctype html>
 <html lang="en">
@@ -332,7 +332,7 @@ HTML_TEMPLATE = Template(
       <span class="brand-label">Sparky Universe</span>
       <h1>${title}</h1>
       <p>${description}</p>
-      {{ ad_block("inline") }}
+      {% call ad_layout() %}
       <form id="module-form" action="/run" method="post">
         <label for="input_text">Input</label>
         <input id="input_text" name="input_text" placeholder="Type here">
@@ -347,7 +347,7 @@ HTML_TEMPLATE = Template(
         <span>Fast utility, zero accounts.</span>
         <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
       </div>
-      {{ ad_block("footer") }}
+      {% endcall %}
     </main>
     <script>
       const form = document.getElementById("module-form");

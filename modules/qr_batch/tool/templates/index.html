@@ -1,4 +1,4 @@
-{% from "partials/ads.html" import ad_block %}
+{% from "partials/ads.html" import ad_layout %}
 {% from "partials/flow.html" import flow_section %}
 <!doctype html>
 <html lang="en">
@@ -275,7 +275,7 @@
       <span class="brand-label">Sparky Universe</span>
       <h1>QR Batch</h1>
       <p>Batch-generate signed QR codes from a list.</p>
-      {{ ad_block("inline") }}
+      {% call ad_layout() %}
       <form id="module-form" action="/batch" method="post">
         <label for="items">CSV list</label>
         <textarea id="items" name="items" placeholder="name,supplier,supplier_sku&#10;Widget A,Acme,SKU-001&#10;Widget B,Acme,SKU-002"></textarea>
@@ -291,7 +291,7 @@
         <span>Fast utility, zero accounts.</span>
         <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
       </div>
-      {{ ad_block("footer") }}
+      {% endcall %}
     </main>
     <script>
       const form = document.getElementById("module-form");

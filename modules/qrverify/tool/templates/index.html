@@ -1,4 +1,4 @@
-{% from "partials/ads.html" import ad_block %}
+{% from "partials/ads.html" import ad_layout %}
 {% from "partials/flow.html" import flow_section %}
 <!doctype html>
 <html lang="en">
@@ -327,7 +327,7 @@
       <span class="brand-label">Sparky Universe</span>
       <h1>QR Verify</h1>
       <p>Check QR contents, validate signatures, and trace origin.</p>
-      {{ ad_block("inline") }}
+      {% call ad_layout() %}
       <form id="verify-form" enctype="multipart/form-data">
         <label for="file">Upload QR image (PNG/JPG)</label>
         <input id="file" name="file" type="file" accept="image/*">
@@ -365,7 +365,7 @@
         <span>No accounts. No database. Just verify.</span>
         <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
       </div>
-      {{ ad_block("footer") }}
+      {% endcall %}
     </main>
     <script>
       const form = document.getElementById("verify-form");
