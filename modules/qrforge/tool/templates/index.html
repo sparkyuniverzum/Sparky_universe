@@ -123,6 +123,22 @@
         flex-wrap: wrap;
       }
 
+      .ad-slot {
+        width: 100%;
+        min-height: 120px;
+        border: 1px dashed rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background: rgba(14, 18, 24, 0.6);
+      }
+
+      .ad-inline {
+        margin-top: 20px;
+      }
+
+      .ad-footer {
+        margin-top: 24px;
+      }
+
       a {
         color: var(--accent);
         text-decoration: none;
@@ -147,10 +163,12 @@
 
         <button type="submit">Generate QR</button>
       </form>
+      <div id="ad-inline" class="ad-slot ad-inline" data-ad-slot="inline"></div>
       <div class="meta">
         <span>Output: signed PNG</span>
         <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
       </div>
+      <div id="ad-footer" class="ad-slot ad-footer" data-ad-slot="footer"></div>
     </main>
   </body>
 </html>
