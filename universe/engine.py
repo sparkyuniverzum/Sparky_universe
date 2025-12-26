@@ -28,6 +28,8 @@ def build_app() -> FastAPI:
         app.mount("/brand", StaticFiles(directory=str(brand_dir)), name="brand")
 
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+    templates.env.auto_reload = True
+    templates.env.cache = {}
 
     @app.get("/", response_class=HTMLResponse)
     def universe_index(request: Request):

@@ -22,6 +22,8 @@ SHARED_TEMPLATES = ROOT_DIR / "universe" / "templates"
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
 )
+templates.env.auto_reload = True
+templates.env.cache = {}
 
 if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")

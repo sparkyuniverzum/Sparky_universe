@@ -20,6 +20,8 @@ SHARED_TEMPLATES = ROOT_DIR / "universe" / "templates"
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
 )
+templates.env.auto_reload = True
+templates.env.cache = {}
 BRAND_DIR = ROOT_DIR / "brand"
 
 if BRAND_DIR.exists():
