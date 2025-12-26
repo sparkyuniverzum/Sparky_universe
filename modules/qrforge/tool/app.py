@@ -9,6 +9,7 @@ from modules.qrforge.core.ids import generate_public_id
 from modules.qrforge.core.payload import build_identity_payload
 from modules.qrforge.core.sign import sign_payload
 from modules.qrforge.core.render import render_qr
+from universe.flows import resolve_flow_links
 
 app = FastAPI(title="QR Forge")
 
@@ -21,19 +22,13 @@ if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")
 
 SECRET = os.getenv("QRFORGE_SECRET", "dev-secret")
-FLOW_VERIFY_URL = os.getenv("SPARKY_FLOW_VERIFY_URL")
-FLOW_BATCH_URL = os.getenv("SPARKY_FLOW_BATCH_URL")
+FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
 OUTPUT = BASE_DIR / "qr.png"
 
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    flow_links = []
-    if FLOW_VERIFY_URL:
-        flow_links.append({"label": "Verify this QR", "href": FLOW_VERIFY_URL})
-    if FLOW_BATCH_URL:
-        flow_links.append({"label": "Batch-generate QR codes", "href": FLOW_BATCH_URL})
-
+    flow_links = resolve_flow_links("qrforge", base_url=FLOW_BASE_URL)
     return templates.TemplateResponse(
         "index.html",
         {"request": request, "flow_links": flow_links},

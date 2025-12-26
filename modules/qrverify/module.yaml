@@ -2,7 +2,12 @@ name: qrverify
 title: QR Verify
 version: 0.0.1
 description: Verify QR payloads and signatures.
+entrypoints:
+  api: modules.qrverify.tool.app:app
+mount: /qr/verify
 flows:
   after_success:
-    - qr-forge
-    - qr-batch
+    - target: qrforge
+      label: Forge a new QR
+    - target: qr-batch
+      label: Batch-generate QR codes

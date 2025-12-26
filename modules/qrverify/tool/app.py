@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 
 from modules.qrverify.core.decode import decode_input
 from modules.qrverify.core.verify import verify_decoded
+from universe.flows import resolve_flow_links
 
 app = FastAPI(title="QR Verify")
 
@@ -23,18 +24,12 @@ if BRAND_DIR.exists():
 
 SECRET = os.getenv("QRFORGE_SECRET", "dev-secret")
 FORGE_URL = os.getenv("QRFORGE_URL")
-FLOW_FORGE_URL = os.getenv("SPARKY_FLOW_FORGE_URL")
-FLOW_BATCH_URL = os.getenv("SPARKY_FLOW_BATCH_URL")
+FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
 
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    flow_links = []
-    if FLOW_FORGE_URL:
-        flow_links.append({"label": "Forge a new QR", "href": FLOW_FORGE_URL})
-    if FLOW_BATCH_URL:
-        flow_links.append({"label": "Batch-generate QR codes", "href": FLOW_BATCH_URL})
-
+    flow_links = resolve_flow_links("qrverify", base_url=FLOW_BASE_URL)
     return templates.TemplateResponse(
         "index.html",
         {"request": request, "flow_links": flow_links},

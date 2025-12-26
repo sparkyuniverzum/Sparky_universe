@@ -2,7 +2,12 @@ name: qrforge
 title: QR Forge
 version: 0.0.1
 description: Forge signed QR payloads and images.
+entrypoints:
+  api: modules.qrforge.tool.app:app
+mount: /qr/forge
 flows:
   after_success:
-    - qr-verify
-    - qr-batch
+    - target: qrverify
+      label: Verify this QR
+    - target: qr-batch
+      label: Batch-generate QR codes

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sparky Universe</title>
+    <style>
+      :root {
+        --bg: #0f1116;
+        --card: #171b22;
+        --text: #f5f7fb;
+        --muted: #9aa6bf;
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #5ac8fa;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+      }
+
+      .panel {
+        width: min(720px, 100%);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 32px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 2rem;
+        letter-spacing: -0.02em;
+      }
+
+      p {
+        margin: 0 0 24px;
+        color: var(--muted);
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+      }
+
+      li {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: grid;
+        gap: 4px;
+        background: rgba(14, 18, 24, 0.6);
+      }
+
+      .module-title {
+        font-weight: 600;
+      }
+
+      .module-desc {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <h1>Sparky Universe</h1>
+      <p>Available modules.</p>
+      <ul>
+        {% for module in modules %}
+        <li>
+          <div class="module-title">{{ module.title or module.name }}</div>
+          {% if module.description %}
+          <div class="module-desc">{{ module.description }}</div>
+          {% endif %}
+          <a href="{{ module.mount }}">Open module</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </main>
+  </body>
+</html>
