@@ -1,0 +1,13 @@
+{% macro flow_section(flow_links) -%}
+{% set has_flow = flow_links|length > 0 %}
+<section id="sparky-flow" class="sparky-flow" data-has-links="{{ 'true' if has_flow else 'false' }}">
+  <span class="flow-title">Continue in Sparky Universe</span>
+  {% if has_flow %}
+  <ul>
+    {% for link in flow_links %}
+    <li><a href="{{ link.href }}" target="_blank" rel="noreferrer">{{ link.label }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{%- endmacro %}

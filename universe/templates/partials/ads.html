@@ -1,0 +1,9 @@
+{% macro ad_block(slot, label="Sponsored") -%}
+{% set slot_id = "ad-" + slot %}
+<section class="ad-block{% if slot in ["inline", "footer"] %} {{ slot }}{% endif %}" aria-label="Advertisement">
+  <div class="ad-label">{{ label }}</div>
+  <div id="{{ slot_id }}" class="ad-slot{% if slot == "inline" %} inline{% endif %}" data-ad-slot="{{ slot }}">
+    <span class="ad-placeholder">Ad space</span>
+  </div>
+</section>
+{%- endmacro %}

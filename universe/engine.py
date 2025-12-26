@@ -31,7 +31,9 @@ def build_app() -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     def universe_index(request: Request):
-        modules = list(load_modules().values())
+        modules = [
+            module for module in load_modules().values() if module.get("public", True)
+        ]
         modules.sort(key=lambda item: item.get("title") or item.get("name", ""))
         return templates.TemplateResponse(
             "index.html",

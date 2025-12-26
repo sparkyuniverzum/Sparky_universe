@@ -1,3 +1,5 @@
+{% from "partials/ads.html" import ad_block %}
+{% from "partials/flow.html" import flow_section %}
 <!doctype html>
 <html lang="en">
   <head>
@@ -227,12 +229,7 @@
       <span class="brand-label">Sparky Universe</span>
       <h1>QR Forge</h1>
       <p>Create a signed QR payload for a new identity.</p>
-      <section class="ad-block inline" aria-label="Advertisement">
-        <div class="ad-label">Sponsored</div>
-        <div id="ad-inline" class="ad-slot inline" data-ad-slot="inline">
-          <span class="ad-placeholder">Ad space</span>
-        </div>
-      </section>
+      {{ ad_block("inline") }}
       <form id="forge-form" action="/qr" method="post">
         <label for="name">Name</label>
         <input id="name" name="name" placeholder="Sparky Module">
@@ -245,27 +242,12 @@
 
         <button type="submit">Generate QR</button>
       </form>
-      {% set has_flow = flow_links|length > 0 %}
-      <section id="sparky-flow" class="sparky-flow" data-has-links="{{ 'true' if has_flow else 'false' }}">
-        <span class="flow-title">Continue in Sparky Universe</span>
-        {% if has_flow %}
-        <ul>
-          {% for link in flow_links %}
-          <li><a href="{{ link.href }}" target="_blank" rel="noreferrer">{{ link.label }}</a></li>
-          {% endfor %}
-        </ul>
-        {% endif %}
-      </section>
+      {{ flow_section(flow_links) }}
       <div class="meta">
         <span>Output: signed PNG</span>
         <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
       </div>
-      <div class="ad-block footer">
-        <div class="ad-label">Sponsored</div>
-        <div id="ad-footer" class="ad-slot" data-ad-slot="footer">
-          <span class="ad-placeholder">Ad space</span>
-        </div>
-      </div>
+      {{ ad_block("footer") }}
     </main>
     <script>
       const form = document.getElementById("forge-form");

@@ -15,8 +15,11 @@ from universe.flows import resolve_flow_links
 app = FastAPI(title="QR Verify")
 
 BASE_DIR = Path(__file__).parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 ROOT_DIR = BASE_DIR.parents[2]
+SHARED_TEMPLATES = ROOT_DIR / "universe" / "templates"
+templates = Jinja2Templates(
+    directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
+)
 BRAND_DIR = ROOT_DIR / "brand"
 
 if BRAND_DIR.exists():

@@ -23,6 +23,9 @@ def _normalize_module(
 
     slug = data.get("slug") or name.replace("_", "-")
     mount = data.get("mount") or f"/{slug}"
+    public = data.get("public")
+    if public is None:
+        public = True
 
     normalized = {**data}
     normalized.update(
@@ -30,6 +33,7 @@ def _normalize_module(
             "name": name,
             "slug": slug,
             "mount": mount,
+            "public": bool(public),
             "source": source,
         }
     )

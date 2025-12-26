@@ -1,11 +1,81 @@
-{% from "partials/ads.html" import ad_block %}
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+from string import Template
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+MODULES_DIR = ROOT_DIR / "modules"
+
+MODULE_YAML_TEMPLATE = Template(
+    """name: ${name}
+title: ${title}
+version: 0.0.1
+description: ${description}
+public: true
+entrypoints:
+  api: modules.${name}.tool.app:app
+mount: ${mount}
+flows:
+  after_success: []
+"""
+)
+
+APP_TEMPLATE = Template(
+    """from __future__ import annotations
+
+import os
+from pathlib import Path
+
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from universe.flows import resolve_flow_links
+
+app = FastAPI(title="${title}")
+
+BASE_DIR = Path(__file__).parent
+ROOT_DIR = BASE_DIR.parents[2]
+BRAND_DIR = ROOT_DIR / "brand"
+SHARED_TEMPLATES = ROOT_DIR / "universe" / "templates"
+
+templates = Jinja2Templates(
+    directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
+)
+
+if BRAND_DIR.exists():
+    app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")
+
+FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
+
+
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request):
+    flow_links = resolve_flow_links("${name}", base_url=FLOW_BASE_URL)
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "flow_links": flow_links},
+    )
+
+
+@app.post("/run")
+def run(input_text: str | None = Form(None)):
+    return {"ok": True, "input": input_text}
+"""
+)
+
+HTML_TEMPLATE = Template(
+    """{% from "partials/ads.html" import ad_block %}
 {% from "partials/flow.html" import flow_section %}
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>QR Verify</title>
+    <title>${title}</title>
     <style>
       :root {
         --bg: #0f1116;
@@ -14,8 +84,6 @@
         --muted: #9aa6bf;
         --accent: #5ac8fa;
         --border: rgba(255, 255, 255, 0.08);
-        --valid: #37d67a;
-        --invalid: #ff6b6b;
       }
 
       * {
@@ -77,7 +145,7 @@
       }
 
       p {
-        margin: 0 0 20px;
+        margin: 0 0 24px;
         color: var(--muted);
         line-height: 1.5;
       }
@@ -89,8 +157,7 @@
         font-size: 0.95rem;
       }
 
-      input[type="file"],
-      textarea {
+      input {
         width: 100%;
         padding: 12px 14px;
         border-radius: 10px;
@@ -101,13 +168,7 @@
         font-size: 1rem;
       }
 
-      textarea {
-        min-height: 120px;
-        resize: vertical;
-      }
-
-      input:focus,
-      textarea:focus {
+      input:focus {
         outline: 2px solid rgba(90, 200, 250, 0.4);
         border-color: rgba(90, 200, 250, 0.6);
       }
@@ -137,68 +198,12 @@
         display: block;
       }
 
-      .status {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        font-weight: 700;
+      .result-title {
+        font-size: 0.8rem;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 12px;
-      }
-
-      .status.valid {
-        background: rgba(55, 214, 122, 0.15);
-        color: var(--valid);
-      }
-
-      .status.invalid {
-        background: rgba(255, 107, 107, 0.15);
-        color: var(--invalid);
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 0.78rem;
-        color: #f8f7ff;
-        background: linear-gradient(135deg, rgba(60, 201, 255, 0.2), rgba(123, 92, 255, 0.2));
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        margin-bottom: 14px;
-        display: none;
-      }
-
-      .badge.visible {
-        display: inline-flex;
-      }
-
-      .meta-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-
-      .meta-item {
-        display: grid;
-        gap: 4px;
-      }
-
-      .meta-label {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.18em;
-        color: rgba(245, 247, 251, 0.45);
-      }
-
-      .meta-value {
-        font-size: 0.95rem;
+        color: rgba(245, 247, 251, 0.6);
+        margin-bottom: 10px;
       }
 
       pre {
@@ -311,7 +316,7 @@
       }
 
       .sparky-flow a::after {
-        content: "→";
+        content: "->";
         color: rgba(90, 200, 250, 0.8);
       }
 
@@ -325,65 +330,30 @@
     <main class="panel">
       <img class="brand-mark" src="/brand/logo/sparky-universe.icon.png" alt="">
       <span class="brand-label">Sparky Universe</span>
-      <h1>QR Verify</h1>
-      <p>Check QR contents, validate signatures, and trace origin.</p>
+      <h1>${title}</h1>
+      <p>${description}</p>
       {{ ad_block("inline") }}
-      <form id="verify-form" enctype="multipart/form-data">
-        <label for="file">Upload QR image (PNG/JPG)</label>
-        <input id="file" name="file" type="file" accept="image/*">
-
-        <label for="payload">Or paste payload</label>
-        <textarea id="payload" name="payload" placeholder='{"payload": "...", "signature": "..."}'></textarea>
-
-        <button type="submit">Verify QR</button>
+      <form id="module-form" action="/run" method="post">
+        <label for="input_text">Input</label>
+        <input id="input_text" name="input_text" placeholder="Type here">
+        <button type="submit">Run</button>
       </form>
       <section id="result" class="result">
-        <div id="status" class="status">STATUS</div>
-        <div id="sparky-badge" class="badge">Created by Sparky Universe</div>
-        <div class="meta-grid">
-          <div class="meta-item">
-            <span class="meta-label">Issuer</span>
-            <span id="issuer" class="meta-value">-</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Signature</span>
-            <span id="signature" class="meta-value">-</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Timestamp</span>
-            <span id="timestamp" class="meta-value">-</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Forge</span>
-            <span id="forge" class="meta-value">-</span>
-          </div>
-        </div>
-        <pre id="decoded">-</pre>
+        <div class="result-title">Result</div>
+        <pre id="output">-</pre>
       </section>
       {{ flow_section(flow_links) }}
       <div class="meta">
-        <span>No accounts. No database. Just verify.</span>
+        <span>Fast utility, zero accounts.</span>
         <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
       </div>
       {{ ad_block("footer") }}
     </main>
     <script>
-      const form = document.getElementById("verify-form");
+      const form = document.getElementById("module-form");
       const result = document.getElementById("result");
-      const statusEl = document.getElementById("status");
-      const issuerEl = document.getElementById("issuer");
-      const signatureEl = document.getElementById("signature");
-      const timestampEl = document.getElementById("timestamp");
-      const forgeEl = document.getElementById("forge");
-      const decodedEl = document.getElementById("decoded");
-      const badgeEl = document.getElementById("sparky-badge");
+      const output = document.getElementById("output");
       const flow = document.getElementById("sparky-flow");
-
-      const updateStatus = (ok, label) => {
-        statusEl.classList.remove("valid", "invalid");
-        statusEl.classList.add(ok ? "valid" : "invalid");
-        statusEl.textContent = label;
-      };
 
       const showFlow = () => {
         if (flow && flow.dataset.hasLinks === "true") {
@@ -395,48 +365,74 @@
         event.preventDefault();
         const formData = new FormData(form);
 
-        const response = await fetch("/verify", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await response.json();
-        result.classList.add("visible");
-
-        if (data.error) {
-          updateStatus(false, "Invalid");
-          issuerEl.textContent = "-";
-          signatureEl.textContent = "-";
-          timestampEl.textContent = "-";
-          forgeEl.textContent = "-";
-          decodedEl.textContent = data.error;
-          badgeEl.classList.remove("visible");
+        try {
+          const response = await fetch(form.action, { method: "POST", body: formData });
+          const data = await response.json();
+          result.classList.add("visible");
+          output.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          result.classList.add("visible");
+          output.textContent = "Request failed";
+        } finally {
           showFlow();
-          return;
         }
-
-        updateStatus(Boolean(data.valid), data.valid ? "Valid" : "Invalid");
-        issuerEl.textContent = data.issuer || "-";
-        signatureEl.textContent = data.signature || "-";
-        timestampEl.textContent = data.timestamp || "-";
-
-        if (data.forge_url) {
-          forgeEl.innerHTML = `<a href="${data.forge_url}" target="_blank" rel="noreferrer">Open Forge</a>`;
-        } else {
-          forgeEl.textContent = "-";
-        }
-
-        const decodedPayload = data.payload ? JSON.stringify(data.payload, null, 2) : data.decoded;
-        decodedEl.textContent = decodedPayload || "-";
-
-        if (data.issuer === "sparky" && data.signature === "ok") {
-          badgeEl.classList.add("visible");
-        } else {
-          badgeEl.classList.remove("visible");
-        }
-
-        showFlow();
       });
     </script>
   </body>
 </html>
+"""
+)
+
+
+def slugify(name: str) -> str:
+    return name.replace("_", "-")
+
+
+def write_file(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Scaffold a Sparky Universe module.")
+    parser.add_argument("name", help="Module package name, e.g. qr_batch")
+    parser.add_argument("--title", help="Display title")
+    parser.add_argument("--description", help="One-line description")
+    parser.add_argument("--mount", help="Mount path, e.g. /qr/batch")
+    args = parser.parse_args()
+
+    name = args.name.strip()
+    if not name:
+        raise SystemExit("Module name is required.")
+
+    module_dir = MODULES_DIR / name
+    if module_dir.exists():
+        raise SystemExit(f"Module already exists: {module_dir}")
+
+    slug = slugify(name)
+    title = args.title or name.replace("_", " ").title()
+    description = args.description or "One-line purpose of the module."
+    mount = args.mount or f"/{slug}"
+
+    module_yaml = MODULE_YAML_TEMPLATE.substitute(
+        name=name,
+        title=title,
+        description=description,
+        mount=mount,
+    )
+    app_py = APP_TEMPLATE.substitute(name=name, title=title)
+    html = HTML_TEMPLATE.substitute(title=title, description=description)
+    story = f"# {title}\n\n{description}\n"
+
+    write_file(module_dir / "module.yaml", module_yaml)
+    write_file(module_dir / "__init__.py", "")
+    write_file(module_dir / "core" / "__init__.py", "")
+    write_file(module_dir / "tool" / "app.py", app_py)
+    write_file(module_dir / "tool" / "templates" / "index.html", html)
+    write_file(module_dir / "story.md", story)
+
+    print(f"Created module at {module_dir}")
+
+
+if __name__ == "__main__":
+    main()

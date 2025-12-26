@@ -1,0 +1,22 @@
+# Module template for Sparky Universe.
+# Copy this into modules/<name>/module.yaml and edit the fields.
+
+name: example
+title: Example Tool
+version: 0.0.1
+description: One-line purpose of the module.
+public: true
+
+entrypoints:
+  api: modules.example.tool.app:app
+
+mount: /example
+
+# Optional: label used in flow links.
+flow_label: Example flow
+
+# Optional: suggested next steps after success.
+flows:
+  after_success:
+    - target: qrverify
+      label: Verify this QR

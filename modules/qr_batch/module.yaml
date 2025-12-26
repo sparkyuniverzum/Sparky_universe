@@ -1,0 +1,15 @@
+name: qr_batch
+title: QR Batch
+version: 0.0.1
+description: Batch-generate signed QR codes from a list.
+public: true
+entrypoints:
+  api: modules.qr_batch.tool.app:app
+mount: /qr/batch
+flow_label: QR batch
+flows:
+  after_success:
+    - target: qrverify
+      label: Verify a QR
+    - target: qrforge
+      label: Forge a single QR
