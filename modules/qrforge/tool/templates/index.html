@@ -167,6 +167,54 @@
         pointer-events: none;
       }
 
+      .sparky-flow {
+        margin-top: 18px;
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(90, 200, 250, 0.25);
+        background: linear-gradient(140deg, rgba(13, 18, 26, 0.92), rgba(16, 22, 32, 0.7));
+        box-shadow: inset 0 0 0 1px rgba(123, 92, 255, 0.15);
+        display: none;
+      }
+
+      .sparky-flow.visible {
+        display: block;
+      }
+
+      .flow-title {
+        display: block;
+        font-size: 0.8rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(245, 247, 251, 0.6);
+        margin-bottom: 12px;
+      }
+
+      .sparky-flow ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .sparky-flow a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(14, 18, 24, 0.7);
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .sparky-flow a::after {
+        content: "→";
+        color: rgba(90, 200, 250, 0.8);
+      }
+
       a {
         color: var(--accent);
         text-decoration: none;
@@ -179,13 +227,13 @@
       <span class="brand-label">Sparky Universe</span>
       <h1>QR Forge</h1>
       <p>Create a signed QR payload for a new identity.</p>
-      <div class="ad-block inline">
+      <section class="ad-block inline" aria-label="Advertisement">
         <div class="ad-label">Sponsored</div>
         <div id="ad-inline" class="ad-slot inline" data-ad-slot="inline">
           <span class="ad-placeholder">Ad space</span>
         </div>
-      </div>
-      <form action="/qr" method="post">
+      </section>
+      <form id="forge-form" action="/qr" method="post">
         <label for="name">Name</label>
         <input id="name" name="name" placeholder="Sparky Module">
 
@@ -197,6 +245,17 @@
 
         <button type="submit">Generate QR</button>
       </form>
+      {% set has_flow = flow_links|length > 0 %}
+      <section id="sparky-flow" class="sparky-flow" data-has-links="{{ 'true' if has_flow else 'false' }}">
+        <span class="flow-title">Continue in Sparky Universe</span>
+        {% if has_flow %}
+        <ul>
+          {% for link in flow_links %}
+          <li><a href="{{ link.href }}" target="_blank" rel="noreferrer">{{ link.label }}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </section>
       <div class="meta">
         <span>Output: signed PNG</span>
         <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
@@ -208,5 +267,40 @@
         </div>
       </div>
     </main>
+    <script>
+      const form = document.getElementById("forge-form");
+      const flow = document.getElementById("sparky-flow");
+
+      const showFlow = () => {
+        if (flow && flow.dataset.hasLinks === "true") {
+          flow.classList.add("visible");
+        }
+      };
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch("/qr", { method: "POST", body: formData });
+          if (!response.ok) {
+            throw new Error("QR generation failed");
+          }
+
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "qr.png";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          showFlow();
+        } catch (error) {
+          showFlow();
+        }
+      });
+    </script>
   </body>
 </html>

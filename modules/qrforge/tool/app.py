@@ -21,14 +21,22 @@ if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")
 
 SECRET = os.getenv("QRFORGE_SECRET", "dev-secret")
+FLOW_VERIFY_URL = os.getenv("SPARKY_FLOW_VERIFY_URL")
+FLOW_BATCH_URL = os.getenv("SPARKY_FLOW_BATCH_URL")
 OUTPUT = BASE_DIR / "qr.png"
 
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
+    flow_links = []
+    if FLOW_VERIFY_URL:
+        flow_links.append({"label": "Verify this QR", "href": FLOW_VERIFY_URL})
+    if FLOW_BATCH_URL:
+        flow_links.append({"label": "Batch-generate QR codes", "href": FLOW_BATCH_URL})
+
     return templates.TemplateResponse(
         "index.html",
-        {"request": request},
+        {"request": request, "flow_links": flow_links},
     )
 
 

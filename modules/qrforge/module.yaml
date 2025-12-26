@@ -1,0 +1,8 @@
+name: qrforge
+title: QR Forge
+version: 0.0.1
+description: Forge signed QR payloads and images.
+flows:
+  after_success:
+    - qr-verify
+    - qr-batch

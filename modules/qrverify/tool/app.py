@@ -23,13 +23,21 @@ if BRAND_DIR.exists():
 
 SECRET = os.getenv("QRFORGE_SECRET", "dev-secret")
 FORGE_URL = os.getenv("QRFORGE_URL")
+FLOW_FORGE_URL = os.getenv("SPARKY_FLOW_FORGE_URL")
+FLOW_BATCH_URL = os.getenv("SPARKY_FLOW_BATCH_URL")
 
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
+    flow_links = []
+    if FLOW_FORGE_URL:
+        flow_links.append({"label": "Forge a new QR", "href": FLOW_FORGE_URL})
+    if FLOW_BATCH_URL:
+        flow_links.append({"label": "Batch-generate QR codes", "href": FLOW_BATCH_URL})
+
     return templates.TemplateResponse(
         "index.html",
-        {"request": request},
+        {"request": request, "flow_links": flow_links},
     )
 
 
