@@ -123,20 +123,41 @@
         flex-wrap: wrap;
       }
 
+      .ad-block {
+        margin: 16px 0 22px;
+      }
+
+      .ad-block.footer {
+        margin-top: 26px;
+      }
+
+      .ad-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(245, 247, 251, 0.55);
+        margin-bottom: 8px;
+      }
+
       .ad-slot {
         width: 100%;
-        min-height: 120px;
-        border: 1px dashed rgba(255, 255, 255, 0.12);
+        min-height: 180px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 14px;
-        background: rgba(14, 18, 24, 0.6);
+        background: linear-gradient(160deg, rgba(17, 22, 30, 0.9), rgba(10, 14, 19, 0.6));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
       }
 
-      .ad-inline {
-        margin-top: 20px;
-      }
-
-      .ad-footer {
-        margin-top: 24px;
+      .ad-placeholder {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.7);
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        padding: 6px 14px;
+        pointer-events: none;
       }
 
       a {
@@ -151,6 +172,12 @@
       <span class="brand-label">Sparky Universe</span>
       <h1>QR Forge</h1>
       <p>Create a signed QR payload for a new identity.</p>
+      <div class="ad-block">
+        <div class="ad-label">Sponsored</div>
+        <div id="ad-inline" class="ad-slot" data-ad-slot="inline">
+          <span class="ad-placeholder">Ad space</span>
+        </div>
+      </div>
       <form action="/qr" method="post">
         <label for="name">Name</label>
         <input id="name" name="name" placeholder="Sparky Module">
@@ -163,12 +190,16 @@
 
         <button type="submit">Generate QR</button>
       </form>
-      <div id="ad-inline" class="ad-slot ad-inline" data-ad-slot="inline"></div>
       <div class="meta">
         <span>Output: signed PNG</span>
         <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
       </div>
-      <div id="ad-footer" class="ad-slot ad-footer" data-ad-slot="footer"></div>
+      <div class="ad-block footer">
+        <div class="ad-label">Sponsored</div>
+        <div id="ad-footer" class="ad-slot" data-ad-slot="footer">
+          <span class="ad-placeholder">Ad space</span>
+        </div>
+      </div>
     </main>
   </body>
 </html>
