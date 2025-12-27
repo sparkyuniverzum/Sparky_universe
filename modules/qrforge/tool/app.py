@@ -10,12 +10,13 @@ from modules.qrforge.core.payload import build_identity_payload
 from modules.qrforge.core.sign import sign_payload
 from modules.qrforge.core.render import render_qr
 from universe.flows import resolve_flow_links
+from universe.settings import shared_templates_dir
 
 app = FastAPI(title="QR Forge")
 
 BASE_DIR = Path(__file__).parent
 ROOT_DIR = BASE_DIR.parents[2]
-SHARED_TEMPLATES = ROOT_DIR / "universe" / "templates"
+SHARED_TEMPLATES = shared_templates_dir(ROOT_DIR)
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
 )

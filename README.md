@@ -16,6 +16,8 @@ Each module must provide:
 - `modules/<name>/tool/templates/index.html` as the module UI.
 - `modules/<name>/core/` with the business logic.
 
+Internal shared modules (like `sparky_ui`) are `public: false` and can omit entrypoints and runtime code.
+
 ## Optional fields in module.yaml
 - `flow_label`: alternative label shown in flow links.
 - `flows`: next-step links shown after success.
@@ -64,11 +66,12 @@ SPARKY_MODULE=qrforge bash scripts/run_module.sh
 Set `SPARKY_MODULE` to `qrverify`, `qr_batch`, or any new module name.
 
 ## Shared UI templates
-Reusable partials live in `universe/templates/partials/`:
-- `ads.html` provides the ad slot markup.
-- `flow.html` provides the "Continue in Sparky Universe" section.
+Reusable UI lives in the internal module `modules/sparky_ui` (public: false):
+- `modules/sparky_ui/tool/templates/partials/ads.html`
+- `modules/sparky_ui/tool/templates/partials/flow.html`
+- `modules/sparky_ui/tool/templates/module_base.html`
 
-Base layout lives in `universe/templates/module_base.html` and should be used by module pages via `{% extends "module_base.html" %}`.
+Module pages should extend `{% extends "module_base.html" %}`.
 
 Module templates can import them with:
 ```html

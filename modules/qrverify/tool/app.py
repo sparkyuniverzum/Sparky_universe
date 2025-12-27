@@ -11,12 +11,13 @@ from fastapi.templating import Jinja2Templates
 from modules.qrverify.core.decode import decode_input
 from modules.qrverify.core.verify import verify_decoded
 from universe.flows import resolve_flow_links
+from universe.settings import shared_templates_dir
 
 app = FastAPI(title="QR Verify")
 
 BASE_DIR = Path(__file__).parent
 ROOT_DIR = BASE_DIR.parents[2]
-SHARED_TEMPLATES = ROOT_DIR / "universe" / "templates"
+SHARED_TEMPLATES = shared_templates_dir(ROOT_DIR)
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
 )

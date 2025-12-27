@@ -68,39 +68,6 @@
         pointer-events: none;
       }
 
-      .module-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 14px;
-      }
-
-      .module-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 0.72rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        background: rgba(90, 200, 250, 0.12);
-        border: 1px solid rgba(90, 200, 250, 0.35);
-        color: rgba(200, 240, 255, 0.95);
-      }
-
-      .module-footer {
-        margin-top: 18px;
-        display: flex;
-        justify-content: flex-end;
-      }
-
-      .module-badge.footer {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.12);
-        color: rgba(245, 247, 251, 0.7);
-        letter-spacing: 0.18em;
-      }
-
       h1 {
         margin: 0 0 8px;
         font-size: 2rem;
@@ -307,9 +274,6 @@
     <main class="panel">
       <img class="brand-mark" src="/brand/logo/sparky-universe.icon.png" alt="">
       <span class="brand-label">Sparky Universe</span>
-      <header class="module-header">
-        <span class="module-badge">Sparky Universe</span>
-      </header>
       <h1>{% block heading %}Sparky Module{% endblock %}</h1>
       <p>{% block description %}{% endblock %}</p>
       {% call ad_layout() %}
@@ -318,9 +282,6 @@
       {{ flow_section(flow_links) }}
       <div class="meta">{% block meta %}{% endblock %}</div>
       {% endcall %}
-      <footer class="module-footer">
-        <span class="module-badge footer">Public utility</span>
-      </footer>
     </main>
     {% block scripts %}{% endblock %}
   </body>
