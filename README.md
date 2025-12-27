@@ -68,6 +68,8 @@ Reusable partials live in `universe/templates/partials/`:
 - `ads.html` provides the ad slot markup.
 - `flow.html` provides the "Continue in Sparky Universe" section.
 
+Base layout lives in `universe/templates/module_base.html` and should be used by module pages via `{% extends "module_base.html" %}`.
+
 Module templates can import them with:
 ```html
 {% from "partials/ads.html" import ad_block %}

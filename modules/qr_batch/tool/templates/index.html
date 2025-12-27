@@ -1,364 +1,104 @@
-{% from "partials/ads.html" import ad_layout %}
-{% from "partials/flow.html" import flow_section %}
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>QR Batch</title>
-    <style>
-      :root {
-        --bg: #0f1116;
-        --card: #171b22;
-        --text: #f5f7fb;
-        --muted: #9aa6bf;
-        --accent: #5ac8fa;
-        --border: rgba(255, 255, 255, 0.08);
-      }
+{% extends "module_base.html" %}
 
-      * {
-        box-sizing: border-box;
-      }
+{% block title %}QR Batch{% endblock %}
+{% block heading %}QR Batch{% endblock %}
+{% block description %}Batch-generate signed QR codes from a list.{% endblock %}
 
-      body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: radial-gradient(circle at 20% 10%, rgba(90, 200, 250, 0.2), transparent 40%),
-          radial-gradient(circle at 80% 20%, rgba(131, 89, 255, 0.2), transparent 45%),
-          var(--bg);
-        color: var(--text);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 20px;
-      }
-
-      .panel {
-        width: min(640px, 100%);
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 32px;
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .brand-mark {
-        position: absolute;
-        top: 18px;
-        right: 18px;
-        width: 56px;
-        height: 56px;
-        object-fit: contain;
-        opacity: 0.2;
-        filter: drop-shadow(0 6px 16px rgba(90, 200, 250, 0.4));
-        pointer-events: none;
-      }
-
-      .brand-label {
-        position: absolute;
-        right: 20px;
-        bottom: 20px;
-        font-size: 0.75rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(245, 247, 251, 0.45);
-        pointer-events: none;
-      }
-
-      h1 {
-        margin: 0 0 8px;
-        font-size: 2rem;
-        letter-spacing: -0.02em;
-      }
-
-      p {
-        margin: 0 0 24px;
-        color: var(--muted);
-        line-height: 1.5;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 6px;
-        font-weight: 600;
-        font-size: 0.95rem;
-      }
-
-      input,
-      textarea {
-        width: 100%;
-        padding: 12px 14px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: #0e1218;
-        color: var(--text);
-        margin-bottom: 16px;
-        font-size: 1rem;
-      }
-
-      textarea {
-        min-height: 160px;
-        resize: vertical;
-      }
-
-      input:focus,
-      textarea:focus {
-        outline: 2px solid rgba(90, 200, 250, 0.4);
-        border-color: rgba(90, 200, 250, 0.6);
-      }
-
-      button {
-        width: 100%;
-        padding: 12px 16px;
-        border-radius: 12px;
-        border: none;
-        background: linear-gradient(135deg, #3cc9ff, #7b5cff);
-        color: #0a0f14;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-
-      .result {
-        margin-top: 20px;
-        padding: 16px;
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        background: rgba(14, 18, 24, 0.7);
-        display: none;
-      }
-
-      .result.visible {
-        display: block;
-      }
-
-      .result-title {
-        font-size: 0.8rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(245, 247, 251, 0.6);
-        margin-bottom: 10px;
-      }
-
+{% block extra_styles %}
       .hint {
         font-size: 0.85rem;
         color: rgba(167, 179, 199, 0.8);
         margin: -6px 0 16px;
       }
+{% endblock %}
 
-      pre {
-        margin: 0;
-        padding: 12px;
-        border-radius: 10px;
-        background: rgba(10, 14, 19, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        color: #dfe6f4;
-        white-space: pre-wrap;
-        word-break: break-word;
-      }
+{% block form %}
+<form id="module-form" action="/batch" method="post">
+  <label for="items">CSV list</label>
+  <textarea id="items" name="items" placeholder="name,supplier,supplier_sku&#10;Widget A,Acme,SKU-001&#10;Widget B,Acme,SKU-002"></textarea>
+  <div class="hint">One line per QR. Use commas, header is optional.</div>
+  <button type="submit">Generate ZIP</button>
+</form>
+{% endblock %}
 
-      .meta {
-        margin-top: 16px;
-        font-size: 0.9rem;
-        color: var(--muted);
-        display: flex;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-      }
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
 
-      .ad-block {
-        margin: 16px 0 22px;
-      }
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
 
-      .ad-block.inline {
-        margin: 12px 0 18px;
-      }
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
 
-      .ad-block.footer {
-        margin-top: 26px;
-      }
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
 
-      .ad-label {
-        font-size: 0.7rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(245, 247, 251, 0.55);
-        margin-bottom: 8px;
-      }
+  const setResult = (message) => {
+    result.classList.add("visible");
+    output.textContent = message;
+  };
 
-      .ad-slot {
-        width: 100%;
-        min-height: 180px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 14px;
-        background: linear-gradient(160deg, rgba(17, 22, 30, 0.9), rgba(10, 14, 19, 0.6));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
+  const getFilename = (disposition) => {
+    if (!disposition) {
+      return "qr-batch.zip";
+    }
+    const match = disposition.match(/filename="?([^";]+)"?/i);
+    return match ? match[1] : "qr-batch.zip";
+  };
 
-      .ad-slot.inline {
-        min-height: 120px;
-      }
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
 
-      .ad-placeholder {
-        font-size: 0.85rem;
-        color: rgba(167, 179, 199, 0.7);
-        border: 1px dashed rgba(255, 255, 255, 0.18);
-        border-radius: 999px;
-        padding: 6px 14px;
-        pointer-events: none;
-      }
-
-      .sparky-flow {
-        margin-top: 18px;
-        padding: 16px;
-        border-radius: 16px;
-        border: 1px solid rgba(90, 200, 250, 0.25);
-        background: linear-gradient(140deg, rgba(13, 18, 26, 0.92), rgba(16, 22, 32, 0.7));
-        box-shadow: inset 0 0 0 1px rgba(123, 92, 255, 0.15);
-        display: none;
-      }
-
-      .sparky-flow.visible {
-        display: block;
-      }
-
-      .flow-title {
-        display: block;
-        font-size: 0.8rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(245, 247, 251, 0.6);
-        margin-bottom: 12px;
-      }
-
-      .sparky-flow ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: grid;
-        gap: 10px;
-      }
-
-      .sparky-flow a {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(14, 18, 24, 0.7);
-        color: var(--text);
-        text-decoration: none;
-      }
-
-      .sparky-flow a::after {
-        content: "->";
-        color: rgba(90, 200, 250, 0.8);
-      }
-
-      a {
-        color: var(--accent);
-        text-decoration: none;
-      }
-    </style>
-  </head>
-  <body>
-    <main class="panel">
-      <img class="brand-mark" src="/brand/logo/sparky-universe.icon.png" alt="">
-      <span class="brand-label">Sparky Universe</span>
-      <h1>QR Batch</h1>
-      <p>Batch-generate signed QR codes from a list.</p>
-      {% call ad_layout() %}
-      <form id="module-form" action="/batch" method="post">
-        <label for="items">CSV list</label>
-        <textarea id="items" name="items" placeholder="name,supplier,supplier_sku&#10;Widget A,Acme,SKU-001&#10;Widget B,Acme,SKU-002"></textarea>
-        <div class="hint">One line per QR. Use commas, header is optional.</div>
-        <button type="submit">Generate ZIP</button>
-      </form>
-      <section id="result" class="result">
-        <div class="result-title">Result</div>
-        <pre id="output">-</pre>
-      </section>
-      {{ flow_section(flow_links) }}
-      <div class="meta">
-        <span>Fast utility, zero accounts.</span>
-        <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
-      </div>
-      {% endcall %}
-    </main>
-    <script>
-      const form = document.getElementById("module-form");
-      const result = document.getElementById("result");
-      const output = document.getElementById("output");
-      const flow = document.getElementById("sparky-flow");
-
-      const showFlow = () => {
-        if (flow && flow.dataset.hasLinks === "true") {
-          flow.classList.add("visible");
-        }
-      };
-
-      const setResult = (message) => {
-        result.classList.add("visible");
-        output.textContent = message;
-      };
-
-      const getFilename = (disposition) => {
-        if (!disposition) {
-          return "qr-batch.zip";
-        }
-        const match = disposition.match(/filename="?([^\";]+)"?/i);
-        return match ? match[1] : "qr-batch.zip";
-      };
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const formData = new FormData(form);
-
+    try {
+      const response = await fetch(form.action, { method: "POST", body: formData });
+      if (!response.ok) {
+        let message = "Batch failed";
         try {
-          const response = await fetch(form.action, { method: "POST", body: formData });
-          if (!response.ok) {
-            let message = "Batch failed";
-            try {
-              const data = await response.json();
-              if (data && data.error) {
-                message = data.error;
-              }
-            } catch (error) {
-              message = "Batch failed";
-            }
-            setResult(message);
-            showFlow();
-            return;
+          const data = await response.json();
+          if (data && data.error) {
+            message = data.error;
           }
-
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          const filename = getFilename(response.headers.get("content-disposition"));
-          const count = response.headers.get("x-qr-count");
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-          const countLabel = count ? `${count} QR codes` : "QR codes";
-          setResult(`Download started for ${countLabel}.`);
         } catch (error) {
-          setResult("Request failed");
-        } finally {
-          showFlow();
+          message = "Batch failed";
         }
-      });
-    </script>
-  </body>
-</html>
+        setResult(message);
+        showFlow();
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const filename = getFilename(response.headers.get("content-disposition"));
+      const count = response.headers.get("x-qr-count");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      const countLabel = count ? `${count} QR codes` : "QR codes";
+      setResult(`Download started for ${countLabel}.`);
+    } catch (error) {
+      setResult("Request failed");
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -70,318 +70,63 @@ def run(input_text: str | None = Form(None)):
 )
 
 HTML_TEMPLATE = Template(
-    """{% from "partials/ads.html" import ad_layout %}
-{% from "partials/flow.html" import flow_section %}
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${title}</title>
-    <style>
-      :root {
-        --bg: #0f1116;
-        --card: #171b22;
-        --text: #f5f7fb;
-        --muted: #9aa6bf;
-        --accent: #5ac8fa;
-        --border: rgba(255, 255, 255, 0.08);
-      }
+    """{% extends "module_base.html" %}
 
-      * {
-        box-sizing: border-box;
-      }
+{% block title %}${title}{% endblock %}
+{% block heading %}${title}{% endblock %}
+{% block description %}${description}{% endblock %}
 
-      body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: radial-gradient(circle at 20% 10%, rgba(90, 200, 250, 0.2), transparent 40%),
-          radial-gradient(circle at 80% 20%, rgba(131, 89, 255, 0.2), transparent 45%),
-          var(--bg);
-        color: var(--text);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 20px;
-      }
+{% block form %}
+<form id="module-form" action="/run" method="post">
+  <label for="input_text">Input</label>
+  <input id="input_text" name="input_text" placeholder="Type here">
+  <button type="submit">Run</button>
+</form>
+{% endblock %}
 
-      .panel {
-        width: min(640px, 100%);
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 32px;
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
-        position: relative;
-        overflow: hidden;
-      }
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
 
-      .brand-mark {
-        position: absolute;
-        top: 18px;
-        right: 18px;
-        width: 56px;
-        height: 56px;
-        object-fit: contain;
-        opacity: 0.2;
-        filter: drop-shadow(0 6px 16px rgba(90, 200, 250, 0.4));
-        pointer-events: none;
-      }
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
 
-      .brand-label {
-        position: absolute;
-        right: 20px;
-        bottom: 20px;
-        font-size: 0.75rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(245, 247, 251, 0.45);
-        pointer-events: none;
-      }
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
 
-      h1 {
-        margin: 0 0 8px;
-        font-size: 2rem;
-        letter-spacing: -0.02em;
-      }
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
 
-      p {
-        margin: 0 0 24px;
-        color: var(--muted);
-        line-height: 1.5;
-      }
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
 
-      label {
-        display: block;
-        margin-bottom: 6px;
-        font-weight: 600;
-        font-size: 0.95rem;
-      }
-
-      input {
-        width: 100%;
-        padding: 12px 14px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: #0e1218;
-        color: var(--text);
-        margin-bottom: 16px;
-        font-size: 1rem;
-      }
-
-      input:focus {
-        outline: 2px solid rgba(90, 200, 250, 0.4);
-        border-color: rgba(90, 200, 250, 0.6);
-      }
-
-      button {
-        width: 100%;
-        padding: 12px 16px;
-        border-radius: 12px;
-        border: none;
-        background: linear-gradient(135deg, #3cc9ff, #7b5cff);
-        color: #0a0f14;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-
-      .result {
-        margin-top: 20px;
-        padding: 16px;
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        background: rgba(14, 18, 24, 0.7);
-        display: none;
-      }
-
-      .result.visible {
-        display: block;
-      }
-
-      .result-title {
-        font-size: 0.8rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(245, 247, 251, 0.6);
-        margin-bottom: 10px;
-      }
-
-      pre {
-        margin: 0;
-        padding: 12px;
-        border-radius: 10px;
-        background: rgba(10, 14, 19, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        color: #dfe6f4;
-        white-space: pre-wrap;
-        word-break: break-word;
-      }
-
-      .meta {
-        margin-top: 16px;
-        font-size: 0.9rem;
-        color: var(--muted);
-        display: flex;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-      }
-
-      .ad-block {
-        margin: 16px 0 22px;
-      }
-
-      .ad-block.inline {
-        margin: 12px 0 18px;
-      }
-
-      .ad-block.footer {
-        margin-top: 26px;
-      }
-
-      .ad-label {
-        font-size: 0.7rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(245, 247, 251, 0.55);
-        margin-bottom: 8px;
-      }
-
-      .ad-slot {
-        width: 100%;
-        min-height: 180px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 14px;
-        background: linear-gradient(160deg, rgba(17, 22, 30, 0.9), rgba(10, 14, 19, 0.6));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
-
-      .ad-slot.inline {
-        min-height: 120px;
-      }
-
-      .ad-placeholder {
-        font-size: 0.85rem;
-        color: rgba(167, 179, 199, 0.7);
-        border: 1px dashed rgba(255, 255, 255, 0.18);
-        border-radius: 999px;
-        padding: 6px 14px;
-        pointer-events: none;
-      }
-
-      .sparky-flow {
-        margin-top: 18px;
-        padding: 16px;
-        border-radius: 16px;
-        border: 1px solid rgba(90, 200, 250, 0.25);
-        background: linear-gradient(140deg, rgba(13, 18, 26, 0.92), rgba(16, 22, 32, 0.7));
-        box-shadow: inset 0 0 0 1px rgba(123, 92, 255, 0.15);
-        display: none;
-      }
-
-      .sparky-flow.visible {
-        display: block;
-      }
-
-      .flow-title {
-        display: block;
-        font-size: 0.8rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(245, 247, 251, 0.6);
-        margin-bottom: 12px;
-      }
-
-      .sparky-flow ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: grid;
-        gap: 10px;
-      }
-
-      .sparky-flow a {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(14, 18, 24, 0.7);
-        color: var(--text);
-        text-decoration: none;
-      }
-
-      .sparky-flow a::after {
-        content: "->";
-        color: rgba(90, 200, 250, 0.8);
-      }
-
-      a {
-        color: var(--accent);
-        text-decoration: none;
-      }
-    </style>
-  </head>
-  <body>
-    <main class="panel">
-      <img class="brand-mark" src="/brand/logo/sparky-universe.icon.png" alt="">
-      <span class="brand-label">Sparky Universe</span>
-      <h1>${title}</h1>
-      <p>${description}</p>
-      {% call ad_layout() %}
-      <form id="module-form" action="/run" method="post">
-        <label for="input_text">Input</label>
-        <input id="input_text" name="input_text" placeholder="Type here">
-        <button type="submit">Run</button>
-      </form>
-      <section id="result" class="result">
-        <div class="result-title">Result</div>
-        <pre id="output">-</pre>
-      </section>
-      {{ flow_section(flow_links) }}
-      <div class="meta">
-        <span>Fast utility, zero accounts.</span>
-        <a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
-      </div>
-      {% endcall %}
-    </main>
-    <script>
-      const form = document.getElementById("module-form");
-      const result = document.getElementById("result");
-      const output = document.getElementById("output");
-      const flow = document.getElementById("sparky-flow");
-
-      const showFlow = () => {
-        if (flow && flow.dataset.hasLinks === "true") {
-          flow.classList.add("visible");
-        }
-      };
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const formData = new FormData(form);
-
-        try {
-          const response = await fetch(form.action, { method: "POST", body: formData });
-          const data = await response.json();
-          result.classList.add("visible");
-          output.textContent = JSON.stringify(data, null, 2);
-        } catch (error) {
-          result.classList.add("visible");
-          output.textContent = "Request failed";
-        } finally {
-          showFlow();
-        }
-      });
-    </script>
-  </body>
-</html>
+    try {
+      const response = await fetch(form.action, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
 """
 )
 
