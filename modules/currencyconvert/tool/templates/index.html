@@ -1,0 +1,101 @@
+{% extends "module_base.html" %}
+
+{% block title %}Currency Converter{% endblock %}
+{% block heading %}Currency Converter{% endblock %}
+{% block description %}Convert currency using a manual exchange rate.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="currency-form" action="{{ base_path }}/convert" method="post">
+  <label for="amount">Amount</label>
+  <input id="amount" name="amount" placeholder="100">
+
+  <label for="rate">Rate</label>
+  <input id="rate" name="rate" placeholder="1.08">
+  <div class="hint">Example: 1 base = 1.08 target.</div>
+
+  <div class="field-row">
+    <div>
+      <label for="direction">Direction</label>
+      <select id="direction" name="direction">
+        <option value="multiply" selected>Base → Target</option>
+        <option value="divide">Target → Base</option>
+      </select>
+    </div>
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+  </div>
+
+  <button type="submit">Convert currency</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Manual rates only, no external APIs.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("currency-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/convert`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Conversion failed";
+      } else {
+        output.textContent = [
+          `amount: ${data.amount}`,
+          `rate: ${data.rate}`,
+          `result: ${data.result}`,
+          `formula: ${data.formula}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

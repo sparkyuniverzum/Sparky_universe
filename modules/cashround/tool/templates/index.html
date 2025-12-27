@@ -1,0 +1,113 @@
+{% extends "module_base.html" %}
+
+{% block title %}Cash Rounding Calculator{% endblock %}
+{% block heading %}Cash Rounding Calculator{% endblock %}
+{% block description %}Round totals to cash steps and compute change.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="cash-form" action="{{ base_path }}/calc" method="post">
+  <label for="amount">Amount</label>
+  <input id="amount" name="amount" placeholder="19.98">
+
+  <div class="field-row">
+    <div>
+      <label for="step">Cash step</label>
+      <input id="step" name="step" placeholder="0.05">
+    </div>
+    <div>
+      <label for="mode">Rounding mode</label>
+      <select id="mode" name="mode">
+        <option value="nearest" selected>Nearest</option>
+        <option value="up">Always up</option>
+        <option value="down">Always down</option>
+      </select>
+    </div>
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+  </div>
+
+  <label for="paid">Paid amount (optional)</label>
+  <input id="paid" name="paid" placeholder="20.00">
+  <div class="hint">If paid is set, change is calculated from the rounded total.</div>
+
+  <button type="submit">Calculate rounding</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Use common steps like 0.05 or 0.10.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("cash-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/calc`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Calculation failed";
+      } else {
+        const lines = [
+          `amount: ${data.amount}`,
+          `step: ${data.step}`,
+          `rounded_total: ${data.rounded_total}`,
+          `delta: ${data.delta}`,
+        ];
+        if (data.paid) {
+          lines.push(`paid: ${data.paid}`);
+        }
+        if (data.change) {
+          lines.push(`change: ${data.change}`);
+        }
+        output.textContent = lines.join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

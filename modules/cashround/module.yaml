@@ -1,0 +1,11 @@
+name: cashround
+title: Cash Rounding Calculator
+version: 0.0.1
+description: Round totals to cash steps and compute change.
+public: true
+category: Money
+entrypoints:
+  api: modules.cashround.tool.app:app
+mount: /cash/round
+flows:
+  after_success: []

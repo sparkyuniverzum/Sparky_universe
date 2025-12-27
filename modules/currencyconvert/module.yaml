@@ -1,0 +1,11 @@
+name: currencyconvert
+title: Currency Converter
+version: 0.0.1
+description: Convert currency using a manual exchange rate.
+public: true
+category: Money
+entrypoints:
+  api: modules.currencyconvert.tool.app:app
+mount: /currency/convert
+flows:
+  after_success: []

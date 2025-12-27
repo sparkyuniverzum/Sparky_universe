@@ -1,0 +1,11 @@
+name: moneysplit
+title: Money Splitter
+version: 0.0.1
+description: Split an amount into equal parts.
+public: true
+category: Money
+entrypoints:
+  api: modules.moneysplit.tool.app:app
+mount: /money/split
+flows:
+  after_success: []

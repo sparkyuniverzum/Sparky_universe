@@ -1,0 +1,11 @@
+name: tipsplit
+title: Tip & Split Calculator
+version: 0.0.1
+description: Add a tip and split the total by people.
+public: true
+category: Money
+entrypoints:
+  api: modules.tipsplit.tool.app:app
+mount: /tip/split
+flows:
+  after_success: []

@@ -1,0 +1,121 @@
+{% extends "module_base.html" %}
+
+{% block title %}Money Splitter{% endblock %}
+{% block heading %}Money Splitter{% endblock %}
+{% block description %}Split an amount into equal parts.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .parts-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 6px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="split-form" action="{{ base_path }}/split" method="post">
+  <label for="amount">Amount</label>
+  <input id="amount" name="amount" placeholder="120.50">
+
+  <div class="field-row">
+    <div>
+      <label for="parts">Parts</label>
+      <input id="parts" name="parts" placeholder="3">
+    </div>
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+  </div>
+
+  <div class="hint">Remainder cents are distributed to the first parts.</div>
+
+  <button type="submit">Split amount</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+  <div id="parts-list" class="parts-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Quickly split bills and invoices.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("split-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const partsList = document.getElementById("parts-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const clearParts = () => {
+    partsList.innerHTML = "";
+  };
+
+  const renderParts = (parts) => {
+    clearParts();
+    parts.forEach((value, index) => {
+      const line = document.createElement("div");
+      line.textContent = `part_${index + 1}: ${value}`;
+      partsList.appendChild(line);
+    });
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/split`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Split failed";
+        clearParts();
+      } else {
+        output.textContent = [
+          `total: ${data.total}`,
+          `parts: ${data.parts_count}`,
+          `base_part: ${data.base_part}`,
+          `remainder_parts: ${data.remainder_parts}`,
+          `remainder_total: ${data.remainder_total}`,
+        ].join("\n");
+        renderParts(data.parts || []);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearParts();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
