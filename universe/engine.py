@@ -12,16 +12,16 @@ from fastapi.templating import Jinja2Templates
 from universe.registry import load_modules
 
 CATEGORY_DESCRIPTIONS = {
-    "QR": "Tvorba, overeni a upravy QR kodu pro tisk i sdileni.",
-    "Conversion": "Prevody jednotek (delka, hmotnost, objem, teplota) v jednom formulare.",
-    "Numbers": "Cisteni a normalizace cisel pro dalsi zpracovani.",
-    "Money": "Formatovani castky a meny do citelne podoby.",
-    "Finance": "Rychle vypocty DPH a procent pro kontrolu cen.",
-    "Data": "Hromadne zpracovani dat, napriklad CSV normalizace.",
-    "Utilities": "Male, prakticke pomucky pro rychle jednorazove ulohy.",
-    "Other": "Ostatni uzitecne moduly mimo hlavni kategorie.",
+    "QR": "Create, verify, and edit QR codes for print and sharing.",
+    "Conversion": "Unit conversions across length, mass, volume, and temperature.",
+    "Numbers": "Clean and normalize numbers for downstream use.",
+    "Money": "Format amounts and currencies into readable output.",
+    "Finance": "Quick VAT and percentage calculations for price checks.",
+    "Data": "Batch-friendly utilities like CSV normalization.",
+    "Utilities": "Small, practical tools for quick one-off tasks.",
+    "Other": "Useful modules that do not fit a core category.",
 }
-DEFAULT_CATEGORY_DESCRIPTION = "Prakticke utilitky pro rychle ukoly."
+DEFAULT_CATEGORY_DESCRIPTION = "Practical utilities for quick tasks."
 
 
 def _slugify(value: str) -> str:

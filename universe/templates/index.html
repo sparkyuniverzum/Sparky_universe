@@ -99,7 +99,7 @@
   <body>
     <main class="panel">
       <h1>Sparky Universe</h1>
-      <p>Prehled kategorii a jejich modulu.</p>
+      <p>Browse categories and open the modules you need.</p>
       <div class="categories">
         {% for category in categories %}
         <section class="category-card">
@@ -109,7 +109,7 @@
           </div>
           <p class="category-desc">{{ category.description }}</p>
           <a class="category-link" href="{{ base_path }}/category/{{ category.slug }}">
-            Zobrazit moduly
+            View modules
           </a>
         </section>
         {% endfor %}

@@ -1,0 +1,133 @@
+{% extends "module_base.html" %}
+
+{% block title %}CSV Cleaner{% endblock %}
+{% block heading %}CSV Cleaner{% endblock %}
+{% block description %}Clean CSV files by trimming and removing empty rows.{% endblock %}
+
+{% block extra_styles %}
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="csv-form" action="{{ base_path }}/clean" method="post" enctype="multipart/form-data">
+  <label for="csv_file">Upload CSV</label>
+  <input id="csv_file" name="file" type="file" accept=".csv,text/csv">
+
+  <div class="field-row">
+    <label class="inline" for="trim_cells">
+      <input id="trim_cells" name="trim_cells" type="checkbox" value="true" checked>
+      Trim whitespace in cells
+    </label>
+    <label class="inline" for="remove_empty_rows">
+      <input id="remove_empty_rows" name="remove_empty_rows" type="checkbox" value="true" checked>
+      Remove empty rows
+    </label>
+  </div>
+
+  <label for="delimiter">Output delimiter</label>
+  <select id="delimiter" name="delimiter">
+    <option value="auto" selected>Keep input delimiter</option>
+    <option value="comma">Comma (,)</option>
+    <option value="semicolon">Semicolon (;)</option>
+    <option value="tab">Tab</option>
+    <option value="pipe">Pipe (|)</option>
+  </select>
+  <div class="hint">The output file is always UTF-8.</div>
+
+  <button type="submit">Clean CSV</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Status</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Uploads CSV and returns a cleaned version.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("csv-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const setStatus = (message) => {
+    result.classList.add("visible");
+    output.textContent = message;
+  };
+
+  const getFilename = (disposition) => {
+    if (!disposition) {
+      return "cleaned.csv";
+    }
+    const match = disposition.match(/filename="?([^";]+)"?/i);
+    return match ? match[1] : "cleaned.csv";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/clean`, { method: "POST", body: formData });
+      if (!response.ok) {
+        const data = await response.json();
+        setStatus(data.error || "CSV clean failed");
+        showFlow();
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const filename = getFilename(response.headers.get("content-disposition"));
+      const rows = response.headers.get("x-row-count");
+      const removed = response.headers.get("x-removed-count");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      const rowsLabel = rows ? `${rows} rows` : "rows";
+      const removedLabel = removed ? `${removed} removed` : "removed";
+      setStatus(`Download started for ${rowsLabel} (${removedLabel}).`);
+    } catch (error) {
+      setStatus("Request failed");
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

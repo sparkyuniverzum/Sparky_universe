@@ -1,0 +1,123 @@
+{% extends "module_base.html" %}
+
+{% block title %}CSV Deduplicator{% endblock %}
+{% block heading %}CSV Deduplicator{% endblock %}
+{% block description %}Remove duplicate rows from CSV files.{% endblock %}
+
+{% block extra_styles %}
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="csv-form" action="{{ base_path }}/dedupe" method="post" enctype="multipart/form-data">
+  <label for="csv_file">Upload CSV</label>
+  <input id="csv_file" name="file" type="file" accept=".csv,text/csv">
+
+  <label for="columns">Key columns (1-based, optional)</label>
+  <input id="columns" name="columns" placeholder="1, 3">
+  <div class="hint">Leave blank to dedupe whole rows. Keeps the first occurrence.</div>
+
+  <div class="field-row">
+    <label class="inline" for="has_header">
+      <input id="has_header" name="has_header" type="checkbox" value="true">
+      File has header row
+    </label>
+  </div>
+
+  <button type="submit">Deduplicate CSV</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Status</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Uploads CSV and returns deduped rows.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("csv-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const setStatus = (message) => {
+    result.classList.add("visible");
+    output.textContent = message;
+  };
+
+  const getFilename = (disposition) => {
+    if (!disposition) {
+      return "deduped.csv";
+    }
+    const match = disposition.match(/filename="?([^";]+)"?/i);
+    return match ? match[1] : "deduped.csv";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/dedupe`, { method: "POST", body: formData });
+      if (!response.ok) {
+        const data = await response.json();
+        setStatus(data.error || "CSV dedupe failed");
+        showFlow();
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const filename = getFilename(response.headers.get("content-disposition"));
+      const removed = response.headers.get("x-removed-count");
+      const total = response.headers.get("x-row-count");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      const removedLabel = removed ? `${removed} removed` : "removed";
+      const totalLabel = total ? `${total} kept` : "kept";
+      setStatus(`Download started. ${removedLabel}, ${totalLabel}.`);
+    } catch (error) {
+      setStatus("Request failed");
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

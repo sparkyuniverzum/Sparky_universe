@@ -1,0 +1,11 @@
+name: csvdedupe
+title: CSV Deduplicator
+version: 0.0.1
+description: Remove duplicate rows from CSV files.
+public: true
+category: Data
+entrypoints:
+  api: modules.csvdedupe.tool.app:app
+mount: /csv/dedupe
+flows:
+  after_success: []

@@ -1,0 +1,11 @@
+name: csvclean
+title: CSV Cleaner
+version: 0.0.1
+description: Clean CSV files by trimming and removing empty rows.
+public: true
+category: Data
+entrypoints:
+  api: modules.csvclean.tool.app:app
+mount: /csv/clean
+flows:
+  after_success: []

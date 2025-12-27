@@ -1,0 +1,11 @@
+name: fueleconomy
+title: Fuel Economy Converter
+version: 0.0.1
+description: Convert fuel economy between L/100 km and MPG.
+public: true
+category: Conversion
+entrypoints:
+  api: modules.fueleconomy.tool.app:app
+mount: /fuel/economy
+flows:
+  after_success: []

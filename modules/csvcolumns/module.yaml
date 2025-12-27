@@ -1,0 +1,11 @@
+name: csvcolumns
+title: CSV Column Extractor
+version: 0.0.1
+description: Extract selected columns from CSV files.
+public: true
+category: Data
+entrypoints:
+  api: modules.csvcolumns.tool.app:app
+mount: /csv/columns
+flows:
+  after_success: []
