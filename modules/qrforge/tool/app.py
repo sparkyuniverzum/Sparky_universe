@@ -15,7 +15,7 @@ from universe.settings import shared_templates_dir
 app = FastAPI(title="QR Forge")
 
 BASE_DIR = Path(__file__).parent
-ROOT_DIR = BASE_DIR.parents[3]
+ROOT_DIR = BASE_DIR.parents[2]
 SHARED_TEMPLATES = shared_templates_dir(ROOT_DIR)
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
