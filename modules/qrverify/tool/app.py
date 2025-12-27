@@ -35,10 +35,11 @@ FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
+    base_path = request.url.path.rstrip("/")
     flow_links = resolve_flow_links("qrverify", base_url=FLOW_BASE_URL)
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "flow_links": flow_links},
+        {"request": request, "flow_links": flow_links, "base_path": base_path},
     )
 
 

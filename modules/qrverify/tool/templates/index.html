@@ -71,7 +71,7 @@
 {% endblock %}
 
 {% block form %}
-<form id="verify-form" enctype="multipart/form-data">
+<form id="verify-form" action="{{ base_path }}/verify" enctype="multipart/form-data">
   <label for="file">Upload QR image (PNG/JPG)</label>
   <input id="file" name="file" type="file" accept="image/*">
 
@@ -138,11 +138,13 @@
     }
   };
 
+  const basePath = "{{ base_path }}";
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
 
-    const response = await fetch("/verify", {
+    const response = await fetch(`${basePath}/verify`, {
       method: "POST",
       body: formData,
     });

@@ -35,10 +35,11 @@ SECRET = os.getenv("QRFORGE_SECRET", "dev-secret")
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
+    base_path = request.url.path.rstrip("/")
     flow_links = resolve_flow_links("qr_batch", base_url=FLOW_BASE_URL)
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "flow_links": flow_links},
+        {"request": request, "flow_links": flow_links, "base_path": base_path},
     )
 
 

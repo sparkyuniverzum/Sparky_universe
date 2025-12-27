@@ -19,7 +19,7 @@
 {% endblock %}
 
 {% block form %}
-<form id="edit-form" method="post" enctype="multipart/form-data">
+<form id="edit-form" action="{{ base_path }}/decode" method="post" enctype="multipart/form-data">
   <label for="file">Upload QR image (PNG/JPG)</label>
   <input id="file" name="file" type="file" accept="image/*">
 
@@ -87,13 +87,15 @@
     return data;
   };
 
+  const basePath = "{{ base_path }}";
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const action = event.submitter?.dataset.action || "decode";
 
     try {
       if (action === "decode") {
-        const response = await fetch("/decode", { method: "POST", body: buildDecodeData() });
+        const response = await fetch(`${basePath}/decode`, { method: "POST", body: buildDecodeData() });
         const data = await response.json();
 
         if (!response.ok || data.error) {
@@ -108,7 +110,7 @@
         return;
       }
 
-      const response = await fetch("/qr", { method: "POST", body: buildQrData() });
+      const response = await fetch(`${basePath}/qr`, { method: "POST", body: buildQrData() });
       if (!response.ok) {
         let message = "QR generation failed";
         try {

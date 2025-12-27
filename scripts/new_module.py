@@ -57,10 +57,11 @@ FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
+    base_path = request.url.path.rstrip("/")
     flow_links = resolve_flow_links("${name}", base_url=FLOW_BASE_URL)
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "flow_links": flow_links},
+        {"request": request, "flow_links": flow_links, "base_path": base_path},
     )
 
 
@@ -78,7 +79,7 @@ HTML_TEMPLATE = Template(
 {% block description %}${description}{% endblock %}
 
 {% block form %}
-<form id="module-form" action="/run" method="post">
+<form id="module-form" action="{{ base_path }}/run" method="post">
   <label for="input_text">Input</label>
   <input id="input_text" name="input_text" placeholder="Type here">
   <button type="submit">Run</button>
@@ -110,12 +111,14 @@ HTML_TEMPLATE = Template(
     }
   };
 
+  const basePath = "{{ base_path }}";
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
 
     try {
-      const response = await fetch(form.action, { method: "POST", body: formData });
+      const response = await fetch(`${basePath}/run`, { method: "POST", body: formData });
       const data = await response.json();
       result.classList.add("visible");
       output.textContent = JSON.stringify(data, null, 2);

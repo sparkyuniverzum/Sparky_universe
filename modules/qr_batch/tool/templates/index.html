@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block form %}
-<form id="module-form" action="/batch" method="post">
+<form id="module-form" action="{{ base_path }}/batch" method="post">
   <label for="items">CSV list</label>
   <textarea id="items" name="items" placeholder="name,supplier,supplier_sku&#10;Widget A,Acme,SKU-001&#10;Widget B,Acme,SKU-002"></textarea>
   <div class="hint">One line per QR. Use commas, header is optional.</div>

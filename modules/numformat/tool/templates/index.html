@@ -5,7 +5,7 @@
 {% block description %}Normalize messy numbers into clean decimal outputs.{% endblock %}
 
 {% block form %}
-<form id="format-form" action="/format" method="post">
+<form id="format-form" action="{{ base_path }}/format" method="post">
   <label for="value">Number value</label>
   <input id="value" name="value" placeholder="1 234,50">
   <button type="submit">Normalize</button>
@@ -47,12 +47,14 @@
     ].join("\n");
   };
 
+  const basePath = "{{ base_path }}";
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
 
     try {
-      const response = await fetch(form.action, { method: "POST", body: formData });
+      const response = await fetch(`${basePath}/format`, { method: "POST", body: formData });
       const data = await response.json();
       result.classList.add("visible");
       if (!response.ok || data.error) {

@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block form %}
-<form id="decode-form" action="/decode" method="post" enctype="multipart/form-data">
+<form id="decode-form" action="{{ base_path }}/decode" method="post" enctype="multipart/form-data">
   <label for="file">Upload QR image (PNG/JPG)</label>
   <input id="file" name="file" type="file" accept="image/*">
 
@@ -59,12 +59,14 @@
     jsonEl.hidden = true;
   };
 
+  const basePath = "{{ base_path }}";
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
 
     try {
-      const response = await fetch(form.action, { method: "POST", body: formData });
+      const response = await fetch(`${basePath}/decode`, { method: "POST", body: formData });
       const data = await response.json();
       result.classList.add("visible");
       resetJson();

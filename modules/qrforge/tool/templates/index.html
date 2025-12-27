@@ -5,7 +5,7 @@
 {% block description %}Create a signed QR payload for a new identity.{% endblock %}
 
 {% block form %}
-<form id="forge-form" action="/qr" method="post">
+<form id="forge-form" action="{{ base_path }}/qr" method="post">
   <label for="name">Name</label>
   <input id="name" name="name" placeholder="Sparky Module">
 
@@ -35,12 +35,14 @@
     }
   };
 
+  const basePath = "{{ base_path }}";
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
 
     try {
-      const response = await fetch("/qr", { method: "POST", body: formData });
+      const response = await fetch(`${basePath}/qr`, { method: "POST", body: formData });
       if (!response.ok) {
         throw new Error("QR generation failed");
       }
