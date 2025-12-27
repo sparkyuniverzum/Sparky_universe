@@ -30,6 +30,7 @@
   const result = document.getElementById("result");
   const output = document.getElementById("output");
   const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
 
   const showFlow = () => {
     if (flow && flow.dataset.hasLinks === "true") {
@@ -46,8 +47,6 @@
       `q4: ${data.q4}`,
     ].join("\n");
   };
-
-  const basePath = "{{ base_path }}";
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();

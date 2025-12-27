@@ -118,7 +118,7 @@ HTML_TEMPLATE = Template(
     const formData = new FormData(form);
 
     try {
-      const response = await fetch(`${basePath}/run`, { method: "POST", body: formData });
+      const response = await fetch(`$${basePath}/run`, { method: "POST", body: formData });
       const data = await response.json();
       result.classList.add("visible");
       output.textContent = JSON.stringify(data, null, 2);

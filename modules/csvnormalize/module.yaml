@@ -1,0 +1,10 @@
+name: csvnormalize
+title: CSV Number Normalizer
+version: 0.0.1
+description: Normalize number columns in CSV files.
+public: true
+entrypoints:
+  api: modules.csvnormalize.tool.app:app
+mount: /csv/normalize
+flows:
+  after_success: []

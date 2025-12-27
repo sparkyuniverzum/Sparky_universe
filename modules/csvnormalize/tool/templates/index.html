@@ -1,0 +1,100 @@
+{% extends "module_base.html" %}
+
+{% block title %}CSV Number Normalizer{% endblock %}
+{% block heading %}CSV Number Normalizer{% endblock %}
+{% block description %}Normalize number columns in CSV files.{% endblock %}
+
+{% block extra_styles %}
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="csv-form" action="{{ base_path }}/normalize" method="post" enctype="multipart/form-data">
+  <label for="csv_file">Upload CSV</label>
+  <input id="csv_file" name="file" type="file" accept=".csv,text/csv">
+
+  <label for="column">Column (1-based)</label>
+  <input id="column" name="column" placeholder="1">
+  <div class="hint">Header is optional. Output adds normalized columns + error.</div>
+  <button type="submit">Normalize CSV</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Status</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Uploads CSV and returns enriched rows with q2/q3/q4.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("csv-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const setStatus = (message) => {
+    result.classList.add("visible");
+    output.textContent = message;
+  };
+
+  const getFilename = (disposition) => {
+    if (!disposition) {
+      return "normalized.csv";
+    }
+    const match = disposition.match(/filename="?([^\";]+)"?/i);
+    return match ? match[1] : "normalized.csv";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/normalize`, { method: "POST", body: formData });
+      if (!response.ok) {
+        const data = await response.json();
+        setStatus(data.error || "CSV normalization failed");
+        showFlow();
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const filename = getFilename(response.headers.get("content-disposition"));
+      const count = response.headers.get("x-normalized-count");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      const countLabel = count ? `${count} rows` : "rows";
+      setStatus(`Download started for ${countLabel}.`);
+    } catch (error) {
+      setStatus("Request failed");
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
