@@ -1,0 +1,11 @@
+name: totalprofitcalc
+title: Total Profit Calculator
+version: 0.0.1
+description: Calculate total profit from price, cost, and quantity.
+public: true
+category: Finance
+entrypoints:
+  api: modules.totalprofitcalc.tool.app:app
+mount: /profit/total
+flows:
+  after_success: []

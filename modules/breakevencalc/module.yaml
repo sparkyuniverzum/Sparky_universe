@@ -1,0 +1,11 @@
+name: breakevencalc
+title: Break-even Calculator
+version: 0.0.1
+description: Calculate break-even units and revenue.
+public: true
+category: Finance
+entrypoints:
+  api: modules.breakevencalc.tool.app:app
+mount: /breakeven/calc
+flows:
+  after_success: []

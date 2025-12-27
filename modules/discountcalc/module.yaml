@@ -1,0 +1,11 @@
+name: discountcalc
+title: Discount Calculator
+version: 0.0.1
+description: Calculate price after discount or discount percent.
+public: true
+category: Finance
+entrypoints:
+  api: modules.discountcalc.tool.app:app
+mount: /discount/calc
+flows:
+  after_success: []

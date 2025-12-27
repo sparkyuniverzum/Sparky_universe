@@ -1,0 +1,163 @@
+{% extends "module_base.html" %}
+
+{% block title %}Margin Calculator{% endblock %}
+{% block heading %}Margin Calculator{% endblock %}
+{% block description %}Calculate margin, markup, and target prices.{% endblock %}
+
+{% block extra_styles %}
+      .form-grid {
+        display: grid;
+        gap: 20px;
+      }
+
+      .form-card {
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(14, 18, 24, 0.6);
+      }
+
+      .form-title {
+        display: block;
+        font-size: 0.8rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(245, 247, 251, 0.6);
+        margin-bottom: 12px;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<div class="form-grid">
+  <section class="form-card">
+    <span class="form-title">Margin from price</span>
+    <form id="margin-form" action="{{ base_path }}/margin" method="post">
+      <label for="cost">Cost</label>
+      <input id="cost" name="cost" placeholder="650">
+
+      <label for="price">Price</label>
+      <input id="price" name="price" placeholder="1000">
+
+      <div class="field-row">
+        <div>
+          <label for="decimals_margin">Decimals</label>
+          <input id="decimals_margin" name="decimals" value="2">
+        </div>
+      </div>
+
+      <button type="submit">Calculate margin</button>
+    </form>
+  </section>
+  <section class="form-card">
+    <span class="form-title">Price from target margin</span>
+    <form id="price-form" action="{{ base_path }}/price" method="post">
+      <label for="cost_target">Cost</label>
+      <input id="cost_target" name="cost" placeholder="650">
+
+      <label for="margin_percent">Target margin (%)</label>
+      <input id="margin_percent" name="margin_percent" placeholder="35">
+      <div class="hint">Margin percent must be below 100.</div>
+
+      <div class="field-row">
+        <div>
+          <label for="decimals_target">Decimals</label>
+          <input id="decimals_target" name="decimals" value="2">
+        </div>
+      </div>
+
+      <button type="submit">Calculate price</button>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Outputs margin percent and markup percent together.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const marginForm = document.getElementById("margin-form");
+  const priceForm = document.getElementById("price-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const renderLines = (lines) => {
+    output.textContent = lines.join("\n");
+  };
+
+  const handleForm = async (form, endpoint, render) => {
+    const formData = new FormData(form);
+    try {
+      const response = await fetch(`${basePath}/${endpoint}`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Calculation failed";
+      } else {
+        render(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  };
+
+  marginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await handleForm(marginForm, "margin", (data) => {
+      renderLines([
+        `cost: ${data.cost}`,
+        `price: ${data.price}`,
+        `profit: ${data.profit}`,
+        `margin: ${data.margin_percent}%`,
+        `markup: ${data.markup_percent}%`,
+      ]);
+    });
+  });
+
+  priceForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await handleForm(priceForm, "price", (data) => {
+      renderLines([
+        `cost: ${data.cost}`,
+        `target_margin: ${data.margin_percent}%`,
+        `price: ${data.price}`,
+        `profit: ${data.profit}`,
+        `markup: ${data.markup_percent}%`,
+      ]);
+    });
+  });
+</script>
+{% endblock %}

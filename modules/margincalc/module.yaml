@@ -1,0 +1,11 @@
+name: margincalc
+title: Margin Calculator
+version: 0.0.1
+description: Calculate margin, markup, and price targets.
+public: true
+category: Finance
+entrypoints:
+  api: modules.margincalc.tool.app:app
+mount: /margin/calc
+flows:
+  after_success: []

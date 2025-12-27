@@ -1,0 +1,11 @@
+name: csvmerge
+title: CSV Merger
+version: 0.0.1
+description: Merge two CSV files by a shared key column.
+public: true
+category: Data
+entrypoints:
+  api: modules.csvmerge.tool.app:app
+mount: /csv/merge
+flows:
+  after_success: []

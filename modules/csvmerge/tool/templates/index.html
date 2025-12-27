@@ -1,0 +1,135 @@
+{% extends "module_base.html" %}
+
+{% block title %}CSV Merger{% endblock %}
+{% block heading %}CSV Merger{% endblock %}
+{% block description %}Merge two CSV files by a shared key column.{% endblock %}
+
+{% block extra_styles %}
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="csv-form" action="{{ base_path }}/merge" method="post" enctype="multipart/form-data">
+  <label for="left_file">Left CSV</label>
+  <input id="left_file" name="left_file" type="file" accept=".csv,text/csv">
+
+  <label for="right_file">Right CSV</label>
+  <input id="right_file" name="right_file" type="file" accept=".csv,text/csv">
+
+  <div class="field-row">
+    <div>
+      <label for="left_key">Left key column (1-based)</label>
+      <input id="left_key" name="left_key" placeholder="1">
+    </div>
+    <div>
+      <label for="right_key">Right key column (1-based)</label>
+      <input id="right_key" name="right_key" placeholder="1">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <label class="inline" for="has_headers">
+      <input id="has_headers" name="has_headers" type="checkbox" value="true">
+      Files have header rows
+    </label>
+  </div>
+
+  <div class="hint">Keeps the first match per key and uses the left delimiter.</div>
+
+  <button type="submit">Merge CSV</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Status</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Uploads two CSV files and returns merged rows.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("csv-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const setStatus = (message) => {
+    result.classList.add("visible");
+    output.textContent = message;
+  };
+
+  const getFilename = (disposition) => {
+    if (!disposition) {
+      return "merged.csv";
+    }
+    const match = disposition.match(/filename="?([^";]+)"?/i);
+    return match ? match[1] : "merged.csv";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/merge`, { method: "POST", body: formData });
+      if (!response.ok) {
+        const data = await response.json();
+        setStatus(data.error || "CSV merge failed");
+        showFlow();
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const filename = getFilename(response.headers.get("content-disposition"));
+      const merged = response.headers.get("x-merged-count");
+      const unmatched = response.headers.get("x-unmatched-count");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      const mergedLabel = merged ? `${merged} merged` : "merged";
+      const unmatchedLabel = unmatched ? `${unmatched} unmatched` : "unmatched";
+      setStatus(`Download started. ${mergedLabel}, ${unmatchedLabel}.`);
+    } catch (error) {
+      setStatus("Request failed");
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

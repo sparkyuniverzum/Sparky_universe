@@ -1,0 +1,106 @@
+{% extends "module_base.html" %}
+
+{% block title %}Total Profit Calculator{% endblock %}
+{% block heading %}Total Profit Calculator{% endblock %}
+{% block description %}Calculate total profit from price, cost, and quantity.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="profit-form" action="{{ base_path }}/calc" method="post">
+  <label for="price">Price per unit</label>
+  <input id="price" name="price" placeholder="25">
+
+  <label for="cost">Cost per unit</label>
+  <input id="cost" name="cost" placeholder="12">
+
+  <label for="quantity">Quantity</label>
+  <input id="quantity" name="quantity" placeholder="200">
+
+  <div class="field-row">
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+  </div>
+
+  <div class="hint">Outputs revenue, total cost, profit, margin, and markup.</div>
+
+  <button type="submit">Calculate total profit</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Useful for quick sales and batch totals.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("profit-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const renderLines = (lines) => {
+    output.textContent = lines.join("\n");
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/calc`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Calculation failed";
+      } else {
+        renderLines([
+          `price: ${data.price}`,
+          `cost: ${data.cost}`,
+          `quantity: ${data.quantity}`,
+          `revenue: ${data.revenue}`,
+          `total_cost: ${data.total_cost}`,
+          `profit: ${data.profit}`,
+          `margin: ${data.margin_percent}%`,
+          `markup: ${data.markup_percent}%`,
+        ]);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

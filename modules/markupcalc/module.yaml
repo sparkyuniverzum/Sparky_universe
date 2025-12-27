@@ -1,0 +1,11 @@
+name: markupcalc
+title: Markup Calculator
+version: 0.0.1
+description: Calculate markup percent or target price.
+public: true
+category: Finance
+entrypoints:
+  api: modules.markupcalc.tool.app:app
+mount: /markup/calc
+flows:
+  after_success: []
