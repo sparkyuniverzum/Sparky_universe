@@ -1,0 +1,169 @@
+{% extends "module_base.html" %}
+
+{% block title %}Unit Converter{% endblock %}
+{% block heading %}Unit Converter{% endblock %}
+{% block description %}Convert units across common domains.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .swap-button {
+        margin-top: 6px;
+        width: 100%;
+      }
+
+      .mini-note {
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: rgba(167, 179, 199, 0.7);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="convert-form" action="{{ base_path }}/convert" method="post">
+  <label for="value">Value</label>
+  <input id="value" name="value" placeholder="123.45">
+
+  <div class="field-row">
+    <div>
+      <label for="from_unit">From</label>
+      <select id="from_unit" name="from_unit"></select>
+    </div>
+    <div>
+      <label for="to_unit">To</label>
+      <select id="to_unit" name="to_unit"></select>
+    </div>
+  </div>
+
+  <button id="swap" class="swap-button" type="button">Swap units</button>
+
+  <div class="field-row">
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="6">
+    </div>
+  </div>
+
+  <div class="hint">Only compatible units are shown together. Domain stays implicit.</div>
+
+  <button type="submit">Convert</button>
+  <div class="mini-note">Base route: /convert/unit - SEO: /convert/m-to-ft</div>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Single UI, infinite domains.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("convert-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const fromSelect = document.getElementById("from_unit");
+  const toSelect = document.getElementById("to_unit");
+  const swapButton = document.getElementById("swap");
+  const basePath = "{{ base_path }}";
+
+  const units = {{ units | tojson }};
+  const prefillFrom = "{{ from_unit or '' }}";
+  const prefillTo = "{{ to_unit or '' }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const renderResult = (data) => {
+    output.textContent = `${data.value} ${data.from_unit} = ${data.result} ${data.to_unit}`;
+  };
+
+  const buildOptions = (select, domain, currentValue) => {
+    select.innerHTML = "";
+    Object.entries(units).forEach(([key, meta]) => {
+      if (domain && meta.domain !== domain) {
+        return;
+      }
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = `${meta.label} (${key})`;
+      if (key === currentValue) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+  };
+
+  const getDomain = (unit) => (units[unit] ? units[unit].domain : null);
+
+  const syncOptions = (primarySelect, targetSelect) => {
+    const domain = getDomain(primarySelect.value);
+    const previous = targetSelect.value;
+    buildOptions(targetSelect, domain, previous);
+    if (!targetSelect.value && targetSelect.options.length > 0) {
+      targetSelect.value = targetSelect.options[0].value;
+    }
+  };
+
+  const initSelects = () => {
+    buildOptions(fromSelect, null, prefillFrom || Object.keys(units)[0]);
+    const domain = getDomain(fromSelect.value);
+    buildOptions(toSelect, domain, prefillTo);
+    if (!toSelect.value && toSelect.options.length > 0) {
+      toSelect.value = toSelect.options[0].value;
+    }
+  };
+
+  fromSelect.addEventListener("change", () => syncOptions(fromSelect, toSelect));
+  swapButton.addEventListener("click", () => {
+    const currentFrom = fromSelect.value;
+    const currentTo = toSelect.value;
+    fromSelect.value = currentTo;
+    syncOptions(fromSelect, toSelect);
+    toSelect.value = currentFrom;
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/convert`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Conversion failed";
+      } else {
+        renderResult(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+
+  initSelects();
+</script>
+{% endblock %}

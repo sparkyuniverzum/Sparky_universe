@@ -1,0 +1,10 @@
+name: unitconvert
+title: Unit Converter
+version: 0.0.1
+description: Convert units across common domains.
+public: true
+entrypoints:
+  api: modules.unitconvert.tool.app:app
+mount: /convert
+flows:
+  after_success: []

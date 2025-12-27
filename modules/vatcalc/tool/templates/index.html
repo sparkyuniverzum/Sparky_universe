@@ -1,0 +1,106 @@
+{% extends "module_base.html" %}
+
+{% block title %}VAT Calculator{% endblock %}
+{% block heading %}VAT Calculator{% endblock %}
+{% block description %}Calculate VAT amount and totals.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="vat-form" action="{{ base_path }}/calc" method="post">
+  <label for="amount">Amount</label>
+  <input id="amount" name="amount" placeholder="1 000,00">
+  <div class="hint">Enter net or gross amount depending on mode.</div>
+
+  <div class="field-row">
+    <div>
+      <label for="rate">VAT rate (%)</label>
+      <input id="rate" name="rate" value="21">
+    </div>
+    <div>
+      <label for="mode">Mode</label>
+      <select id="mode" name="mode">
+        <option value="net" selected>Net → Gross</option>
+        <option value="gross">Gross → Net</option>
+      </select>
+    </div>
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+  </div>
+
+  <button type="submit">Calculate</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Breakdown</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Returns net, VAT, and gross totals.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("vat-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const renderResult = (data) => {
+    output.textContent = [
+      `net: ${data.net}`,
+      `vat: ${data.vat}`,
+      `gross: ${data.gross}`,
+      `rate: ${data.rate}%`,
+    ].join("\n");
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/calc`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Calculation failed";
+      } else {
+        renderResult(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

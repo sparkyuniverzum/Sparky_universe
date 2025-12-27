@@ -1,0 +1,10 @@
+name: vatcalc
+title: VAT Calculator
+version: 0.0.1
+description: Calculate VAT amount and totals.
+public: true
+entrypoints:
+  api: modules.vatcalc.tool.app:app
+mount: /vat/calc
+flows:
+  after_success: []

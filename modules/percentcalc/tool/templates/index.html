@@ -1,0 +1,154 @@
+{% extends "module_base.html" %}
+
+{% block title %}Percent Calculator{% endblock %}
+{% block heading %}Percent Calculator{% endblock %}
+{% block description %}Calculate percentage changes and ratios.{% endblock %}
+
+{% block extra_styles %}
+      .form-grid {
+        display: grid;
+        gap: 20px;
+      }
+
+      .form-card {
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(14, 18, 24, 0.6);
+      }
+
+      .form-title {
+        display: block;
+        font-size: 0.8rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(245, 247, 251, 0.6);
+        margin-bottom: 12px;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<div class="form-grid">
+  <section class="form-card">
+    <span class="form-title">Compare values</span>
+    <form id="compare-form" action="{{ base_path }}/compare" method="post">
+      <label for="base">Base value</label>
+      <input id="base" name="base" placeholder="1000">
+
+      <label for="value">New value</label>
+      <input id="value" name="value" placeholder="1250">
+
+      <div class="field-row">
+        <div>
+          <label for="decimals_compare">Decimals</label>
+          <input id="decimals_compare" name="decimals" value="2">
+        </div>
+      </div>
+
+      <button type="submit">Calculate change</button>
+    </form>
+  </section>
+  <section class="form-card">
+    <span class="form-title">Percent of value</span>
+    <form id="percent-form" action="{{ base_path }}/percent-of" method="post">
+      <label for="base_percent">Base value</label>
+      <input id="base_percent" name="base" placeholder="1000">
+
+      <label for="percent">Percent</label>
+      <input id="percent" name="percent" placeholder="15">
+
+      <div class="field-row">
+        <div>
+          <label for="decimals_percent">Decimals</label>
+          <input id="decimals_percent" name="decimals" value="2">
+        </div>
+      </div>
+
+      <button type="submit">Calculate percent</button>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Compare two values or calculate percent of a base.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const compareForm = document.getElementById("compare-form");
+  const percentForm = document.getElementById("percent-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const renderLines = (lines) => {
+    output.textContent = lines.join("\n");
+  };
+
+  const handleForm = async (form, endpoint, render) => {
+    const formData = new FormData(form);
+    try {
+      const response = await fetch(`${basePath}/${endpoint}`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Calculation failed";
+      } else {
+        render(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  };
+
+  compareForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await handleForm(compareForm, "compare", (data) => {
+      renderLines([
+        `base: ${data.base}`,
+        `value: ${data.value}`,
+        `ratio: ${data.ratio_percent}%`,
+        `change: ${data.change}`,
+        `change_percent: ${data.change_percent}%`,
+      ]);
+    });
+  });
+
+  percentForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await handleForm(percentForm, "percent-of", (data) => {
+      renderLines([
+        `base: ${data.base}`,
+        `percent: ${data.percent}%`,
+        `result: ${data.result}`,
+      ]);
+    });
+  });
+</script>
+{% endblock %}

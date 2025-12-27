@@ -1,0 +1,115 @@
+{% extends "module_base.html" %}
+
+{% block title %}Money Formatter{% endblock %}
+{% block heading %}Money Formatter{% endblock %}
+{% block description %}Format numbers into a clean currency string.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="format-form" action="{{ base_path }}/format" method="post">
+  <label for="value">Number value</label>
+  <input id="value" name="value" placeholder="1 234,50">
+  <div class="hint">Accepts spaces, commas, dots. Uses the last separator as decimal.</div>
+
+  <div class="field-row">
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+    <div>
+      <label for="thousand_sep">Thousands</label>
+      <input id="thousand_sep" name="thousand_sep" value=" ">
+    </div>
+    <div>
+      <label for="decimal_sep">Decimal</label>
+      <input id="decimal_sep" name="decimal_sep" value=",">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div>
+      <label for="currency">Currency</label>
+      <input id="currency" name="currency" value="CZK">
+    </div>
+    <div>
+      <label for="position">Position</label>
+      <select id="position" name="position">
+        <option value="suffix" selected>Suffix</option>
+        <option value="prefix">Prefix</option>
+      </select>
+    </div>
+  </div>
+
+  <button type="submit">Format</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Formatted</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Returns a formatted currency string + normalized value.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("format-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const renderResult = (data) => {
+    output.textContent = [
+      `formatted: ${data.formatted}`,
+      `normalized: ${data.normalized}`,
+    ].join("\n");
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/format`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Formatting failed";
+      } else {
+        renderResult(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

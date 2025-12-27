@@ -1,0 +1,10 @@
+name: percentcalc
+title: Percent Calculator
+version: 0.0.1
+description: Calculate percentage changes and ratios.
+public: true
+entrypoints:
+  api: modules.percentcalc.tool.app:app
+mount: /percent/calc
+flows:
+  after_success: []
