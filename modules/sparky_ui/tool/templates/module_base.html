@@ -1,4 +1,4 @@
-{% from "partials/ads.html" import ad_layout %}
+{% from "partials/ads.html" import ad_block %}
 {% from "partials/flow.html" import flow_section %}
 <!doctype html>
 <html lang="en">
@@ -30,12 +30,18 @@
         color: var(--text);
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
         padding: 40px 20px;
       }
 
+      .page {
+        width: min(960px, 100%);
+        display: grid;
+        gap: 18px;
+      }
+
       .panel {
-        width: min(680px, 100%);
+        width: 100%;
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 20px;
@@ -169,15 +175,7 @@
       }
 
       .ad-block {
-        margin: 16px 0 22px;
-      }
-
-      .ad-block.inline {
-        margin: 12px 0 18px;
-      }
-
-      .ad-block.footer {
-        margin-top: 26px;
+        margin: 0;
       }
 
       .ad-label {
@@ -214,8 +212,19 @@
         pointer-events: none;
       }
 
+      .content-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+        align-items: start;
+      }
+
+      .content-aside .sparky-flow {
+        margin-top: 0;
+      }
+
       .sparky-flow {
-        margin-top: 18px;
+        margin-top: 0;
         padding: 16px;
         border-radius: 16px;
         border: 1px solid rgba(90, 200, 250, 0.25);
@@ -267,22 +276,36 @@
         text-decoration: none;
       }
 
+      @media (max-width: 900px) {
+        .content-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
       {% block extra_styles %}{% endblock %}
     </style>
   </head>
   <body>
-    <main class="panel">
-      <img class="brand-mark" src="/brand/logo/sparky-universe.icon.png" alt="">
-      <span class="brand-label">Sparky Universe</span>
-      <h1>{% block heading %}Sparky Module{% endblock %}</h1>
-      <p>{% block description %}{% endblock %}</p>
-      {% call ad_layout() %}
-      {% block form %}{% endblock %}
-      {% block result %}{% endblock %}
-      {{ flow_section(flow_links) }}
+    <div class="page">
+      <main class="panel">
+        <img class="brand-mark" src="/brand/logo/sparky-universe.icon.png" alt="">
+        <span class="brand-label">Sparky Universe</span>
+        <h1>{% block heading %}Sparky Module{% endblock %}</h1>
+        <p>{% block description %}{% endblock %}</p>
+        <div class="content-grid">
+          <div class="content-main">
+            {% block form %}{% endblock %}
+            {% block result %}{% endblock %}
+          </div>
+          <aside class="content-aside">
+            {{ flow_section(flow_links) }}
+          </aside>
+        </div>
+      </main>
+      {{ ad_block("inline") }}
       <div class="meta">{% block meta %}{% endblock %}</div>
-      {% endcall %}
-    </main>
+      {{ ad_block("footer") }}
+    </div>
     {% block scripts %}{% endblock %}
   </body>
 </html>
