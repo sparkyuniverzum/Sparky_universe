@@ -15,7 +15,7 @@ from universe.settings import shared_templates_dir
 app = FastAPI(title="Cash Rounding Calculator")
 
 BASE_DIR = Path(__file__).parent
-ROOT_DIR = BASE_DIR.parents[2]
+ROOT_DIR = BASE_DIR.parents[3]
 BRAND_DIR = ROOT_DIR / "brand"
 SHARED_TEMPLATES = shared_templates_dir(ROOT_DIR)
 
