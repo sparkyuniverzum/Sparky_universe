@@ -31,7 +31,7 @@
       }
 
       .panel {
-        width: min(720px, 100%);
+        width: min(860px, 100%);
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 20px;
@@ -49,38 +49,25 @@
         color: var(--muted);
       }
 
-      .filters {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 20px;
-      }
-
-      .filter {
-        border: 1px solid var(--border);
-        background: rgba(14, 18, 24, 0.6);
-        color: var(--text);
-        padding: 8px 14px;
-        border-radius: 999px;
-        cursor: pointer;
-        font-size: 0.85rem;
-      }
-
-      .filter.active {
-        border-color: rgba(90, 200, 250, 0.6);
-        color: var(--accent);
-      }
-
-      .category {
+      .categories {
         display: grid;
-        gap: 12px;
-        margin-bottom: 24px;
+        gap: 16px;
+      }
+
+      .category-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px 18px;
+        display: grid;
+        gap: 10px;
+        background: rgba(14, 18, 24, 0.6);
       }
 
       .category-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 12px;
       }
 
       .category-title {
@@ -91,96 +78,42 @@
       .category-count {
         font-size: 0.8rem;
         color: var(--muted);
+        white-space: nowrap;
       }
 
-      ul {
-        list-style: none;
+      .category-desc {
         margin: 0;
-        padding: 0;
-        display: grid;
-        gap: 12px;
-      }
-
-      li {
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 14px 16px;
-        display: grid;
-        gap: 4px;
-        background: rgba(14, 18, 24, 0.6);
-      }
-
-      .module-title {
-        font-weight: 600;
-      }
-
-      .module-desc {
         color: var(--muted);
         font-size: 0.95rem;
       }
 
-      a {
+      .category-link {
         color: var(--accent);
         text-decoration: none;
         font-size: 0.9rem;
+        font-weight: 600;
+        align-self: start;
       }
     </style>
   </head>
   <body>
     <main class="panel">
       <h1>Sparky Universe</h1>
-      <p>Available modules.</p>
-      <div class="filters">
-        <button class="filter active" data-filter="all">All</button>
+      <p>Prehled kategorii a jejich modulu.</p>
+      <div class="categories">
         {% for category in categories %}
-        {% set slug = category.name | lower | replace(" ", "-") %}
-        <button class="filter" data-filter="{{ slug }}">{{ category.name }}</button>
+        <section class="category-card">
+          <div class="category-header">
+            <h2 class="category-title">{{ category.name }}</h2>
+            <span class="category-count">{{ category.modules | length }} modulu</span>
+          </div>
+          <p class="category-desc">{{ category.description }}</p>
+          <a class="category-link" href="{{ base_path }}/category/{{ category.slug }}">
+            Zobrazit moduly
+          </a>
+        </section>
         {% endfor %}
       </div>
-      {% for category in categories %}
-      {% set slug = category.name | lower | replace(" ", "-") %}
-      <section class="category" data-category="{{ slug }}">
-        <div class="category-header">
-          <h2 class="category-title">{{ category.name }}</h2>
-          <span class="category-count">{{ category.modules | length }} modules</span>
-        </div>
-        <ul>
-          {% for module in category.modules %}
-          <li>
-            <div class="module-title">{{ module.title or module.name }}</div>
-            {% if module.description %}
-            <div class="module-desc">{{ module.description }}</div>
-            {% endif %}
-            <a href="{{ module.mount }}">Open module</a>
-          </li>
-          {% endfor %}
-        </ul>
-      </section>
-      {% endfor %}
     </main>
-    <script>
-      const filters = document.querySelectorAll(".filter");
-      const categories = document.querySelectorAll(".category");
-
-      const setActive = (target) => {
-        filters.forEach((button) => button.classList.remove("active"));
-        target.classList.add("active");
-      };
-
-      const applyFilter = (value) => {
-        categories.forEach((section) => {
-          const match = value === "all" || section.dataset.category === value;
-          section.style.display = match ? "grid" : "none";
-        });
-      };
-
-      filters.forEach((button) => {
-        button.addEventListener("click", () => {
-          const value = button.dataset.filter;
-          setActive(button);
-          applyFilter(value);
-        });
-      });
-    </script>
   </body>
 </html>

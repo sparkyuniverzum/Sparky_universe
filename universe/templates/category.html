@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sparky Universe · {{ category.name }}</title>
+    <style>
+      :root {
+        --bg: #0f1116;
+        --card: #171b22;
+        --text: #f5f7fb;
+        --muted: #9aa6bf;
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #5ac8fa;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+      }
+
+      .panel {
+        width: min(860px, 100%);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 32px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .back-link {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+        letter-spacing: -0.02em;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .meta span {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .module-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .module-card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: grid;
+        gap: 6px;
+        background: rgba(14, 18, 24, 0.6);
+      }
+
+      .module-title {
+        font-weight: 600;
+      }
+
+      .module-desc {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .module-link {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <a class="back-link" href="{{ base_path }}/">Zpet na prehled</a>
+      <div class="meta">
+        <h1>{{ category.name }}</h1>
+        <span>{{ category.modules | length }} modulu</span>
+      </div>
+      <p>{{ category.description }}</p>
+      <div class="module-grid">
+        {% for module in category.modules %}
+        <article class="module-card">
+          <div class="module-title">{{ module.title or module.name }}</div>
+          {% if module.description %}
+          <div class="module-desc">{{ module.description }}</div>
+          {% endif %}
+          <a class="module-link" href="{{ base_path }}{{ module.mount }}">Otevrit modul</a>
+        </article>
+        {% endfor %}
+      </div>
+    </main>
+  </body>
+</html>
