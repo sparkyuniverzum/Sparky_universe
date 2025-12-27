@@ -1,0 +1,11 @@
+name: rangegen
+title: Number Range Generator
+version: 0.0.1
+description: Generate number sequences from a range.
+public: true
+category: Numbers
+entrypoints:
+  api: modules.rangegen.tool.app:app
+mount: /numbers/range
+flows:
+  after_success: []

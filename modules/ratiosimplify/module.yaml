@@ -1,0 +1,11 @@
+name: ratiosimplify
+title: Ratio Simplifier
+version: 0.0.1
+description: Reduce two numbers to the simplest ratio.
+public: true
+category: Numbers
+entrypoints:
+  api: modules.ratiosimplify.tool.app:app
+mount: /numbers/ratio
+flows:
+  after_success: []

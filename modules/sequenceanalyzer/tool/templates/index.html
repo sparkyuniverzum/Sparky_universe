@@ -1,0 +1,85 @@
+{% extends "module_base.html" %}
+
+{% block title %}Number Sequence Analyzer{% endblock %}
+{% block heading %}Number Sequence Analyzer{% endblock %}
+{% block description %}Analyze a list of numbers for basic stats.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="analyze-form" action="{{ base_path }}/analyze" method="post">
+  <label for="values">Values</label>
+  <textarea id="values" name="values" placeholder="10, 12, 8, 16, 21"></textarea>
+  <div class="hint">Accepts commas, semicolons, spaces, tabs, or new lines.</div>
+
+  <button type="submit">Analyze sequence</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Quick stats for short sequences.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("analyze-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/analyze`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Analysis failed";
+      } else {
+        output.textContent = [
+          `count: ${data.count}`,
+          `sum: ${data.sum}`,
+          `min: ${data.min}`,
+          `max: ${data.max}`,
+          `average: ${data.average}`,
+          `median: ${data.median}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

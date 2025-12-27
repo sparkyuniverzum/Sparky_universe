@@ -1,0 +1,93 @@
+{% extends "module_base.html" %}
+
+{% block title %}Number Rounding Helper{% endblock %}
+{% block heading %}Number Rounding Helper{% endblock %}
+{% block description %}Round numbers with different methods.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="round-form" action="{{ base_path }}/round" method="post">
+  <label for="value">Value</label>
+  <input id="value" name="value" placeholder="123.456">
+
+  <div class="field-row">
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+    <div>
+      <label for="mode">Mode</label>
+      <select id="mode" name="mode">
+        <option value="round" selected>Round</option>
+        <option value="ceil">Ceil</option>
+        <option value="floor">Floor</option>
+      </select>
+    </div>
+  </div>
+
+  <button type="submit">Round number</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Also reports the delta from the original value.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("round-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/round`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Rounding failed";
+      } else {
+        output.textContent = [
+          `value: ${data.value}`,
+          `rounded: ${data.rounded}`,
+          `mode: ${data.mode}`,
+          `decimals: ${data.decimals}`,
+          `delta: ${data.delta}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

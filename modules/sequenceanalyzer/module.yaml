@@ -1,0 +1,11 @@
+name: sequenceanalyzer
+title: Number Sequence Analyzer
+version: 0.0.1
+description: Analyze a list of numbers for basic stats.
+public: true
+category: Numbers
+entrypoints:
+  api: modules.sequenceanalyzer.tool.app:app
+mount: /numbers/analyze
+flows:
+  after_success: []

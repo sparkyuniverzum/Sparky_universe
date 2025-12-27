@@ -1,0 +1,99 @@
+{% extends "module_base.html" %}
+
+{% block title %}Ratio Simplifier{% endblock %}
+{% block heading %}Ratio Simplifier{% endblock %}
+{% block description %}Reduce two numbers to the simplest ratio.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="ratio-form" action="{{ base_path }}/simplify" method="post">
+  <div class="field-row">
+    <div>
+      <label for="left">Left value</label>
+      <input id="left" name="left" placeholder="1920">
+    </div>
+    <div>
+      <label for="right">Right value</label>
+      <input id="right" name="right" placeholder="1080">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div>
+      <label for="decimals">Precision decimals</label>
+      <input id="decimals" name="decimals" value="6">
+    </div>
+  </div>
+
+  <div class="hint">Decimals are used only for simplifying fractional inputs.</div>
+
+  <button type="submit">Simplify ratio</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Useful for photo, video, and design ratios.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("ratio-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/simplify`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Simplification failed";
+      } else {
+        output.textContent = [
+          `left: ${data.left}`,
+          `right: ${data.right}`,
+          `ratio: ${data.ratio}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

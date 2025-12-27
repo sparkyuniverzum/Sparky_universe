@@ -1,0 +1,11 @@
+name: roundhelper
+title: Number Rounding Helper
+version: 0.0.1
+description: Round numbers with different methods.
+public: true
+category: Numbers
+entrypoints:
+  api: modules.roundhelper.tool.app:app
+mount: /numbers/round
+flows:
+  after_success: []

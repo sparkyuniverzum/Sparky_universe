@@ -1,0 +1,128 @@
+{% extends "module_base.html" %}
+
+{% block title %}Number Range Generator{% endblock %}
+{% block heading %}Number Range Generator{% endblock %}
+{% block description %}Generate number sequences from a range.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .values {
+        max-height: 220px;
+        overflow: auto;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(14, 18, 24, 0.5);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 0.85rem;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="range-form" action="{{ base_path }}/generate" method="post">
+  <div class="field-row">
+    <div>
+      <label for="start">Start</label>
+      <input id="start" name="start" placeholder="1">
+    </div>
+    <div>
+      <label for="end">End</label>
+      <input id="end" name="end" placeholder="10">
+    </div>
+    <div>
+      <label for="step">Step</label>
+      <input id="step" name="step" placeholder="1">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="0">
+    </div>
+    <label class="inline" for="include_end">
+      <input id="include_end" name="include_end" type="checkbox" value="true" checked>
+      Include end value
+    </label>
+  </div>
+
+  <button type="submit">Generate range</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+  <div id="values" class="values"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Up to 5000 values per run.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("range-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const values = document.getElementById("values");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const clearValues = () => {
+    values.textContent = "";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        clearValues();
+      } else {
+        output.textContent = [
+          `start: ${data.start}`,
+          `end: ${data.end}`,
+          `step: ${data.step}`,
+          `count: ${data.count}`,
+        ].join("\n");
+        values.textContent = (data.values || []).join(", ");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearValues();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
