@@ -49,6 +49,50 @@
         color: var(--muted);
       }
 
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .filter {
+        border: 1px solid var(--border);
+        background: rgba(14, 18, 24, 0.6);
+        color: var(--text);
+        padding: 8px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+
+      .filter.active {
+        border-color: rgba(90, 200, 250, 0.6);
+        color: var(--accent);
+      }
+
+      .category {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .category-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .category-title {
+        font-size: 1.1rem;
+        margin: 0;
+      }
+
+      .category-count {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
       ul {
         list-style: none;
         margin: 0;
@@ -86,17 +130,57 @@
     <main class="panel">
       <h1>Sparky Universe</h1>
       <p>Available modules.</p>
-      <ul>
-        {% for module in modules %}
-        <li>
-          <div class="module-title">{{ module.title or module.name }}</div>
-          {% if module.description %}
-          <div class="module-desc">{{ module.description }}</div>
-          {% endif %}
-          <a href="{{ module.mount }}">Open module</a>
-        </li>
+      <div class="filters">
+        <button class="filter active" data-filter="all">All</button>
+        {% for category in categories %}
+        {% set slug = category.name | lower | replace(" ", "-") %}
+        <button class="filter" data-filter="{{ slug }}">{{ category.name }}</button>
         {% endfor %}
-      </ul>
+      </div>
+      {% for category in categories %}
+      {% set slug = category.name | lower | replace(" ", "-") %}
+      <section class="category" data-category="{{ slug }}">
+        <div class="category-header">
+          <h2 class="category-title">{{ category.name }}</h2>
+          <span class="category-count">{{ category.modules | length }} modules</span>
+        </div>
+        <ul>
+          {% for module in category.modules %}
+          <li>
+            <div class="module-title">{{ module.title or module.name }}</div>
+            {% if module.description %}
+            <div class="module-desc">{{ module.description }}</div>
+            {% endif %}
+            <a href="{{ module.mount }}">Open module</a>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endfor %}
     </main>
+    <script>
+      const filters = document.querySelectorAll(".filter");
+      const categories = document.querySelectorAll(".category");
+
+      const setActive = (target) => {
+        filters.forEach((button) => button.classList.remove("active"));
+        target.classList.add("active");
+      };
+
+      const applyFilter = (value) => {
+        categories.forEach((section) => {
+          const match = value === "all" || section.dataset.category === value;
+          section.style.display = match ? "grid" : "none";
+        });
+      };
+
+      filters.forEach((button) => {
+        button.addEventListener("click", () => {
+          const value = button.dataset.filter;
+          setActive(button);
+          applyFilter(value);
+        });
+      });
+    </script>
   </body>
 </html>

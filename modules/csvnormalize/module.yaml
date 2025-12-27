@@ -3,6 +3,7 @@ title: CSV Number Normalizer
 version: 0.0.1
 description: Normalize number columns in CSV files.
 public: true
+category: Data
 entrypoints:
   api: modules.csvnormalize.tool.app:app
 mount: /csv/normalize

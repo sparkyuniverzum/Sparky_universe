@@ -3,6 +3,7 @@ title: QR Forge
 version: 0.0.1
 description: Forge signed QR payloads and images.
 public: true
+category: QR
 entrypoints:
   api: modules.qrforge.tool.app:app
 mount: /qr/forge

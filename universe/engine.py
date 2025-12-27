@@ -37,9 +37,18 @@ def build_app() -> FastAPI:
             module for module in load_modules().values() if module.get("public", True)
         ]
         modules.sort(key=lambda item: item.get("title") or item.get("name", ""))
+        grouped: dict[str, list[dict[str, Any]]] = {}
+        for module in modules:
+            category = module.get("category") or "Other"
+            grouped.setdefault(str(category), []).append(module)
+
+        categories = []
+        for category, items in sorted(grouped.items(), key=lambda item: item[0].lower()):
+            items.sort(key=lambda item: item.get("title") or item.get("name", ""))
+            categories.append({"name": category, "modules": items})
         return templates.TemplateResponse(
             "index.html",
-            {"request": request, "modules": modules},
+            {"request": request, "categories": categories},
         )
 
     modules = load_modules()

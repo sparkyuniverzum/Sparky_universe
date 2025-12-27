@@ -3,6 +3,7 @@ title: Money Formatter
 version: 0.0.1
 description: Format numbers as currency strings.
 public: true
+category: Money
 entrypoints:
   api: modules.moneyformat.tool.app:app
 mount: /money/format

@@ -14,6 +14,7 @@ title: ${title}
 version: 0.0.1
 description: ${description}
 public: true
+category: ${category}
 entrypoints:
   api: modules.${name}.tool.app:app
 mount: ${mount}
@@ -150,6 +151,7 @@ def main() -> None:
     parser.add_argument("--title", help="Display title")
     parser.add_argument("--description", help="One-line description")
     parser.add_argument("--mount", help="Mount path, e.g. /qr/batch")
+    parser.add_argument("--category", help="Category label")
     args = parser.parse_args()
 
     name = args.name.strip()
@@ -164,12 +166,14 @@ def main() -> None:
     title = args.title or name.replace("_", " ").title()
     description = args.description or "One-line purpose of the module."
     mount = args.mount or f"/{slug}"
+    category = args.category or "Utilities"
 
     module_yaml = MODULE_YAML_TEMPLATE.substitute(
         name=name,
         title=title,
         description=description,
         mount=mount,
+        category=category,
     )
     app_py = APP_TEMPLATE.substitute(name=name, title=title)
     html = HTML_TEMPLATE.substitute(title=title, description=description)

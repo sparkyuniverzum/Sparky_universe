@@ -3,3 +3,4 @@ title: Sparky UI
 version: 0.0.1
 description: Shared UI templates and partials for Sparky modules.
 public: false
+category: Internal

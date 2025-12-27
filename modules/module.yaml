@@ -6,6 +6,7 @@ title: Example Tool
 version: 0.0.1
 description: One-line purpose of the module.
 public: true
+category: Utilities
 
 entrypoints:
   api: modules.example.tool.app:app

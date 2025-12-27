@@ -3,6 +3,7 @@ title: QR Verify
 version: 0.0.1
 description: Verify QR payloads and signatures.
 public: true
+category: QR
 entrypoints:
   api: modules.qrverify.tool.app:app
 mount: /qr/verify

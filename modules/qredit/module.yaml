@@ -3,6 +3,7 @@ title: QR Edit
 version: 0.0.1
 description: Edit a QR payload and regenerate a signed QR.
 public: true
+category: QR
 entrypoints:
   api: modules.qredit.tool.app:app
 mount: /qr/edit

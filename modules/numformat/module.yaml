@@ -3,6 +3,7 @@ title: Money Number Normalizer
 version: 0.0.1
 description: Normalize numbers and money formats.
 public: true
+category: Numbers
 entrypoints:
   api: modules.numformat.tool.app:app
 mount: /numbers/clean

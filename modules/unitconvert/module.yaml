@@ -3,6 +3,7 @@ title: Unit Converter
 version: 0.0.1
 description: Convert units across common domains.
 public: true
+category: Conversion
 entrypoints:
   api: modules.unitconvert.tool.app:app
 mount: /convert

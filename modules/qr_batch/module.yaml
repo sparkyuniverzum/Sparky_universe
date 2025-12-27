@@ -3,6 +3,7 @@ title: QR Batch
 version: 0.0.1
 description: Batch-generate signed QR codes from a list.
 public: true
+category: QR
 entrypoints:
   api: modules.qr_batch.tool.app:app
 mount: /qr/batch

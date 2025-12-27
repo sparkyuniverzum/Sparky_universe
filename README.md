@@ -11,7 +11,7 @@ Sparky Universe is a network of tiny, standalone utilities ("zrnka") that each s
 
 ## Module contract (required)
 Each module must provide:
-- `modules/<name>/module.yaml` with `name`, `title`, `version`, `description`, `public`, `entrypoints.api`, and `mount`.
+- `modules/<name>/module.yaml` with `name`, `title`, `version`, `description`, `public`, `category`, `entrypoints.api`, and `mount`.
 - `modules/<name>/tool/app.py` exporting a FastAPI `app`.
 - `modules/<name>/tool/templates/index.html` as the module UI.
 - `modules/<name>/core/` with the business logic.

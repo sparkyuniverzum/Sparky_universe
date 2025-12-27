@@ -26,6 +26,7 @@ def _normalize_module(
     public = data.get("public")
     if public is None:
         public = True
+    category = data.get("category") or "Other"
 
     normalized = {**data}
     normalized.update(
@@ -34,6 +35,7 @@ def _normalize_module(
             "slug": slug,
             "mount": mount,
             "public": bool(public),
+            "category": str(category),
             "source": source,
         }
     )

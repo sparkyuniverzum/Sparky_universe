@@ -3,6 +3,7 @@ title: QR Decode
 version: 0.0.1
 description: Decode any QR into raw payload.
 public: true
+category: QR
 entrypoints:
   api: modules.qrdecode.tool.app:app
 mount: /qr/decode

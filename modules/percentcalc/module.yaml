@@ -3,6 +3,7 @@ title: Percent Calculator
 version: 0.0.1
 description: Calculate percentage changes and ratios.
 public: true
+category: Finance
 entrypoints:
   api: modules.percentcalc.tool.app:app
 mount: /percent/calc

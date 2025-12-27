@@ -3,6 +3,7 @@ title: VAT Calculator
 version: 0.0.1
 description: Calculate VAT amount and totals.
 public: true
+category: Finance
 entrypoints:
   api: modules.vatcalc.tool.app:app
 mount: /vat/calc
