@@ -1,0 +1,11 @@
+name: timeconvert
+title: Time Converter
+version: 0.0.1
+description: Convert time units like seconds, minutes, and days.
+public: true
+category: Conversion
+entrypoints:
+  api: modules.timeconvert.tool.app:app
+mount: /time/convert
+flows:
+  after_success: []

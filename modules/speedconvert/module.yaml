@@ -1,0 +1,11 @@
+name: speedconvert
+title: Speed Converter
+version: 0.0.1
+description: Convert speed units like km/h and mph.
+public: true
+category: Conversion
+entrypoints:
+  api: modules.speedconvert.tool.app:app
+mount: /speed/convert
+flows:
+  after_success: []

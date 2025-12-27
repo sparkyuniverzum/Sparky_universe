@@ -1,0 +1,11 @@
+name: datasizeconvert
+title: Data Size Converter
+version: 0.0.1
+description: Convert data sizes across SI and IEC units.
+public: true
+category: Conversion
+entrypoints:
+  api: modules.datasizeconvert.tool.app:app
+mount: /data/size
+flows:
+  after_success: []
