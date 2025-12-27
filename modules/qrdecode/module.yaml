@@ -10,5 +10,7 @@ flows:
   after_success:
     - target: qrverify
       label: Verify signature
+    - target: qredit
+      label: Edit payload
     - target: qrforge
       label: Forge a new QR

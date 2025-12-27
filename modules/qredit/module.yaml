@@ -1,0 +1,16 @@
+name: qredit
+title: QR Edit
+version: 0.0.1
+description: Edit a QR payload and regenerate a signed QR.
+public: true
+entrypoints:
+  api: modules.qredit.tool.app:app
+mount: /qr/edit
+flows:
+  after_success:
+    - target: qrverify
+      label: Verify the new QR
+    - target: qrdecode
+      label: Decode another QR
+    - target: qrforge
+      label: Forge a fresh QR

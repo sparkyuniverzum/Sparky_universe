@@ -1,0 +1,144 @@
+{% extends "module_base.html" %}
+
+{% block title %}QR Edit{% endblock %}
+{% block heading %}QR Edit{% endblock %}
+{% block description %}Edit a QR payload and regenerate a signed QR.{% endblock %}
+
+{% block extra_styles %}
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .button-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="edit-form" method="post" enctype="multipart/form-data">
+  <label for="file">Upload QR image (PNG/JPG)</label>
+  <input id="file" name="file" type="file" accept="image/*">
+
+  <label for="payload">Or paste payload / data URL</label>
+  <textarea id="payload" name="payload" placeholder="data:image/png;base64,... or raw payload"></textarea>
+  <div class="hint">Load a QR first, then edit the JSON below.</div>
+
+  <label for="payload_json">Payload JSON (editable)</label>
+  <textarea id="payload_json" name="payload_json" placeholder='{"name": "Item", "supplier": "Acme"}'></textarea>
+
+  <div class="button-row">
+    <button type="submit" data-action="decode">Load payload</button>
+    <button type="submit" data-action="generate">Generate new QR</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Status</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Edit payload, re-sign, download a fresh QR.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("edit-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const payloadSource = document.getElementById("payload");
+  const payloadJson = document.getElementById("payload_json");
+  const fileInput = document.getElementById("file");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const setResult = (message) => {
+    result.classList.add("visible");
+    output.textContent = message;
+  };
+
+  const buildDecodeData = () => {
+    const data = new FormData();
+    if (fileInput.files.length > 0) {
+      data.append("file", fileInput.files[0]);
+    }
+    if (payloadSource.value) {
+      data.append("payload", payloadSource.value);
+    }
+    return data;
+  };
+
+  const buildQrData = () => {
+    const data = new FormData();
+    data.append("payload_json", payloadJson.value);
+    return data;
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const action = event.submitter?.dataset.action || "decode";
+
+    try {
+      if (action === "decode") {
+        const response = await fetch("/decode", { method: "POST", body: buildDecodeData() });
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          setResult(data.error || "Decode failed");
+          showFlow();
+          return;
+        }
+
+        payloadJson.value = JSON.stringify(data.payload, null, 2);
+        setResult("Payload loaded. Edit JSON and generate a new QR.");
+        showFlow();
+        return;
+      }
+
+      const response = await fetch("/qr", { method: "POST", body: buildQrData() });
+      if (!response.ok) {
+        let message = "QR generation failed";
+        try {
+          const data = await response.json();
+          if (data && data.error) {
+            message = data.error;
+          }
+        } catch (error) {
+          message = "QR generation failed";
+        }
+        setResult(message);
+        showFlow();
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "qr-edit.png";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setResult("Download started for the new QR.");
+    } catch (error) {
+      setResult("Request failed");
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

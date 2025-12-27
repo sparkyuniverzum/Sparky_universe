@@ -10,5 +10,7 @@ flows:
   after_success:
     - target: qrforge
       label: Forge a new QR
+    - target: qredit
+      label: Edit payload
     - target: qr-batch
       label: Batch-generate QR codes
