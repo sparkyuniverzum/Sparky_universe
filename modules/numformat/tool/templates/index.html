@@ -1,0 +1,71 @@
+{% extends "module_base.html" %}
+
+{% block title %}Money Number Normalizer{% endblock %}
+{% block heading %}Money Number Normalizer{% endblock %}
+{% block description %}Normalize messy numbers into clean decimal outputs.{% endblock %}
+
+{% block form %}
+<form id="format-form" action="/format" method="post">
+  <label for="value">Number value</label>
+  <input id="value" name="value" placeholder="1 234,50">
+  <button type="submit">Normalize</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Normalized output</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Input with spaces or commas. Output q2/q3/q4 + money string.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("format-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const renderResult = (data) => {
+    output.textContent = [
+      `normalized: ${data.normalized}`,
+      `money_out: ${data.money_out}`,
+      `q2: ${data.q2}`,
+      `q3: ${data.q3}`,
+      `q4: ${data.q4}`,
+    ].join("\n");
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(form.action, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Normalization failed";
+      } else {
+        renderResult(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
