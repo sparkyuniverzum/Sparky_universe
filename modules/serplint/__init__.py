@@ -1,0 +1,1 @@
+"""SERP snippet linter module."""

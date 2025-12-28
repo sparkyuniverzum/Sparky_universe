@@ -1,0 +1,117 @@
+{% extends "module_base.html" %}
+
+{% block title %}SERP Snippet Linter{% endblock %}
+{% block heading %}SERP Snippet Linter{% endblock %}
+{% block description %}Check title and description lengths for search snippets.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .report-list {
+        list-style: none;
+        margin: 12px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 8px;
+      }
+
+      .report-list li {
+        font-size: 0.9rem;
+        color: rgba(245, 247, 251, 0.88);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="serp-form" action="{{ base_path }}/lint" method="post">
+  <label for="title">Page title</label>
+  <input id="title" name="title" placeholder="Title shown in search results">
+
+  <label for="description">Meta description</label>
+  <textarea id="description" name="description" placeholder="Description used in search snippets"></textarea>
+
+  <div class="hint">Checks both character length and estimated pixel width.</div>
+  <button type="submit">Run SERP check</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">SERP report</div>
+  <pre id="output">-</pre>
+  <ul id="warnings-list" class="report-list"></ul>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Title 30-60 chars, description 70-160 chars.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("serp-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const warningsList = document.getElementById("warnings-list");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const fillList = (element, items) => {
+    element.innerHTML = "";
+    if (!items || items.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "No warnings.";
+      element.appendChild(li);
+      return;
+    }
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      element.appendChild(li);
+    });
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/lint`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Lint failed";
+        fillList(warningsList, []);
+      } else {
+        const titleLine = `Title: ${data.title.length} chars | ${data.title.pixels}px`;
+        const descLine = `Description: ${data.description.length} chars | ${data.description.pixels}px`;
+        output.textContent = `${titleLine}
+${descLine}`;
+        fillList(warningsList, data.warnings);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      fillList(warningsList, []);
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

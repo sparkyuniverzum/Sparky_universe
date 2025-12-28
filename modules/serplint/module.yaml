@@ -1,0 +1,13 @@
+name: serplint
+title: SERP Snippet Linter
+version: 0.0.1
+description: Check title and description lengths for search snippets.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.serplint.tool.app:app
+mount: /marketing/serp-lint
+flows:
+  after_success:
+    - target: utmcheck
+      label: Validate UTM links

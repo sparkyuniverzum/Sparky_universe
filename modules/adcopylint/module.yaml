@@ -1,0 +1,11 @@
+name: adcopylint
+title: Ad Copy Linter
+version: 0.0.1
+description: Validate ad copy length limits by platform.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.adcopylint.tool.app:app
+mount: /marketing/ad-copy-lint
+flows:
+  after_success: []

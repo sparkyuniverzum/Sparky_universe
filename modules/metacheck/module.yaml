@@ -1,0 +1,13 @@
+name: metacheck
+title: Meta Tag Checker
+version: 0.0.1
+description: Audit HTML meta tags for SEO and social sharing.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.metacheck.tool.app:app
+mount: /marketing/meta-check
+flows:
+  after_success:
+    - target: serplint
+      label: Check SERP lengths

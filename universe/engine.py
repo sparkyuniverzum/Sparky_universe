@@ -21,6 +21,7 @@ CATEGORY_DESCRIPTIONS = {
     "Money": "Format amounts and currencies into readable output.",
     "Finance": "Quick VAT and percentage calculations for price checks.",
     "Data": "Batch-friendly utilities like CSV normalization.",
+    "Marketing QA": "SEO and campaign checks for marketing teams.",
     "Utilities": "Small, practical tools for quick one-off tasks.",
     "Other": "Useful modules that do not fit a core category.",
 }

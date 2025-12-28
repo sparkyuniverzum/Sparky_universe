@@ -1,0 +1,13 @@
+name: utmcheck
+title: UTM Link Checker
+version: 0.0.1
+description: Validate UTM parameters across URLs.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.utmcheck.tool.app:app
+mount: /marketing/utm-check
+flows:
+  after_success:
+    - target: adcopylint
+      label: Lint ad copy

@@ -1,0 +1,170 @@
+{% extends "module_base.html" %}
+
+{% block title %}UTM Link Checker{% endblock %}
+{% block heading %}UTM Link Checker{% endblock %}
+{% block description %}Validate UTM parameters across URLs.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 200px;
+        resize: vertical;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 12px;
+      }
+
+      .audit-item.ok {
+        border-color: rgba(90, 200, 250, 0.35);
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+
+      .audit-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: rgba(245, 247, 251, 0.9);
+      }
+
+      .audit-meta {
+        margin-top: 8px;
+        color: rgba(167, 179, 199, 0.9);
+        font-size: 0.85rem;
+        display: grid;
+        gap: 6px;
+      }
+
+      .audit-meta span {
+        display: block;
+        word-break: break-word;
+      }
+
+      .status-pill {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        background: rgba(90, 200, 250, 0.2);
+      }
+
+      .status-pill.bad {
+        background: rgba(255, 111, 118, 0.2);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="utm-form" action="{{ base_path }}/check" method="post">
+  <label for="urls">URLs (one per line)</label>
+  <textarea id="urls" name="urls" placeholder="https://example.com/?utm_source=...
+https://..."></textarea>
+  <div class="hint">Requires utm_source, utm_medium, utm_campaign.</div>
+  <button type="submit">Check UTMs</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">UTM report</div>
+  <pre id="output">-</pre>
+  <div id="audit-list" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Find missing UTM params and normalize URLs.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("utm-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("audit-list");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearList = () => {
+    list.innerHTML = "";
+  };
+
+  const renderItem = (item) => {
+    const card = document.createElement("div");
+    card.className = `audit-item ${item.valid ? "ok" : "bad"}`;
+    const status = item.valid ? "OK" : "Missing";
+    const statusClass = item.valid ? "status-pill" : "status-pill bad";
+    const missing = item.missing && item.missing.length ? item.missing.join(", ") : "-";
+    const warnings = item.warnings && item.warnings.length ? item.warnings.join(" | ") : "-";
+    const source = item.utm.utm_source || "-";
+    const medium = item.utm.utm_medium || "-";
+    const campaign = item.utm.utm_campaign || "-";
+    card.innerHTML = `
+      <div class="audit-head">
+        <span class="${statusClass}">${status}</span>
+        <span>${item.input}</span>
+      </div>
+      <div class="audit-meta">
+        <span>utm_source: ${source}</span>
+        <span>utm_medium: ${medium}</span>
+        <span>utm_campaign: ${campaign}</span>
+        <span>missing: ${missing}</span>
+        <span>warnings: ${warnings}</span>
+        <span>normalized: ${item.normalized_url || "-"}</span>
+      </div>
+    `;
+    list.appendChild(card);
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/check`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Check failed";
+        clearList();
+      } else {
+        output.textContent = `total: ${data.total} | valid: ${data.valid}`;
+        clearList();
+        (data.items || []).forEach(renderItem);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

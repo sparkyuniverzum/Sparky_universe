@@ -1,0 +1,177 @@
+{% extends "module_base.html" %}
+
+{% block title %}Meta Tag Checker{% endblock %}
+{% block heading %}Meta Tag Checker{% endblock %}
+{% block description %}Audit HTML meta tags for SEO and social sharing.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 220px;
+        resize: vertical;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .report-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        margin-top: 12px;
+      }
+
+      .report-card {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 12px;
+        background: rgba(12, 16, 22, 0.65);
+      }
+
+      .report-card h4 {
+        margin: 0 0 8px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: rgba(245, 247, 251, 0.6);
+      }
+
+      .report-card ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 6px;
+      }
+
+      .report-card li {
+        font-size: 0.9rem;
+        color: rgba(245, 247, 251, 0.88);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="meta-form" action="{{ base_path }}/check" method="post">
+  <label for="html">HTML head or full page</label>
+  <textarea id="html" name="html" placeholder="<title>Example</title>
+<meta name="description" content="...">"></textarea>
+  <div class="hint">Paste the HTML snippet or full page source.</div>
+  <button type="submit">Run audit</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Audit report</div>
+  <pre id="output">-</pre>
+  <div class="report-grid">
+    <div class="report-card">
+      <h4>Issues</h4>
+      <ul id="issues-list"></ul>
+    </div>
+    <div class="report-card">
+      <h4>Warnings</h4>
+      <ul id="warnings-list"></ul>
+    </div>
+    <div class="report-card">
+      <h4>Key tags</h4>
+      <ul id="tags-list"></ul>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Check titles, descriptions, and social meta tags.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("meta-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const issuesList = document.getElementById("issues-list");
+  const warningsList = document.getElementById("warnings-list");
+  const tagsList = document.getElementById("tags-list");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const fillList = (element, items) => {
+    element.innerHTML = "";
+    if (!items || items.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "None";
+      element.appendChild(li);
+      return;
+    }
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      element.appendChild(li);
+    });
+  };
+
+  const formatValue = (value) => value ? value : "missing";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/check`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Audit failed";
+        fillList(issuesList, []);
+        fillList(warningsList, []);
+        fillList(tagsList, []);
+      } else {
+        const titleLine = `Title (${data.title.length}): ${formatValue(data.title.value)}`;
+        const descLine = `Description (${data.description.length}): ${formatValue(data.description.value)}`;
+        const canonLine = `Canonical: ${formatValue(data.canonical.value)}`;
+        output.textContent = `${titleLine}
+${descLine}
+${canonLine}`;
+
+        fillList(issuesList, data.issues);
+        fillList(warningsList, data.warnings);
+
+        const tagLines = [];
+        tagLines.push(titleLine);
+        tagLines.push(descLine);
+        tagLines.push(`Robots: ${formatValue(data.robots.value)}`);
+        if (data.open_graph && data.open_graph.missing.length === 0) {
+          tagLines.push("Open Graph: ok");
+        } else {
+          tagLines.push(`Open Graph missing: ${(data.open_graph.missing || []).join(", ")}`);
+        }
+        if (data.twitter && data.twitter.missing.length === 0) {
+          tagLines.push("Twitter cards: ok");
+        } else {
+          tagLines.push(`Twitter missing: ${(data.twitter.missing || []).join(", ")}`);
+        }
+        fillList(tagsList, tagLines);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      fillList(issuesList, []);
+      fillList(warningsList, []);
+      fillList(tagsList, []);
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

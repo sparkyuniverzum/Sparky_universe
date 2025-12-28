@@ -1,0 +1,179 @@
+{% extends "module_base.html" %}
+
+{% block title %}Ad Copy Linter{% endblock %}
+{% block heading %}Ad Copy Linter{% endblock %}
+{% block description %}Validate ad copy length limits by platform.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 200px;
+        resize: vertical;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 12px;
+      }
+
+      .audit-item.ok {
+        border-color: rgba(90, 200, 250, 0.35);
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+
+      .audit-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: rgba(245, 247, 251, 0.9);
+      }
+
+      .audit-meta {
+        margin-top: 8px;
+        color: rgba(167, 179, 199, 0.9);
+        font-size: 0.85rem;
+        display: grid;
+        gap: 6px;
+      }
+
+      .status-pill {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        background: rgba(90, 200, 250, 0.2);
+      }
+
+      .status-pill.bad {
+        background: rgba(255, 111, 118, 0.2);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="adcopy-form" action="{{ base_path }}/lint" method="post">
+  <div class="field-row">
+    <div>
+      <label for="kind">Copy type</label>
+      <select id="kind" name="kind">
+        <option value="google_headline" selected>Google headline (30)</option>
+        <option value="google_description">Google description (90)</option>
+        <option value="meta_primary">Meta primary text (125)</option>
+        <option value="meta_headline">Meta headline (40)</option>
+        <option value="meta_description">Meta description (30)</option>
+        <option value="linkedin_intro">LinkedIn intro (150)</option>
+        <option value="linkedin_headline">LinkedIn headline (70)</option>
+      </select>
+    </div>
+  </div>
+
+  <label for="lines">Copy lines (one per line)</label>
+  <textarea id="lines" name="lines" placeholder="Headline 1
+Headline 2
+Headline 3"></textarea>
+  <div class="hint">Each line is checked against the selected limit.</div>
+
+  <button type="submit">Lint copy</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Copy report</div>
+  <pre id="output">-</pre>
+  <div id="audit-list" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Validate lengths for Google, Meta, and LinkedIn ads.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("adcopy-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("audit-list");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearList = () => {
+    list.innerHTML = "";
+  };
+
+  const renderItem = (item, limit) => {
+    const card = document.createElement("div");
+    card.className = `audit-item ${item.ok ? "ok" : "bad"}`;
+    const status = item.ok ? "OK" : "Too long";
+    const statusClass = item.ok ? "status-pill" : "status-pill bad";
+    card.innerHTML = `
+      <div class="audit-head">
+        <span class="${statusClass}">${status}</span>
+        <span>${item.text}</span>
+      </div>
+      <div class="audit-meta">
+        <span>length: ${item.length} / ${limit}</span>
+        <span>remaining: ${item.remaining}</span>
+      </div>
+    `;
+    list.appendChild(card);
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/lint`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Lint failed";
+        clearList();
+      } else {
+        output.textContent = `type: ${data.label} | limit: ${data.limit} | over: ${data.over}`;
+        clearList();
+        (data.items || []).forEach((item) => renderItem(item, data.limit));
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
