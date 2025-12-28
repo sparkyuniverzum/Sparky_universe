@@ -1,0 +1,6 @@
+name: sparky_core
+title: Sparky Core
+version: 0.0.1
+description: Shared internal helpers for Sparky modules.
+public: false
+category: Internal

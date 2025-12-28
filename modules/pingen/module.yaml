@@ -1,0 +1,11 @@
+name: pingen
+title: PIN Generator
+version: 0.0.1
+description: Generate numeric PIN codes.
+public: true
+category: Generators
+entrypoints:
+  api: modules.pingen.tool.app:app
+mount: /generate/pin
+flows:
+  after_success: []

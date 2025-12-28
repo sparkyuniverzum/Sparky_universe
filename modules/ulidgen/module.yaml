@@ -1,0 +1,13 @@
+name: ulidgen
+title: ULID Generator
+version: 0.0.1
+description: Generate ULID identifiers.
+public: true
+category: Generators
+entrypoints:
+  api: modules.ulidgen.tool.app:app
+mount: /generate/ulid
+flows:
+  after_success:
+    - target: uuid7gen
+      label: Try UUIDv7 Generator

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from importlib import metadata
+import logging
 from pathlib import Path
 from typing import Any, Dict
 
 import yaml
+
+logger = logging.getLogger(__name__)
 
 MODULES_PATH = Path(__file__).parent.parent / "modules"
 ENTRYPOINT_GROUP = "sparky.modules"
@@ -58,11 +61,22 @@ def load_filesystem_modules(modules_path: Path = MODULES_PATH) -> Dict[str, Dict
             continue
         manifest = module_dir / "module.yaml"
         if manifest.exists():
-            with open(manifest, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f) or {}
+            try:
+                with open(manifest, "r", encoding="utf-8") as f:
+                    data = yaml.safe_load(f) or {}
+            except Exception:
+                logger.exception("Failed to load module manifest: %s", manifest)
+                continue
+            if not isinstance(data, dict):
+                logger.warning(
+                    "Invalid module manifest (expected mapping): %s", manifest
+                )
+                continue
             normalized = _normalize_module(data, source="filesystem", path=module_dir)
             if normalized:
                 modules[normalized["name"]] = normalized
+            else:
+                logger.warning("Module manifest missing name: %s", manifest)
     return modules
 
 

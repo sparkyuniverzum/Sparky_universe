@@ -50,6 +50,7 @@ def generate(
     count: str | None = Form(None),
     unique: bool = Form(False),
     sort_result: bool = Form(False),
+    seed: str | None = Form(None),
 ):
     result, error = generate_numbers(
         min_value,
@@ -57,6 +58,7 @@ def generate(
         count,
         unique=unique,
         sort_result=sort_result,
+        seed=seed,
     )
     if error:
         return JSONResponse({"error": error}, status_code=400)

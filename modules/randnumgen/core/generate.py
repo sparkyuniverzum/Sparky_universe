@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import random
 from typing import Any, Dict, List, Tuple
+
+from modules.sparky_core.core.rng import make_rng, parse_seed
 
 MAX_COUNT = 2000
 
@@ -26,6 +27,7 @@ def generate_numbers(
     *,
     unique: bool = False,
     sort_result: bool = False,
+    seed: Any = None,
 ) -> Tuple[Dict[str, List[int]] | None, str | None]:
     min_int, error = _parse_int(min_value, label="Min", default=1)
     if error or min_int is None:
@@ -44,7 +46,10 @@ def generate_numbers(
     if count_int <= 0 or count_int > MAX_COUNT:
         return None, f"Count must be between 1 and {MAX_COUNT}."
 
-    rng = random.SystemRandom()
+    seed_int, error = parse_seed(seed)
+    if error:
+        return None, error
+    rng = make_rng(seed_int)
     if unique:
         range_size = max_int - min_int + 1
         if count_int > range_size:
@@ -60,5 +65,6 @@ def generate_numbers(
         "min": min_int,
         "max": max_int,
         "count": count_int,
+        "seed": seed_int,
         "values": values,
     }, None

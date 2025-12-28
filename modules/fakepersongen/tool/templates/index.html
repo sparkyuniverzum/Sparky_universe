@@ -1,0 +1,109 @@
+{% extends "generator_base.html" %}
+
+{% block title %}Fake Person Generator{% endblock %}
+{% block heading %}Fake Person Generator{% endblock %}
+{% block description %}Generate fake names and contact details.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        margin-bottom: 16px;
+      }
+
+      .person-card {
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(14, 18, 24, 0.7);
+        display: grid;
+        gap: 6px;
+      }
+
+      .person-card span {
+        color: rgba(245, 247, 251, 0.8);
+        font-size: 0.9rem;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="person-form" action="{{ base_path }}/generate" method="post">
+  <div class="field-row">
+    <div>
+      <label for="count">Count</label>
+      <input id="count" name="count" placeholder="5">
+    </div>
+    <div>
+      <label for="seed">Seed (optional)</label>
+      <input id="seed" name="seed" placeholder="42">
+    </div>
+  </div>
+  <button type="submit">Generate people</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Fake data for mockups and testing.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("person-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const renderPeople = (people) => {
+    list.innerHTML = "";
+    people.forEach((person) => {
+      const card = document.createElement("div");
+      card.className = "person-card";
+      card.innerHTML = `
+        <strong>${person.name}</strong>
+        <span>${person.email}</span>
+        <span>${person.phone}</span>
+        <span>${person.address}</span>
+      `;
+      list.appendChild(card);
+    });
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        list.textContent = "";
+      } else {
+        const seedLabel = data.seed !== null && data.seed !== undefined ? ` | seed: ${data.seed}` : "";
+        output.textContent = `count: ${data.count}${seedLabel}`;
+        renderPeople(data.people || []);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      list.textContent = "";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

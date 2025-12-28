@@ -1,0 +1,11 @@
+name: fakepersongen
+title: Fake Person Generator
+version: 0.0.1
+description: Generate fake names and contact details.
+public: true
+category: Generators
+entrypoints:
+  api: modules.fakepersongen.tool.app:app
+mount: /generate/person
+flows:
+  after_success: []

@@ -1,0 +1,129 @@
+{% extends "generator_base.html" %}
+
+{% block title %}CSV Sample Generator{% endblock %}
+{% block heading %}CSV Sample Generator{% endblock %}
+{% block description %}Generate a CSV file from column names.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="csv-form" action="{{ base_path }}/generate" method="post">
+  <label for="columns">Columns (comma separated)</label>
+  <textarea id="columns" name="columns" placeholder="name, email, city"></textarea>
+
+  <div class="field-row">
+    <div>
+      <label for="rows">Rows</label>
+      <input id="rows" name="rows" placeholder="10">
+    </div>
+    <div>
+      <label for="seed">Seed (optional)</label>
+      <input id="seed" name="seed" placeholder="42">
+    </div>
+  </div>
+
+  <div class="hint">Generates basic sample values per column name. Add a seed for repeatable rows.</div>
+
+  <button type="submit">Generate CSV</button>
+</form>
+{% endblock %}
+
+{% block generator_actions %}
+<button type="button" id="download-csv">Download CSV</button>
+{% endblock %}
+
+{% block meta %}
+<span>Quick sample data for spreadsheets and testing.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("csv-form");
+  const downloadButton = document.getElementById("download-csv");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const fillOutput = (data) => {
+    const seedLabel = data.seed !== null && data.seed !== undefined ? ` | seed: ${data.seed}` : "";
+    output.textContent = `columns: ${data.columns} | rows: ${data.rows}${seedLabel}`;
+    list.textContent = data.csv || "";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        list.textContent = "";
+      } else {
+        fillOutput(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      list.textContent = "";
+    } finally {
+      showFlow();
+    }
+  });
+
+  downloadButton.addEventListener("click", async () => {
+    const formData = new FormData(form);
+    try {
+      const response = await fetch(`${basePath}/download`, { method: "POST", body: formData });
+      if (!response.ok) {
+        const data = await response.json();
+        output.textContent = data.error || "Download failed";
+        result.classList.add("visible");
+        return;
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "sample.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      output.textContent = "Download failed";
+      result.classList.add("visible");
+    }
+  });
+</script>
+{% endblock %}

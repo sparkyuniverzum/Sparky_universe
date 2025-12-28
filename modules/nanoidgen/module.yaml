@@ -1,0 +1,13 @@
+name: nanoidgen
+title: NanoID Generator
+version: 0.0.1
+description: Generate short NanoID-style identifiers.
+public: true
+category: Generators
+entrypoints:
+  api: modules.nanoidgen.tool.app:app
+mount: /generate/nanoid
+flows:
+  after_success:
+    - target: csvsamplegen
+      label: Build sample CSV

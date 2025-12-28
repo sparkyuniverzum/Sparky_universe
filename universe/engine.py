@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from importlib import import_module
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from universe.registry import load_modules
+
+logger = logging.getLogger(__name__)
 
 CATEGORY_DESCRIPTIONS = {
     "QR": "Create, verify, and edit QR codes for print and sharing.",
@@ -96,6 +99,8 @@ def build_app() -> FastAPI:
 
     modules = load_modules()
     for meta in modules.values():
+        if not meta.get("public", True):
+            continue
         entrypoints = meta.get("entrypoints") or {}
         api_entry = entrypoints.get("api")
         if not api_entry:
@@ -104,6 +109,11 @@ def build_app() -> FastAPI:
         try:
             subapp = import_attr(api_entry)
         except Exception:
+            logger.exception(
+                "Failed to import entrypoint for module %s (%s)",
+                meta.get("name", "<unknown>"),
+                api_entry,
+            )
             continue
 
         mount_path = meta.get("mount") or f"/{meta.get('slug', meta['name'])}"

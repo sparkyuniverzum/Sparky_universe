@@ -1,0 +1,11 @@
+name: randdategen
+title: Random Date Generator
+version: 0.0.1
+description: Generate random dates within a range.
+public: true
+category: Generators
+entrypoints:
+  api: modules.randdategen.tool.app:app
+mount: /generate/random-dates
+flows:
+  after_success: []

@@ -1,0 +1,85 @@
+{% extends "generator_base.html" %}
+
+{% block title %}ULID Generator{% endblock %}
+{% block heading %}ULID Generator{% endblock %}
+{% block description %}Generate ULID identifiers.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="ulid-form" action="{{ base_path }}/generate" method="post">
+  <label for="count">Count</label>
+  <input id="count" name="count" placeholder="10">
+
+  <label for="uppercase">Case</label>
+  <select id="uppercase" name="uppercase">
+    <option value="true" selected>Uppercase</option>
+    <option value="false">Lowercase</option>
+  </select>
+
+  <div class="hint">Max 1000 ULIDs per run.</div>
+
+  <button type="submit">Generate ULIDs</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Time-sortable IDs for logs and storage.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("ulid-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const clearList = () => {
+    list.textContent = "";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        clearList();
+      } else {
+        const caseLabel = data.uppercase ? "upper" : "lower";
+        output.textContent = `count: ${data.count} | case: ${caseLabel}`;
+        list.textContent = (data.values || []).join("
+");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

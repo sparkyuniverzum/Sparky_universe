@@ -37,13 +37,17 @@
       <label for="words">Words per paragraph</label>
       <input id="words" name="words" placeholder="60">
     </div>
+    <div>
+      <label for="seed">Seed (optional)</label>
+      <input id="seed" name="seed" placeholder="42">
+    </div>
   </div>
 
   <label class="inline" for="start_with_lorem">
     <input id="start_with_lorem" name="start_with_lorem" type="checkbox" value="true" checked>
     Start with "Lorem ipsum..."
   </label>
-  <div class="hint">Max 20 paragraphs, 200 words each.</div>
+  <div class="hint">Max 20 paragraphs, 200 words each. Add a seed for repeatable results.</div>
 
   <button type="submit">Generate lorem ipsum</button>
 </form>
@@ -87,7 +91,8 @@
         output.textContent = data.error || "Generation failed";
         clearList();
       } else {
-        output.textContent = `paragraphs: ${data.paragraphs} | words: ${data.words}`;
+        const seedLabel = data.seed !== null && data.seed !== undefined ? ` | seed: ${data.seed}` : "";
+        output.textContent = `paragraphs: ${data.paragraphs} | words: ${data.words}${seedLabel}`;
         list.textContent = (data.values || []).join("\n\n");
       }
     } catch (error) {

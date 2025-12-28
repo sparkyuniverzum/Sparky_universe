@@ -1,0 +1,11 @@
+name: csvsamplegen
+title: CSV Sample Generator
+version: 0.0.1
+description: Generate a CSV file from column names.
+public: true
+category: Generators
+entrypoints:
+  api: modules.csvsamplegen.tool.app:app
+mount: /generate/csv-sample
+flows:
+  after_success: []

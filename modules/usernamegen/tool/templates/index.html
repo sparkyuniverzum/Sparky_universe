@@ -1,0 +1,146 @@
+{% extends "generator_base.html" %}
+
+{% block title %}Username Generator{% endblock %}
+{% block heading %}Username Generator{% endblock %}
+{% block description %}Generate readable username ideas.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="username-form" action="{{ base_path }}/generate" method="post">
+  <label for="base">Base word (optional)</label>
+  <input id="base" name="base" placeholder="sparky">
+
+  <div class="field-row">
+    <div>
+      <label for="count">Count</label>
+      <input id="count" name="count" placeholder="10">
+    </div>
+    <div>
+      <label for="separator">Separator</label>
+      <select id="separator" name="separator">
+        <option value="-" selected>-</option>
+        <option value="_">_</option>
+        <option value=".">.</option>
+        <option value="">None</option>
+      </select>
+    </div>
+    <div>
+      <label for="number_digits">Number digits</label>
+      <input id="number_digits" name="number_digits" placeholder="2">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div>
+      <label for="seed">Seed (optional)</label>
+      <input id="seed" name="seed" placeholder="42">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <label class="inline" for="include_adjective">
+      <input id="include_adjective" name="include_adjective" type="checkbox" value="true" checked>
+      Include adjective
+    </label>
+    <label class="inline" for="include_noun">
+      <input id="include_noun" name="include_noun" type="checkbox" value="true" checked>
+      Include noun
+    </label>
+    <label class="inline" for="include_number">
+      <input id="include_number" name="include_number" type="checkbox" value="true">
+      Add number
+    </label>
+  </div>
+
+  <div class="field-row">
+    <label class="inline" for="lowercase">
+      <input id="lowercase" name="lowercase" type="checkbox" value="true" checked>
+      Force lowercase
+    </label>
+    <label class="inline" for="unique">
+      <input id="unique" name="unique" type="checkbox" value="true">
+      Unique only
+    </label>
+  </div>
+
+  <div class="hint">Max 200 usernames per run. Leave base blank for random combos. Add a seed for repeatable results.</div>
+
+  <button type="submit">Generate usernames</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Good for handles, side projects, and tests.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("username-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const clearList = () => {
+    list.textContent = "";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        clearList();
+      } else {
+        const baseLabel = data.base ? data.base : "random";
+        const separatorLabel = data.separator ? data.separator : "none";
+        const seedLabel = data.seed !== null && data.seed !== undefined ? ` | seed: ${data.seed}` : "";
+        output.textContent = `base: ${baseLabel} | count: ${data.count} | separator: ${separatorLabel}${seedLabel}`;
+        list.textContent = (data.values || []).join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

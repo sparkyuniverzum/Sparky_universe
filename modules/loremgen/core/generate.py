@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import random
 from typing import Any, Dict, List, Tuple
+
+from modules.sparky_core.core.rng import make_rng, parse_seed
 
 LOREM_WORDS = [
     "lorem",
@@ -104,6 +105,7 @@ def generate_lorem(
     words_per_paragraph: Any,
     *,
     start_with_lorem: bool = True,
+    seed: Any = None,
 ) -> Tuple[Dict[str, List[str]] | None, str | None]:
     para_int, error = _parse_int(paragraphs, label="Paragraphs", default=3)
     if error or para_int is None:
@@ -118,7 +120,10 @@ def generate_lorem(
     if words_int <= 0 or words_int > MAX_WORDS:
         return None, f"Words must be between 1 and {MAX_WORDS}."
 
-    rng = random.SystemRandom()
+    seed_int, error = parse_seed(seed)
+    if error:
+        return None, error
+    rng = make_rng(seed_int)
     values: List[str] = []
 
     for index in range(para_int):
@@ -133,5 +138,6 @@ def generate_lorem(
     return {
         "paragraphs": para_int,
         "words": words_int,
+        "seed": seed_int,
         "values": values,
     }, None

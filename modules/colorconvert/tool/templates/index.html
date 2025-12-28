@@ -1,0 +1,89 @@
+{% extends "module_base.html" %}
+
+{% block title %}Color Name/Hex Converter{% endblock %}
+{% block heading %}Color Name/Hex Converter{% endblock %}
+{% block description %}Convert color names to hex and back.{% endblock %}
+
+{% block extra_styles %}
+      .swatch {
+        margin-top: 12px;
+        height: 80px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: transparent;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="color-form" action="{{ base_path }}/convert" method="post">
+  <label for="color">Color name or hex</label>
+  <input id="color" name="color" placeholder="navy or #0a0f14">
+  <div class="hint">Supports common CSS names and hex values.</div>
+  <button type="submit">Convert color</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+  <div id="swatch" class="swatch"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Converts both directions with nearest match.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("color-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const swatch = document.getElementById("swatch");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/convert`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Conversion failed";
+        swatch.style.background = "transparent";
+      } else {
+        output.textContent = [
+          `name: ${data.name || ""}`,
+          `hex: ${data.hex}`,
+          `closest: ${data.closest_name || ""}`,
+        ].join("\n");
+        swatch.style.background = data.hex;
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      swatch.style.background = "transparent";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

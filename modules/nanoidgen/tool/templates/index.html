@@ -1,0 +1,100 @@
+{% extends "generator_base.html" %}
+
+{% block title %}NanoID Generator{% endblock %}
+{% block heading %}NanoID Generator{% endblock %}
+{% block description %}Generate short NanoID-style identifiers.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      textarea {
+        min-height: 90px;
+        resize: vertical;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="nanoid-form" action="{{ base_path }}/generate" method="post">
+  <div class="field-row">
+    <div>
+      <label for="length">Length</label>
+      <input id="length" name="length" placeholder="12">
+    </div>
+    <div>
+      <label for="count">Count</label>
+      <input id="count" name="count" placeholder="10">
+    </div>
+  </div>
+
+  <label for="alphabet">Custom alphabet (optional)</label>
+  <textarea id="alphabet" name="alphabet" placeholder="Leave empty for default"></textarea>
+
+  <div class="hint">Max 1000 IDs, length 1-128.</div>
+
+  <button type="submit">Generate NanoIDs</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Default alphabet: 0-9 a-z A-Z _ -</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("nanoid-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const clearList = () => {
+    list.textContent = "";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        clearList();
+      } else {
+        output.textContent = `count: ${data.count} | length: ${data.length} | alphabet: ${data.alphabet_length} chars`;
+        list.textContent = (data.values || []).join("
+");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

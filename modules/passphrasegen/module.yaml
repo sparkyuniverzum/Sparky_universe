@@ -1,0 +1,13 @@
+name: passphrasegen
+title: Passphrase Generator
+version: 0.0.1
+description: Generate memorable passphrases.
+public: true
+category: Generators
+entrypoints:
+  api: modules.passphrasegen.tool.app:app
+mount: /generate/passphrase
+flows:
+  after_success:
+    - target: passwordgen
+      label: Generate secure passwords

@@ -1,0 +1,11 @@
+name: usernamegen
+title: Username Generator
+version: 0.0.1
+description: Generate readable username ideas.
+public: true
+category: Generators
+entrypoints:
+  api: modules.usernamegen.tool.app:app
+mount: /generate/usernames
+flows:
+  after_success: []

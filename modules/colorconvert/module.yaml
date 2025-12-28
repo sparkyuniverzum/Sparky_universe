@@ -1,0 +1,11 @@
+name: colorconvert
+title: Color Name/Hex Converter
+version: 0.0.1
+description: Convert color names to hex and back.
+public: true
+category: Conversion
+entrypoints:
+  api: modules.colorconvert.tool.app:app
+mount: /convert/color
+flows:
+  after_success: []

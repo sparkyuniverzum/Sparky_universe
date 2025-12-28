@@ -48,9 +48,13 @@ def generate(
     paragraphs: str | None = Form(None),
     words: str | None = Form(None),
     start_with_lorem: bool = Form(False),
+    seed: str | None = Form(None),
 ):
     result, error = generate_lorem(
-        paragraphs, words, start_with_lorem=start_with_lorem
+        paragraphs,
+        words,
+        start_with_lorem=start_with_lorem,
+        seed=seed,
     )
     if error:
         return JSONResponse({"error": error}, status_code=400)
