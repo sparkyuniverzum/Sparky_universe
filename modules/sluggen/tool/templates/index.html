@@ -1,0 +1,98 @@
+{% extends "generator_base.html" %}
+
+{% block title %}Slug Generator{% endblock %}
+{% block heading %}Slug Generator{% endblock %}
+{% block description %}Convert text into URL-friendly slugs.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="slug-form" action="{{ base_path }}/generate" method="post">
+  <label for="text">Text</label>
+  <input id="text" name="text" placeholder="My Great Article Title">
+
+  <div class="field-row">
+    <div>
+      <label for="delimiter">Delimiter</label>
+      <input id="delimiter" name="delimiter" placeholder="-" value="-">
+    </div>
+    <div>
+      <label for="lowercase">Lowercase</label>
+      <label class="inline" for="lowercase">
+        <input id="lowercase" name="lowercase" type="checkbox" value="true" checked>
+        Force lowercase
+      </label>
+    </div>
+    <div>
+      <label for="remove_accents">Remove accents</label>
+      <label class="inline" for="remove_accents">
+        <input id="remove_accents" name="remove_accents" type="checkbox" value="true" checked>
+        Strip accents (CZ)
+      </label>
+    </div>
+  </div>
+
+  <button type="submit">Generate slug</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Good for URLs, file names, and IDs.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("slug-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      list.textContent = "";
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+      } else {
+        output.textContent = `slug: ${data.slug}`;
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      list.textContent = "";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

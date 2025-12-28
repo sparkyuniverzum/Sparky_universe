@@ -1,0 +1,128 @@
+{% extends "generator_base.html" %}
+
+{% block title %}Color Palette Generator{% endblock %}
+{% block heading %}Color Palette Generator{% endblock %}
+{% block description %}Generate a color palette from a base color.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+
+      .palette {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .swatch {
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: grid;
+        gap: 6px;
+        color: #0b0f14;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .swatch span {
+        background: rgba(255, 255, 255, 0.75);
+        border-radius: 999px;
+        padding: 4px 10px;
+        justify-self: start;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="palette-form" action="{{ base_path }}/generate" method="post">
+  <div class="field-row">
+    <div>
+      <label for="base">Base color (hex)</label>
+      <input id="base" name="base" placeholder="#5ac8fa">
+    </div>
+    <div>
+      <label for="steps">Steps</label>
+      <input id="steps" name="steps" placeholder="6">
+    </div>
+    <div>
+      <label for="mode">Mode</label>
+      <select id="mode" name="mode">
+        <option value="tints" selected>Tints (lighter)</option>
+        <option value="shades">Shades (darker)</option>
+        <option value="both">Both</option>
+      </select>
+    </div>
+  </div>
+
+  <button type="submit">Generate palette</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Good for UI themes and gradients.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("palette-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const renderPalette = (colors) => {
+    list.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "palette";
+    colors.forEach((color) => {
+      const swatch = document.createElement("div");
+      swatch.className = "swatch";
+      swatch.style.background = color;
+      const label = document.createElement("span");
+      label.textContent = color;
+      swatch.appendChild(label);
+      grid.appendChild(swatch);
+    });
+    list.appendChild(grid);
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        list.textContent = "";
+      } else {
+        output.textContent = `base: ${data.base} | mode: ${data.mode} | steps: ${data.steps}`;
+        renderPalette(data.colors || []);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      list.textContent = "";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

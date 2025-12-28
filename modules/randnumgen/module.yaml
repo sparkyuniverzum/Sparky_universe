@@ -1,0 +1,11 @@
+name: randnumgen
+title: Random Number Generator
+version: 0.0.1
+description: Generate random numbers in a range.
+public: true
+category: Generators
+entrypoints:
+  api: modules.randnumgen.tool.app:app
+mount: /generate/random-numbers
+flows:
+  after_success: []

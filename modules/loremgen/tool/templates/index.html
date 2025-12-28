@@ -1,0 +1,102 @@
+{% extends "generator_base.html" %}
+
+{% block title %}Lorem Ipsum Generator{% endblock %}
+{% block heading %}Lorem Ipsum Generator{% endblock %}
+{% block description %}Generate placeholder text paragraphs.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="lorem-form" action="{{ base_path }}/generate" method="post">
+  <div class="field-row">
+    <div>
+      <label for="paragraphs">Paragraphs</label>
+      <input id="paragraphs" name="paragraphs" placeholder="3">
+    </div>
+    <div>
+      <label for="words">Words per paragraph</label>
+      <input id="words" name="words" placeholder="60">
+    </div>
+  </div>
+
+  <label class="inline" for="start_with_lorem">
+    <input id="start_with_lorem" name="start_with_lorem" type="checkbox" value="true" checked>
+    Start with "Lorem ipsum..."
+  </label>
+  <div class="hint">Max 20 paragraphs, 200 words each.</div>
+
+  <button type="submit">Generate lorem ipsum</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Fast placeholder copy for design and content.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("lorem-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const clearList = () => {
+    list.textContent = "";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        clearList();
+      } else {
+        output.textContent = `paragraphs: ${data.paragraphs} | words: ${data.words}`;
+        list.textContent = (data.values || []).join("\n\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

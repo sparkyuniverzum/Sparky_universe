@@ -1,0 +1,11 @@
+name: passwordgen
+title: Password Generator
+version: 0.0.1
+description: Generate secure random passwords.
+public: true
+category: Generators
+entrypoints:
+  api: modules.passwordgen.tool.app:app
+mount: /generate/password
+flows:
+  after_success: []

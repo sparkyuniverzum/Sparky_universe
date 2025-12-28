@@ -1,0 +1,11 @@
+name: loremgen
+title: Lorem Ipsum Generator
+version: 0.0.1
+description: Generate placeholder text paragraphs.
+public: true
+category: Generators
+entrypoints:
+  api: modules.loremgen.tool.app:app
+mount: /generate/lorem
+flows:
+  after_success: []

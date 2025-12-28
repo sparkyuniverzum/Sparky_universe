@@ -1,0 +1,11 @@
+name: randstringgen
+title: Random String Generator
+version: 0.0.1
+description: Generate random strings with custom character sets.
+public: true
+category: Generators
+entrypoints:
+  api: modules.randstringgen.tool.app:app
+mount: /generate/random-strings
+flows:
+  after_success: []

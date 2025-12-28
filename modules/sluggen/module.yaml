@@ -1,0 +1,11 @@
+name: sluggen
+title: Slug Generator
+version: 0.0.1
+description: Convert text into URL-friendly slugs.
+public: true
+category: Generators
+entrypoints:
+  api: modules.sluggen.tool.app:app
+mount: /generate/slug
+flows:
+  after_success: []

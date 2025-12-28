@@ -1,0 +1,11 @@
+name: palettegen
+title: Color Palette Generator
+version: 0.0.1
+description: Generate a color palette from a base color.
+public: true
+category: Generators
+entrypoints:
+  api: modules.palettegen.tool.app:app
+mount: /generate/palette
+flows:
+  after_success: []

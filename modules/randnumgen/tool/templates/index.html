@@ -1,0 +1,113 @@
+{% extends "generator_base.html" %}
+
+{% block title %}Random Number Generator{% endblock %}
+{% block heading %}Random Number Generator{% endblock %}
+{% block description %}Generate random numbers in a range.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="rand-form" action="{{ base_path }}/generate" method="post">
+  <div class="field-row">
+    <div>
+      <label for="min_value">Min</label>
+      <input id="min_value" name="min_value" placeholder="1">
+    </div>
+    <div>
+      <label for="max_value">Max</label>
+      <input id="max_value" name="max_value" placeholder="100">
+    </div>
+    <div>
+      <label for="count">Count</label>
+      <input id="count" name="count" placeholder="10">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <label class="inline" for="unique">
+      <input id="unique" name="unique" type="checkbox" value="true">
+      Unique values
+    </label>
+    <label class="inline" for="sort_result">
+      <input id="sort_result" name="sort_result" type="checkbox" value="true">
+      Sort results
+    </label>
+  </div>
+
+  <div class="hint">Max 2000 values per run.</div>
+
+  <button type="submit">Generate numbers</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Good for lotteries, samples, and testing.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("rand-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const clearList = () => {
+    list.textContent = "";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        clearList();
+      } else {
+        output.textContent = `min: ${data.min} | max: ${data.max} | count: ${data.count}`;
+        list.textContent = (data.values || []).join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

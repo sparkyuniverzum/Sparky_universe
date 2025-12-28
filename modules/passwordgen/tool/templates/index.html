@@ -1,0 +1,121 @@
+{% extends "generator_base.html" %}
+
+{% block title %}Password Generator{% endblock %}
+{% block heading %}Password Generator{% endblock %}
+{% block description %}Generate secure random passwords.{% endblock %}
+
+{% block extra_styles %}
+{{ super() }}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+
+      .inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="password-form" action="{{ base_path }}/generate" method="post">
+  <div class="field-row">
+    <div>
+      <label for="length">Length</label>
+      <input id="length" name="length" placeholder="16">
+    </div>
+    <div>
+      <label for="count">Count</label>
+      <input id="count" name="count" placeholder="5">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <label class="inline" for="use_lower">
+      <input id="use_lower" name="use_lower" type="checkbox" value="true" checked>
+      Lowercase
+    </label>
+    <label class="inline" for="use_upper">
+      <input id="use_upper" name="use_upper" type="checkbox" value="true" checked>
+      Uppercase
+    </label>
+    <label class="inline" for="use_digits">
+      <input id="use_digits" name="use_digits" type="checkbox" value="true" checked>
+      Digits
+    </label>
+    <label class="inline" for="use_symbols">
+      <input id="use_symbols" name="use_symbols" type="checkbox" value="true">
+      Symbols
+    </label>
+  </div>
+
+  <label class="inline" for="exclude_similar">
+    <input id="exclude_similar" name="exclude_similar" type="checkbox" value="true">
+    Exclude similar characters (O, 0, l, 1)
+  </label>
+  <div class="hint">Max 200 passwords, length up to 128.</div>
+
+  <button type="submit">Generate passwords</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Secure random output using system entropy.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const form = document.getElementById("password-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const list = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const clearList = () => {
+    list.textContent = "";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        clearList();
+      } else {
+        output.textContent = `count: ${data.count} | length: ${data.length}`;
+        list.textContent = (data.values || []).join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
