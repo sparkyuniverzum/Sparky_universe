@@ -1,8 +1,21 @@
-{% macro ad_block(slot, label="Sponsored") -%}
-{% set slot_id = "ad-" + slot %}
-<section class="ad-block{% if slot in ["inline", "footer"] %} {{ slot }}{% endif %}" aria-label="Advertisement">
+{% macro ad_block(slot, label="Sponsored", meta=None) -%}
+{% set slot_id = meta.id if meta and meta.id else "ad-" + slot %}
+{% set position = meta.position if meta else "" %}
+{% set size = meta.size if meta else "" %}
+{% set page_type = meta.page_type if meta else "" %}
+<section class="ad-block{% if slot in ["inline", "footer"] %} {{ slot }}{% endif %}"
+  aria-label="Advertisement"
+  data-ad-slot="{{ slot }}"
+  data-ad-position="{{ position }}"
+  data-ad-size="{{ size }}"
+  data-ad-page="{{ page_type }}"
+  data-ad-enabled="{{ 'true' if meta and meta.enabled else 'false' }}">
   <div class="ad-label">{{ label }}</div>
-  <div id="{{ slot_id }}" class="ad-slot{% if slot == "inline" %} inline{% endif %}" data-ad-slot="{{ slot }}">
+  <div id="{{ slot_id }}" class="ad-slot{% if slot == "inline" %} inline{% endif %}"
+    data-ad-unit="{{ slot }}"
+    data-ad-slot="{{ slot }}"
+    data-ad-position="{{ position }}"
+    data-ad-size="{{ size }}">
     <span class="ad-placeholder">Ad space</span>
   </div>
 </section>

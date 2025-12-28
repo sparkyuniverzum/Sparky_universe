@@ -14,6 +14,7 @@ from modules.discountcalc.core.discount import (
 )
 from universe.flows import resolve_flow_links
 from universe.settings import shared_templates_dir
+from universe.ads import attach_ads_globals
 
 app = FastAPI(title="Discount Calculator")
 
@@ -27,6 +28,7 @@ templates = Jinja2Templates(
 )
 templates.env.auto_reload = True
 templates.env.cache = {}
+attach_ads_globals(templates)
 
 if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")

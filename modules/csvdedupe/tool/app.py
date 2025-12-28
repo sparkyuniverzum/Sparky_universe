@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 from modules.csvdedupe.core.dedupe import dedupe_csv_text, parse_column_indexes
 from universe.flows import resolve_flow_links
 from universe.settings import shared_templates_dir
+from universe.ads import attach_ads_globals
 
 app = FastAPI(title="CSV Deduplicator")
 
@@ -25,6 +26,7 @@ templates = Jinja2Templates(
 )
 templates.env.auto_reload = True
 templates.env.cache = {}
+attach_ads_globals(templates)
 
 if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")

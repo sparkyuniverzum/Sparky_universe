@@ -12,6 +12,7 @@ from modules.qrverify.core.decode import decode_input
 from modules.qrverify.core.verify import verify_decoded
 from universe.flows import resolve_flow_links
 from universe.settings import shared_templates_dir
+from universe.ads import attach_ads_globals
 
 app = FastAPI(title="QR Verify")
 
@@ -23,6 +24,7 @@ templates = Jinja2Templates(
 )
 templates.env.auto_reload = True
 templates.env.cache = {}
+attach_ads_globals(templates)
 BRAND_DIR = ROOT_DIR / "brand"
 
 if BRAND_DIR.exists():

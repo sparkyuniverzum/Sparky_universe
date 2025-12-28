@@ -1,0 +1,64 @@
+{% extends "generator_base.html" %}
+
+{% block title %}UUIDv7 Generator{% endblock %}
+{% block heading %}UUIDv7 Generator{% endblock %}
+{% block description %}Generate UUIDv7 identifiers.{% endblock %}
+
+{% block form %}
+<form id="uuid-form" action="{{ base_path }}/generate" method="post">
+  <label for="count">Count</label>
+  <input id="count" name="count" placeholder="10">
+  <button type="submit">Generate UUIDv7</button>
+</form>
+{% endblock %}
+
+{% block meta %}
+<span>Max 1000 identifiers per run.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("uuid-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const values = document.getElementById("output-list");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const clearValues = () => {
+    values.textContent = "";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        clearValues();
+      } else {
+        output.textContent = `count: ${data.count}`;
+        values.textContent = (data.values || []).join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearValues();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -11,6 +11,7 @@ from modules.qrforge.core.sign import sign_payload
 from modules.qrforge.core.render import render_qr
 from universe.flows import resolve_flow_links
 from universe.settings import shared_templates_dir
+from universe.ads import attach_ads_globals
 
 app = FastAPI(title="QR Forge")
 
@@ -22,6 +23,7 @@ templates = Jinja2Templates(
 )
 templates.env.auto_reload = True
 templates.env.cache = {}
+attach_ads_globals(templates)
 BRAND_DIR = ROOT_DIR / "brand"
 
 if BRAND_DIR.exists():

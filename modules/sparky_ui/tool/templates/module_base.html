@@ -319,6 +319,7 @@
     </style>
   </head>
   <body>
+    {% set ads = ads_config(page_type if page_type is defined else "tool") %}
     <div class="page">
       <main class="panel">
         <img class="brand-mark" src="/brand/logo/sparky-universe.icon.png" alt="">
@@ -335,9 +336,13 @@
           </aside>
         </div>
       </main>
-      {{ ad_block("inline") }}
+      {% if ads.enabled and ads.slots.inline.enabled %}
+      {{ ad_block("inline", ads.slots.inline.label, ads.slots.inline) }}
+      {% endif %}
       <div class="meta">{% block meta %}{% endblock %}</div>
-      {{ ad_block("footer") }}
+      {% if ads.enabled and ads.slots.footer.enabled %}
+      {{ ad_block("footer", ads.slots.footer.label, ads.slots.footer) }}
+      {% endif %}
     </div>
     {% block scripts %}{% endblock %}
   </body>

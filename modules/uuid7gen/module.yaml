@@ -1,0 +1,11 @@
+name: uuid7gen
+title: UUIDv7 Generator
+version: 0.0.1
+description: Generate UUIDv7 identifiers.
+public: true
+category: Generators
+entrypoints:
+  api: modules.uuid7gen.tool.app:app
+mount: /generate/uuid7
+flows:
+  after_success: []

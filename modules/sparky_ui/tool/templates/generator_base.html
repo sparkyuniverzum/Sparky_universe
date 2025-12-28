@@ -1,0 +1,117 @@
+{% extends "module_base.html" %}
+
+{% set page_type = "generator" %}
+
+{% block extra_styles %}
+{{ super() }}
+      .generator-output {
+        margin-top: 12px;
+        max-height: 240px;
+        overflow: auto;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(14, 18, 24, 0.5);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 0.85rem;
+      }
+
+      .generator-output:empty {
+        display: none;
+      }
+
+      .generator-actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .generator-actions:empty {
+        display: none;
+      }
+
+      .generator-actions button {
+        width: auto;
+        flex: 1 1 160px;
+      }
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">{% block generator_result_title %}Output{% endblock %}</div>
+  <pre id="output">-</pre>
+  <div id="output-list" class="generator-output"></div>
+  <div class="generator-actions">
+    <button type="button" id="generator-copy">Copy</button>
+    <button type="button" id="generator-download">Download</button>
+    {% block generator_actions %}{% endblock %}
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const generatorCopy = document.getElementById("generator-copy");
+  const generatorDownload = document.getElementById("generator-download");
+  const outputPre = document.getElementById("output");
+  const outputList = document.getElementById("output-list");
+
+  const collectOutput = () => {
+    const listText = outputList ? outputList.textContent.trim() : "";
+    const preText = outputPre ? outputPre.textContent.trim() : "";
+    if (listText) {
+      return listText;
+    }
+    if (preText && preText !== "-") {
+      return preText;
+    }
+    return "";
+  };
+
+  const copyOutput = async () => {
+    const content = collectOutput();
+    if (!content) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(content);
+      generatorCopy.textContent = "Copied";
+      setTimeout(() => {
+        generatorCopy.textContent = "Copy";
+      }, 1200);
+    } catch (error) {
+      generatorCopy.textContent = "Failed";
+      setTimeout(() => {
+        generatorCopy.textContent = "Copy";
+      }, 1200);
+    }
+  };
+
+  const downloadOutput = () => {
+    const content = collectOutput();
+    if (!content) {
+      return;
+    }
+    const blob = new Blob([content + "\n"], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "output.txt";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  if (generatorCopy) {
+    generatorCopy.addEventListener("click", copyOutput);
+  }
+
+  if (generatorDownload) {
+    generatorDownload.addEventListener("click", downloadOutput);
+  }
+</script>
+{% endblock %}
