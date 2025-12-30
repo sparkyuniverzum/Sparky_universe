@@ -1,0 +1,11 @@
+name: join_preview
+title: Join Preview
+version: 0.0.1
+description: Estimate join overlap between two CSVs.
+public: true
+category: Data
+entrypoints:
+  api: modules.join_preview.tool.app:app
+mount: /data/join-preview
+flows:
+  after_success: []

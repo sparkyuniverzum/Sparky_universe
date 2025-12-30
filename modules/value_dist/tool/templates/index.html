@@ -1,0 +1,85 @@
+{% extends "module_base.html" %}
+
+{% block title %}Value Distribution{% endblock %}
+{% block heading %}Value Distribution{% endblock %}
+{% block description %}Show frequency of values in a CSV column.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="dist-form" action="{{ base_path }}/dist" method="post">
+  <label for="csv_text">CSV data</label>
+  <textarea id="csv_text" name="csv_text" rows="8" placeholder="city,visits&#10;Prague,10&#10;Brno,3&#10;Prague,2" required></textarea>
+  <div class="field-row">
+    <div>
+      <label for="column">Column (name or index)</label>
+      <input id="column" name="column" value="city" required>
+    </div>
+    <div>
+      <label for="top_n">Top values</label>
+      <input id="top_n" name="top_n" value="10">
+    </div>
+  </div>
+  <label>
+    <input type="checkbox" name="has_header" checked>
+    First row is header
+  </label>
+  <button type="submit">Show distribution</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("dist-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/dist`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Distribution failed";
+      } else {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

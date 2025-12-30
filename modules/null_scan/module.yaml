@@ -1,0 +1,11 @@
+name: null_scan
+title: Null Scan
+version: 0.0.1
+description: Measure missing values per column in CSV.
+public: true
+category: Data
+entrypoints:
+  api: modules.null_scan.tool.app:app
+mount: /data/null-scan
+flows:
+  after_success: []

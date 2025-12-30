@@ -1,0 +1,11 @@
+name: pii_linter
+title: PII Linter
+version: 0.0.1
+description: Scan CSV for common PII patterns.
+public: true
+category: Data
+entrypoints:
+  api: modules.pii_linter.tool.app:app
+mount: /data/pii
+flows:
+  after_success: []

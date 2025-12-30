@@ -1,0 +1,93 @@
+{% extends "module_base.html" %}
+
+{% block title %}Join Preview{% endblock %}
+{% block heading %}Join Preview{% endblock %}
+{% block description %}Estimate join overlap between two CSVs.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="join-form" action="{{ base_path }}/preview" method="post">
+  <label for="left_csv">Left CSV</label>
+  <textarea id="left_csv" name="left_csv" rows="6" placeholder="id,name&#10;1,Ada&#10;2,Ben" required></textarea>
+  <label for="right_csv">Right CSV</label>
+  <textarea id="right_csv" name="right_csv" rows="6" placeholder="user_id,plan&#10;2,Pro&#10;3,Free" required></textarea>
+  <div class="field-row">
+    <div>
+      <label for="left_key">Left join key (name or index)</label>
+      <input id="left_key" name="left_key" value="id" required>
+    </div>
+    <div>
+      <label for="right_key">Right join key (name or index)</label>
+      <input id="right_key" name="right_key" value="user_id" required>
+    </div>
+  </div>
+  <div class="field-row">
+    <label>
+      <input type="checkbox" name="left_header" checked>
+      Left CSV has header
+    </label>
+    <label>
+      <input type="checkbox" name="right_header" checked>
+      Right CSV has header
+    </label>
+  </div>
+  <button type="submit">Preview join</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("join-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/preview`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Join preview failed";
+      } else {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

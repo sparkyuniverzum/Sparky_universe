@@ -1,0 +1,11 @@
+name: value_dist
+title: Value Distribution
+version: 0.0.1
+description: Show frequency of values in a CSV column.
+public: true
+category: Data
+entrypoints:
+  api: modules.value_dist.tool.app:app
+mount: /data/value-dist
+flows:
+  after_success: []

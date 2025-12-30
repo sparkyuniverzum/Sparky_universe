@@ -1,0 +1,67 @@
+{% extends "module_base.html" %}
+
+{% block title %}Schema Profiler{% endblock %}
+{% block heading %}Schema Profiler{% endblock %}
+{% block description %}Profile columns and infer data types in CSV.{% endblock %}
+
+{% block form %}
+<form id="profile-form" action="{{ base_path }}/profile" method="post">
+  <label for="csv_text">CSV data</label>
+  <textarea id="csv_text" name="csv_text" rows="8" placeholder="id,name,age&#10;1,Ada,32" required></textarea>
+  <label>
+    <input type="checkbox" name="has_header" checked>
+    First row is header
+  </label>
+  <button type="submit">Profile schema</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("profile-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/profile`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Profiling failed";
+      } else {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

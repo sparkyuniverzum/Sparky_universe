@@ -1,0 +1,11 @@
+name: schema_profiler
+title: Schema Profiler
+version: 0.0.1
+description: Profile columns and infer data types in CSV.
+public: true
+category: Data
+entrypoints:
+  api: modules.schema_profiler.tool.app:app
+mount: /data/schema
+flows:
+  after_success: []

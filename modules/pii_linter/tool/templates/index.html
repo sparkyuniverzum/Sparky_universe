@@ -1,0 +1,67 @@
+{% extends "module_base.html" %}
+
+{% block title %}PII Linter{% endblock %}
+{% block heading %}PII Linter{% endblock %}
+{% block description %}Scan CSV for common PII patterns.{% endblock %}
+
+{% block form %}
+<form id="pii-form" action="{{ base_path }}/scan" method="post">
+  <label for="csv_text">CSV data</label>
+  <textarea id="csv_text" name="csv_text" rows="8" placeholder="email,phone,iban&#10;ada@example.com,+420 777 123 456,GB82WEST12345698765432" required></textarea>
+  <label>
+    <input type="checkbox" name="has_header" checked>
+    First row is header
+  </label>
+  <button type="submit">Scan for PII</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("pii-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/scan`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "PII scan failed";
+      } else {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
