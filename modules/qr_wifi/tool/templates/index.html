@@ -1,0 +1,111 @@
+{% extends "module_base.html" %}
+
+{% block title %}QR Wi-Fi{% endblock %}
+{% block heading %}QR Wi-Fi{% endblock %}
+{% block description %}Generate Wi-Fi QR codes for instant network setup.{% endblock %}
+
+{% block extra_styles %}
+      .qr-preview {
+        display: grid;
+        gap: 12px;
+        align-items: center;
+        justify-items: center;
+      }
+
+      .qr-preview img {
+        width: 220px;
+        height: 220px;
+        background: rgba(12, 16, 22, 0.7);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 10px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="wifi-form" action="{{ base_path }}/build" method="post">
+  <label for="ssid">Network name (SSID)</label>
+  <input id="ssid" name="ssid" placeholder="Office WiFi" required>
+  <label for="password">Password</label>
+  <input id="password" name="password" placeholder="••••••••">
+  <label for="security">Security</label>
+  <select id="security" name="security">
+    <option value="WPA" selected>WPA/WPA2</option>
+    <option value="WEP">WEP</option>
+    <option value="nopass">No password</option>
+  </select>
+  <label>
+    <input type="checkbox" name="hidden">
+    Hidden network
+  </label>
+  <button type="submit">Generate Wi-Fi QR</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Wi-Fi QR</div>
+  <pre id="output">-</pre>
+  <div class="qr-preview">
+    <img id="qr-image" alt="Wi-Fi QR preview">
+    <a id="download-link" href="#" download="wifi-qr.png">Download PNG</a>
+  </div>
+  <pre id="payload">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Output: Wi-Fi payload + PNG.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("wifi-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const payloadEl = document.getElementById("payload");
+  const img = document.getElementById("qr-image");
+  const link = document.getElementById("download-link");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/build`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        payloadEl.textContent = "-";
+        img.removeAttribute("src");
+        link.href = "#";
+        return;
+      }
+
+      output.textContent = "QR generated";
+      payloadEl.textContent = data.payload || "-";
+      img.src = data.data_url;
+      link.href = data.data_url;
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      payloadEl.textContent = "-";
+      img.removeAttribute("src");
+      link.href = "#";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

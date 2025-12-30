@@ -1,0 +1,68 @@
+{% extends "module_base.html" %}
+
+{% block title %}Prime Tool{% endblock %}
+{% block heading %}Prime Tool{% endblock %}
+{% block description %}Check primality and factorization.{% endblock %}
+
+{% block form %}
+<form id="prime-form" action="{{ base_path }}/analyze" method="post">
+  <label for="number">Number</label>
+  <input id="number" name="number" placeholder="97" required>
+  <button type="submit">Analyze number</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("prime-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/analyze`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Analysis failed";
+      } else {
+        output.textContent = [
+          `value: ${data.value}`,
+          `is_prime: ${data.is_prime}`,
+          `divisors: ${data.divisor_count}`,
+          `factors: ${data.factorization || "-"}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

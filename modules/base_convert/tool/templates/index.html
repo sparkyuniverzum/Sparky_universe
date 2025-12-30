@@ -1,0 +1,84 @@
+{% extends "module_base.html" %}
+
+{% block title %}Base Converter{% endblock %}
+{% block heading %}Base Converter{% endblock %}
+{% block description %}Convert numbers between bases (2-36).{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="base-form" action="{{ base_path }}/convert" method="post">
+  <label for="value">Value</label>
+  <input id="value" name="value" placeholder="FF" required>
+  <div class="field-row">
+    <div>
+      <label for="base_from">From base</label>
+      <input id="base_from" name="base_from" value="16" required>
+    </div>
+    <div>
+      <label for="base_to">To base</label>
+      <input id="base_to" name="base_to" value="10" required>
+    </div>
+  </div>
+  <button type="submit">Convert base</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("base-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/convert`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Conversion failed";
+      } else {
+        output.textContent = [
+          `decimal: ${data.decimal}`,
+          `converted: ${data.converted}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

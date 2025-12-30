@@ -1,0 +1,11 @@
+name: base_convert
+title: Base Converter
+version: 0.0.1
+description: Convert numbers between bases (2-36).
+public: true
+category: Numbers
+entrypoints:
+  api: modules.base_convert.tool.app:app
+mount: /numbers/base
+flows:
+  after_success: []

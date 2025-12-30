@@ -1,0 +1,11 @@
+name: qr_event
+title: QR Event
+version: 0.0.1
+description: Generate calendar event QR codes (iCal).
+public: true
+category: QR
+entrypoints:
+  api: modules.qr_event.tool.app:app
+mount: /qr/event
+flows:
+  after_success: []

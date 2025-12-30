@@ -1,0 +1,68 @@
+{% extends "module_base.html" %}
+
+{% block title %}GCD & LCM{% endblock %}
+{% block heading %}GCD & LCM{% endblock %}
+{% block description %}Compute GCD and LCM for a list of numbers.{% endblock %}
+
+{% block form %}
+<form id="gcd-form" action="{{ base_path }}/compute" method="post">
+  <label for="values">Numbers (comma, space, or new line)</label>
+  <textarea id="values" name="values" rows="4" placeholder="12, 18, 24" required></textarea>
+  <button type="submit">Compute GCD & LCM</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("gcd-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/compute`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Computation failed";
+      } else {
+        output.textContent = [
+          `count: ${data.count}`,
+          `gcd: ${data.gcd}`,
+          `lcm: ${data.lcm}`,
+          `numbers: ${data.numbers.join(", ")}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

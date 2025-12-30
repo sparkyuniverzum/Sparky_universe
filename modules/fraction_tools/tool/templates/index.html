@@ -1,0 +1,83 @@
+{% extends "module_base.html" %}
+
+{% block title %}Fraction Tools{% endblock %}
+{% block heading %}Fraction Tools{% endblock %}
+{% block description %}Reduce fractions and convert to decimal or mixed numbers.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="fraction-form" action="{{ base_path }}/reduce" method="post">
+  <div class="field-row">
+    <div>
+      <label for="numerator">Numerator</label>
+      <input id="numerator" name="numerator" placeholder="6" required>
+    </div>
+    <div>
+      <label for="denominator">Denominator</label>
+      <input id="denominator" name="denominator" placeholder="8" required>
+    </div>
+  </div>
+  <button type="submit">Reduce fraction</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("fraction-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/reduce`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Reduction failed";
+      } else {
+        output.textContent = [
+          `simplified: ${data.simplified}`,
+          `decimal: ${data.decimal}`,
+          `mixed: ${data.mixed}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

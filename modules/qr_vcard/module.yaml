@@ -1,0 +1,11 @@
+name: qr_vcard
+title: QR vCard
+version: 0.0.1
+description: Create vCard QR codes for contact sharing.
+public: true
+category: QR
+entrypoints:
+  api: modules.qr_vcard.tool.app:app
+mount: /qr/vcard
+flows:
+  after_success: []

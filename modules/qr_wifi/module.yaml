@@ -1,0 +1,11 @@
+name: qr_wifi
+title: QR Wi-Fi
+version: 0.0.1
+description: Generate Wi-Fi QR codes for instant network setup.
+public: true
+category: QR
+entrypoints:
+  api: modules.qr_wifi.tool.app:app
+mount: /qr/wifi
+flows:
+  after_success: []

@@ -1,0 +1,109 @@
+{% extends "module_base.html" %}
+
+{% block title %}QR vCard{% endblock %}
+{% block heading %}QR vCard{% endblock %}
+{% block description %}Create vCard QR codes for contact sharing.{% endblock %}
+
+{% block extra_styles %}
+      .qr-preview {
+        display: grid;
+        gap: 12px;
+        align-items: center;
+        justify-items: center;
+      }
+
+      .qr-preview img {
+        width: 220px;
+        height: 220px;
+        background: rgba(12, 16, 22, 0.7);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 10px;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="vcard-form" action="{{ base_path }}/build" method="post">
+  <label for="full_name">Full name</label>
+  <input id="full_name" name="full_name" placeholder="Sparky Universe" required>
+  <label for="phone">Phone</label>
+  <input id="phone" name="phone" placeholder="+420 555 000 111">
+  <label for="email">Email</label>
+  <input id="email" name="email" placeholder="hello@sparky.tools">
+  <label for="company">Company</label>
+  <input id="company" name="company" placeholder="Sparky Universe">
+  <label for="title">Title</label>
+  <input id="title" name="title" placeholder="Product Lead">
+  <label for="website">Website</label>
+  <input id="website" name="website" placeholder="https://sparky.tools">
+  <button type="submit">Generate vCard QR</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">vCard QR</div>
+  <pre id="output">-</pre>
+  <div class="qr-preview">
+    <img id="qr-image" alt="vCard QR preview">
+    <a id="download-link" href="#" download="vcard-qr.png">Download PNG</a>
+  </div>
+  <pre id="payload">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Output: vCard payload + PNG.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("vcard-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const payloadEl = document.getElementById("payload");
+  const img = document.getElementById("qr-image");
+  const link = document.getElementById("download-link");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/build`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Generation failed";
+        payloadEl.textContent = "-";
+        img.removeAttribute("src");
+        link.href = "#";
+        return;
+      }
+
+      output.textContent = "QR generated";
+      payloadEl.textContent = data.payload || "-";
+      img.src = data.data_url;
+      link.href = data.data_url;
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      payloadEl.textContent = "-";
+      img.removeAttribute("src");
+      link.href = "#";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

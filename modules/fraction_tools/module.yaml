@@ -1,0 +1,11 @@
+name: fraction_tools
+title: Fraction Tools
+version: 0.0.1
+description: Reduce fractions and convert to decimal or mixed numbers.
+public: true
+category: Numbers
+entrypoints:
+  api: modules.fraction_tools.tool.app:app
+mount: /numbers/fractions
+flows:
+  after_success: []

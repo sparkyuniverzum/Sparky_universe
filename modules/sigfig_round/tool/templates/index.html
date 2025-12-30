@@ -1,0 +1,82 @@
+{% extends "module_base.html" %}
+
+{% block title %}Significant Figures{% endblock %}
+{% block heading %}Significant Figures{% endblock %}
+{% block description %}Round numbers to a chosen count of significant figures.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="sigfig-form" action="{{ base_path }}/round" method="post">
+  <div class="field-row">
+    <div>
+      <label for="value">Value</label>
+      <input id="value" name="value" placeholder="12345.67" required>
+    </div>
+    <div>
+      <label for="sigfigs">Significant figures</label>
+      <input id="sigfigs" name="sigfigs" value="3" required>
+    </div>
+  </div>
+  <button type="submit">Round to sig figs</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("sigfig-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/round`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Rounding failed";
+      } else {
+        output.textContent = [
+          `rounded: ${data.rounded}`,
+          `scientific: ${data.scientific}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

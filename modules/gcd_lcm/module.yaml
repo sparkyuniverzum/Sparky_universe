@@ -1,0 +1,11 @@
+name: gcd_lcm
+title: GCD & LCM
+version: 0.0.1
+description: Compute GCD and LCM for a list of numbers.
+public: true
+category: Numbers
+entrypoints:
+  api: modules.gcd_lcm.tool.app:app
+mount: /numbers/gcd-lcm
+flows:
+  after_success: []

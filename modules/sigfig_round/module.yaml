@@ -1,0 +1,11 @@
+name: sigfig_round
+title: Significant Figures
+version: 0.0.1
+description: Round numbers to a chosen count of significant figures.
+public: true
+category: Numbers
+entrypoints:
+  api: modules.sigfig_round.tool.app:app
+mount: /numbers/sigfig
+flows:
+  after_success: []

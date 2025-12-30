@@ -1,0 +1,75 @@
+{% extends "module_base.html" %}
+
+{% block title %}Stats Summary{% endblock %}
+{% block heading %}Stats Summary{% endblock %}
+{% block description %}Summarize a list of numbers with key statistics.{% endblock %}
+
+{% block form %}
+<form id="stats-form" action="{{ base_path }}/summarize" method="post">
+  <label for="values">Numbers (comma, space, or new line)</label>
+  <textarea id="values" name="values" rows="4" placeholder="3, 5, 7, 7, 9" required></textarea>
+  <button type="submit">Summarize numbers</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("stats-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/summarize`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Summary failed";
+      } else {
+        output.textContent = [
+          `count: ${data.count}`,
+          `min: ${data.min}`,
+          `max: ${data.max}`,
+          `sum: ${data.sum}`,
+          `mean: ${data.mean}`,
+          `median: ${data.median}`,
+          `q1: ${data.q1}`,
+          `q3: ${data.q3}`,
+          `stdev(pop): ${data.stdev_pop}`,
+          `stdev(sample): ${data.stdev_sample ?? "-"}`,
+          `modes: ${data.modes.length ? data.modes.join(", ") : "-"}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

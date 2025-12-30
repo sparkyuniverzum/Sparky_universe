@@ -1,0 +1,11 @@
+name: stats_summary
+title: Stats Summary
+version: 0.0.1
+description: Summarize a list of numbers with key statistics.
+public: true
+category: Numbers
+entrypoints:
+  api: modules.stats_summary.tool.app:app
+mount: /numbers/stats
+flows:
+  after_success: []
