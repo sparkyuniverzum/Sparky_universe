@@ -1,0 +1,138 @@
+{% extends "module_base.html" %}
+
+{% block title %}Ad Policy Guard{% endblock %}
+{% block heading %}Ad Policy Guard{% endblock %}
+{% block description %}Flag risky claims in ad copy across sensitive categories.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 140px;
+        resize: vertical;
+      }
+
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        background: rgba(90, 200, 250, 0.2);
+        width: fit-content;
+      }
+
+      .pill.bad {
+        background: rgba(255, 111, 118, 0.2);
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .tag {
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 0.75rem;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="guard-form" action="{{ base_path }}/scan" method="post">
+  <label for="copy">Ad copy</label>
+  <textarea id="copy" name="copy" placeholder="Guaranteed results in 7 days with no risk."></textarea>
+  <label for="category">Category</label>
+  <select id="category" name="category">
+    <option value="general" selected>general</option>
+    <option value="finance">finance</option>
+    <option value="health">health</option>
+  </select>
+  <button type="submit">Scan copy</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Policy check</div>
+  <pre id="output">-</pre>
+  <div id="severity" class="pill"></div>
+  <div id="flags" class="tag-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Offline checks, not legal advice.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("guard-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const severity = document.getElementById("severity");
+  const flags = document.getElementById("flags");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearFlags = () => {
+    flags.innerHTML = "";
+  };
+
+  const render = (data) => {
+    const pillClass = data.severity === "high" ? "pill bad" : "pill";
+    severity.className = pillClass;
+    severity.textContent = `severity: ${data.severity}`;
+
+    clearFlags();
+    if (!data.flags || data.flags.length === 0) {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = "No risky phrases found.";
+      flags.appendChild(tag);
+      return;
+    }
+
+    data.flags.forEach((flag) => {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = flag;
+      flags.appendChild(tag);
+    });
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/scan`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Scan failed";
+        clearFlags();
+        severity.textContent = "";
+      } else {
+        output.textContent = `flags: ${data.flag_count}`;
+        render(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearFlags();
+      severity.textContent = "";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

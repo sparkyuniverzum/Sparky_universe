@@ -1,0 +1,11 @@
+name: landing_copy_lint
+title: Landing Copy Lint
+version: 0.0.1
+description: Lint landing page hero copy for clarity, CTA, and proof.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.landing_copy_lint.tool.app:app
+mount: /marketing/landing-copy-lint
+flows:
+  after_success: []

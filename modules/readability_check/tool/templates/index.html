@@ -1,0 +1,175 @@
+{% extends "module_base.html" %}
+
+{% block title %}Readability Check{% endblock %}
+{% block heading %}Readability Check{% endblock %}
+{% block description %}Measure readability and highlight hard-to-read text.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 160px;
+        resize: vertical;
+      }
+
+      .score-card {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 14px;
+        background: rgba(12, 16, 22, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .score-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        background: rgba(90, 200, 250, 0.2);
+        width: fit-content;
+      }
+
+      .pill.bad {
+        background: rgba(255, 111, 118, 0.2);
+      }
+
+      .breakdown {
+        display: grid;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.9);
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="readability-form" action="{{ base_path }}/check" method="post">
+  <label for="text">Copy to analyze</label>
+  <textarea id="text" name="text" placeholder="Paste copy to check readability."></textarea>
+  <button type="submit">Check readability</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Readability report</div>
+  <pre id="output">-</pre>
+  <div id="score-card" class="score-card"></div>
+  <div id="details" class="breakdown"></div>
+  <div id="warnings" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Keep copy easy to scan and understand.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("readability-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const card = document.getElementById("score-card");
+  const details = document.getElementById("details");
+  const warnings = document.getElementById("warnings");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearWarnings = () => {
+    warnings.innerHTML = "";
+  };
+
+  const renderWarnings = (items) => {
+    clearWarnings();
+    if (!items || items.length === 0) {
+      const card = document.createElement("div");
+      card.className = "audit-item";
+      card.textContent = "No warnings found.";
+      warnings.appendChild(card);
+      return;
+    }
+    items.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "audit-item bad";
+      card.textContent = item;
+      warnings.appendChild(card);
+    });
+  };
+
+  const renderScore = (data) => {
+    const pillClass = data.label === "hard" ? "pill bad" : "pill";
+    card.innerHTML = `
+      <div class="score-value">${data.flesch_score}</div>
+      <div class="${pillClass}">${data.label}</div>
+    `;
+
+    details.innerHTML = `
+      <div>words: ${data.word_count}</div>
+      <div>sentences: ${data.sentence_count}</div>
+      <div>avg sentence length: ${data.avg_sentence_length}</div>
+      <div>avg word length: ${data.avg_word_length}</div>
+      <div>avg syllables/word: ${data.avg_syllables_per_word}</div>
+    `;
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/check`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Check failed";
+        card.innerHTML = "";
+        details.innerHTML = "";
+        clearWarnings();
+      } else {
+        output.textContent = `score: ${data.flesch_score}`;
+        renderScore(data);
+        renderWarnings(data.warnings);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      card.innerHTML = "";
+      details.innerHTML = "";
+      clearWarnings();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

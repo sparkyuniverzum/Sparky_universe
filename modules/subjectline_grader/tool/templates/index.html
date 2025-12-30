@@ -1,0 +1,175 @@
+{% extends "module_base.html" %}
+
+{% block title %}Subject Line Grader{% endblock %}
+{% block heading %}Subject Line Grader{% endblock %}
+{% block description %}Score subject lines for length, clarity, and spam risk.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .score-card {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 14px;
+        background: rgba(12, 16, 22, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .score-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        background: rgba(90, 200, 250, 0.2);
+        width: fit-content;
+      }
+
+      .pill.bad {
+        background: rgba(255, 111, 118, 0.2);
+      }
+
+      .breakdown {
+        display: grid;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.9);
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .tag {
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 0.75rem;
+      }
+{% endblock %}
+
+{% block form %}
+<form id="grader-form" action="{{ base_path }}/score" method="post">
+  <label for="subject">Subject line</label>
+  <textarea id="subject" name="subject" placeholder="Boost Q4 revenue with faster checkout"></textarea>
+  <button type="submit">Score subject line</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Score</div>
+  <pre id="output">-</pre>
+  <div id="score-card" class="score-card"></div>
+  <div id="details" class="breakdown"></div>
+  <div id="tags" class="tag-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Improve opens by tuning length and tone.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("grader-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const card = document.getElementById("score-card");
+  const details = document.getElementById("details");
+  const tags = document.getElementById("tags");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearPanels = () => {
+    card.innerHTML = "";
+    details.innerHTML = "";
+    tags.innerHTML = "";
+  };
+
+  const renderScore = (data) => {
+    const pillClass = data.label === "weak" ? "pill bad" : "pill";
+    card.innerHTML = `
+      <div class="score-value">${data.score}</div>
+      <div class="${pillClass}">${data.label}</div>
+    `;
+
+    details.innerHTML = `
+      <div>length: ${data.length} chars</div>
+      <div>words: ${data.word_count}</div>
+      <div>avg word length: ${data.avg_word_length}</div>
+      <div>length score: ${data.components.length}</div>
+      <div>clarity score: ${data.components.clarity}</div>
+      <div>power score: ${data.components.power}</div>
+      <div>emoji score: ${data.components.emoji}</div>
+      <div>spam penalty: ${data.components.spam_penalty}</div>
+    `;
+
+    const tagsData = [];
+    (data.power_words || []).forEach((word) => tagsData.push(`power: ${word}`));
+    (data.spam_words || []).forEach((word) => tagsData.push(`spam: ${word}`));
+    (data.spam_phrases || []).forEach((phrase) => tagsData.push(`spam: ${phrase}`));
+    if (data.emoji_count) {
+      tagsData.push(`emoji count: ${data.emoji_count}`);
+    }
+    (data.suggestions || []).forEach((tip) => tagsData.push(`tip: ${tip}`));
+
+    tags.innerHTML = "";
+    if (tagsData.length === 0) {
+      tags.innerHTML = `<span class="tag">No issues detected.</span>`;
+      return;
+    }
+    tagsData.forEach((item) => {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = item;
+      tags.appendChild(tag);
+    });
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/score`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Scoring failed";
+        clearPanels();
+      } else {
+        output.textContent = `score: ${data.score}`;
+        clearPanels();
+        renderScore(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearPanels();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

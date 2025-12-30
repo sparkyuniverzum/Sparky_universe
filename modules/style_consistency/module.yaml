@@ -1,0 +1,15 @@
+name: style_consistency
+title: Style Consistency
+version: 0.0.1
+description: Detect style inconsistencies in copy.
+public: true
+category: Content QA
+entrypoints:
+  api: modules.style_consistency.tool.app:app
+mount: /content/style-consistency
+flows:
+  after_success:
+    - target: readability_check
+      label: Check readability
+    - target: tone_guard
+      label: Scan tone

@@ -1,0 +1,124 @@
+{% extends "module_base.html" %}
+
+{% block title %}Style Consistency{% endblock %}
+{% block heading %}Style Consistency{% endblock %}
+{% block description %}Detect style inconsistencies in copy.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="style-form" action="{{ base_path }}/check" method="post">
+  <label for="headline">Headline</label>
+  <input id="headline" name="headline" placeholder="Boost Q4 Revenue with Faster Checkout">
+  <label for="body">Body copy</label>
+  <textarea id="body" name="body" placeholder="Paste copy to check for style consistency."></textarea>
+  <label for="preferred_case">Preferred headline case</label>
+  <select id="preferred_case" name="preferred_case">
+    <option value="auto" selected>auto</option>
+    <option value="title">title case</option>
+    <option value="sentence">sentence case</option>
+  </select>
+  <button type="submit">Check style</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Style report</div>
+  <pre id="output">-</pre>
+  <div id="issues" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Enforce consistent copy style quickly.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("style-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const issues = document.getElementById("issues");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearList = () => {
+    issues.innerHTML = "";
+  };
+
+  const addItem = (text, tone) => {
+    const card = document.createElement("div");
+    card.className = `audit-item ${tone}`;
+    card.textContent = text;
+    issues.appendChild(card);
+  };
+
+  const render = (data) => {
+    clearList();
+    const issueList = data.issues || [];
+    const warningList = data.warnings || [];
+    if (issueList.length === 0 && warningList.length === 0) {
+      addItem("No issues found.", "ok");
+      return;
+    }
+    issueList.forEach((item) => addItem(item, "bad"));
+    warningList.forEach((item) => addItem(item, "ok"));
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/check`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Check failed";
+        clearList();
+      } else {
+        output.textContent = `headline case: ${data.detected_case}`;
+        render(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+name: serp_snippet_preview
+title: SERP Snippet Preview
+version: 0.0.1
+description: Preview Google snippets and validate title/description lengths.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.serp_snippet_preview.tool.app:app
+mount: /marketing/serp-snippet-preview
+flows:
+  after_success: []

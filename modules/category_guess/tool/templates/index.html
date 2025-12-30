@@ -1,0 +1,125 @@
+{% extends "module_base.html" %}
+
+{% block title %}Category Guess{% endblock %}
+{% block heading %}Category Guess{% endblock %}
+{% block description %}Guess product categories from names and SKUs.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 160px;
+        resize: vertical;
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .audit-item.ok {
+        border-color: rgba(90, 200, 250, 0.35);
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="guess-form" action="{{ base_path }}/guess" method="post">
+  <label for="lines">Products (one per line)</label>
+  <textarea id="lines" name="lines" placeholder="USB charger | SKU-123
+Leather wallet | SKU-987"></textarea>
+  <button type="submit">Guess categories</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Category report</div>
+  <pre id="output">-</pre>
+  <div id="summary" class="audit-item"></div>
+  <div id="items" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Quickly bucket product lists by category.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("guess-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const summary = document.getElementById("summary");
+  const items = document.getElementById("items");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearList = () => {
+    items.innerHTML = "";
+  };
+
+  const addItem = (text, tone) => {
+    const card = document.createElement("div");
+    card.className = `audit-item ${tone}`;
+    card.textContent = text;
+    items.appendChild(card);
+  };
+
+  const render = (data) => {
+    summary.className = "audit-item";
+    summary.textContent = `matched: ${data.matched} / ${data.total}`;
+
+    clearList();
+    (data.items || []).forEach((item) => {
+      const label = item.category_label || "Uncategorized";
+      const tone = item.category ? "ok" : "bad";
+      addItem(items, `${item.name} -> ${label}`, tone);
+    });
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/guess`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Guess failed";
+        summary.textContent = "";
+        clearList();
+      } else {
+        output.textContent = `total: ${data.total}`;
+        render(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      summary.textContent = "";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

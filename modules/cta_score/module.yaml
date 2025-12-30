@@ -1,0 +1,11 @@
+name: cta_score
+title: CTA Score
+version: 0.0.1
+description: Score call-to-action phrases for clarity, urgency, and benefit.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.cta_score.tool.app:app
+mount: /marketing/cta-score
+flows:
+  after_success: []

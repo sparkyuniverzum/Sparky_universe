@@ -1,0 +1,11 @@
+name: ad_policy_guard
+title: Ad Policy Guard
+version: 0.0.1
+description: Flag risky claims in ad copy across sensitive categories.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.ad_policy_guard.tool.app:app
+mount: /marketing/ad-policy-guard
+flows:
+  after_success: []

@@ -16,6 +16,8 @@ Each module must provide:
 - `modules/<name>/tool/templates/index.html` as the module UI.
 - `modules/<name>/core/` with the business logic.
 
+Expanded standard: `docs/module_standard.md`.
+
 Internal shared modules (like `sparky_ui`) are `public: false` and can omit entrypoints and runtime code.
 
 ## Optional fields in module.yaml
@@ -77,4 +79,24 @@ Module templates can import them with:
 ```html
 {% from "partials/ads.html" import ad_block %}
 {% from "partials/flow.html" import flow_section %}
+```
+
+## Telemetry (optional)
+Server-side telemetry captures aggregate metrics only (no raw input).
+
+Enable with:
+```bash
+export SPARKY_TELEMETRY=on
+export SPARKY_DB_DSN="postgresql://..."
+```
+
+Optional settings:
+- `SPARKY_TELEMETRY_AUTO_MIGRATE=on` (default on)
+- `SPARKY_TENANT` to tag events per domain
+- `SPARKY_TRUST_PROXY=on` to honor `X-Forwarded-For`
+- `SPARKY_TELEMETRY_SALT` for hashing user agent/IP
+
+Retention cleanup (default 90 days):
+```bash
+python scripts/telemetry_cleanup.py
 ```

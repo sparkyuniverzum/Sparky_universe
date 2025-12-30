@@ -1,0 +1,11 @@
+name: subjectline_grader
+title: Subject Line Grader
+version: 0.0.1
+description: Score subject lines for length, clarity, and spam risk.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.subjectline_grader.tool.app:app
+mount: /marketing/subjectline-grader
+flows:
+  after_success: []

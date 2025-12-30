@@ -1,0 +1,11 @@
+name: pdf_invoice_parser
+title: PDF Invoice Parser
+version: 0.0.1
+description: Extract invoice number and line items from PDF files.
+public: true
+category: Data
+entrypoints:
+  api: modules.pdf_invoice_parser.tool.app:app
+mount: /data/pdf-invoice-parser
+flows:
+  after_success: []

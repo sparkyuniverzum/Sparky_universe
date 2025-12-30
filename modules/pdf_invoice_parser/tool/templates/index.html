@@ -1,0 +1,136 @@
+{% extends "module_base.html" %}
+
+{% block title %}PDF Invoice Parser{% endblock %}
+{% block heading %}PDF Invoice Parser{% endblock %}
+{% block description %}Extract invoice number and line items from PDF files.{% endblock %}
+
+{% block extra_styles %}
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .audit-item.ok {
+        border-color: rgba(90, 200, 250, 0.35);
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="invoice-form" action="{{ base_path }}/parse" method="post" enctype="multipart/form-data">
+  <label for="file">PDF invoice</label>
+  <input id="file" name="file" type="file" accept="application/pdf">
+  <button type="submit">Parse invoice</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Parsed data</div>
+  <pre id="output">-</pre>
+  <div id="summary" class="audit-item"></div>
+  <div id="items" class="audit-list"></div>
+  <div id="warnings" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Structured output for quick checks.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("invoice-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const summary = document.getElementById("summary");
+  const items = document.getElementById("items");
+  const warnings = document.getElementById("warnings");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearList = (el) => {
+    el.innerHTML = "";
+  };
+
+  const addItem = (el, text, tone) => {
+    const card = document.createElement("div");
+    card.className = `audit-item ${tone}`;
+    card.textContent = text;
+    el.appendChild(card);
+  };
+
+  const render = (data) => {
+    summary.className = "audit-item";
+    summary.textContent = `invoice: ${data.invoice_number} | items: ${data.item_count}`;
+
+    clearList(items);
+    if (data.items && data.items.length) {
+      data.items.forEach((item) => {
+        addItem(
+          items,
+          `${item.sku} | ${item.name} | ${item.qty} x ${item.unit_price} | vat ${item.vat_rate}%`,
+          "ok"
+        );
+      });
+    } else {
+      addItem(items, "No items detected.", "bad");
+    }
+
+    clearList(warnings);
+    if (data.warnings && data.warnings.length) {
+      data.warnings.forEach((warning) => addItem(warnings, warning, "bad"));
+    } else {
+      addItem(warnings, "No warnings.", "ok");
+    }
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/parse`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Parse failed";
+        summary.textContent = "";
+        clearList(items);
+        clearList(warnings);
+      } else {
+        output.textContent = `lines: ${data.line_count}`;
+        render(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      summary.textContent = "";
+      clearList(items);
+      clearList(warnings);
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+name: readability_check
+title: Readability Check
+version: 0.0.1
+description: Measure readability and highlight hard-to-read text.
+public: true
+category: Content QA
+entrypoints:
+  api: modules.readability_check.tool.app:app
+mount: /content/readability-check
+flows:
+  after_success:
+    - target: style_consistency
+      label: Check style consistency
+    - target: tone_guard
+      label: Scan tone

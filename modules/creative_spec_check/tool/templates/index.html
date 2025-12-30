@@ -1,0 +1,158 @@
+{% extends "module_base.html" %}
+
+{% block title %}Creative Spec Check{% endblock %}
+{% block heading %}Creative Spec Check{% endblock %}
+{% block description %}Validate creative dimensions against common ad specs.{% endblock %}
+
+{% block extra_styles %}
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .audit-item.ok {
+        border-color: rgba(90, 200, 250, 0.35);
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="spec-form" action="{{ base_path }}/check" method="post">
+  <div class="two-col">
+    <div>
+      <label for="width">Width (px)</label>
+      <input id="width" name="width" type="number" min="1" placeholder="1200">
+    </div>
+    <div>
+      <label for="height">Height (px)</label>
+      <input id="height" name="height" type="number" min="1" placeholder="628">
+    </div>
+  </div>
+  <label for="platform">Platform</label>
+  <select id="platform" name="platform">
+    <option value="meta" selected>meta</option>
+    <option value="google">google</option>
+    <option value="tiktok">tiktok</option>
+    <option value="linkedin">linkedin</option>
+    <option value="x">x</option>
+  </select>
+  <button type="submit">Check specs</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Spec report</div>
+  <pre id="output">-</pre>
+  <div id="summary" class="audit-item"></div>
+  <div id="matches" class="audit-list"></div>
+  <div id="warnings" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Pick the right dimensions for the platform.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("spec-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const summary = document.getElementById("summary");
+  const matches = document.getElementById("matches");
+  const warnings = document.getElementById("warnings");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearList = (el) => {
+    el.innerHTML = "";
+  };
+
+  const addItem = (el, text, tone) => {
+    const card = document.createElement("div");
+    card.className = `audit-item ${tone}`;
+    card.textContent = text;
+    el.appendChild(card);
+  };
+
+  const render = (data) => {
+    summary.className = "audit-item";
+    summary.textContent = `${data.width}x${data.height} | ratio ${data.ratio} | ${data.orientation}`;
+
+    clearList(matches);
+    if (data.matches && data.matches.length) {
+      data.matches.forEach((item) => {
+        addItem(matches, `match: ${item.name} (${item.width}x${item.height})`, "ok");
+      });
+    } else if (data.near_matches && data.near_matches.length) {
+      data.near_matches.forEach((item) => {
+        addItem(matches, `near: ${item.name} (${item.width}x${item.height})`, "bad");
+      });
+    } else {
+      addItem(matches, "No matching specs found.", "bad");
+    }
+
+    clearList(warnings);
+    if (data.warnings && data.warnings.length) {
+      data.warnings.forEach((item) => addItem(warnings, item, "bad"));
+    } else {
+      addItem(warnings, "No warnings.", "ok");
+    }
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/check`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Check failed";
+        clearList(matches);
+        clearList(warnings);
+        summary.textContent = "";
+      } else {
+        output.textContent = `${data.platform} specs`;
+        render(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearList(matches);
+      clearList(warnings);
+      summary.textContent = "";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

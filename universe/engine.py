@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from universe.registry import load_modules
+from universe.telemetry import attach_telemetry
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ CATEGORY_DESCRIPTIONS = {
     "Finance": "Quick VAT and percentage calculations for price checks.",
     "Data": "Batch-friendly utilities like CSV normalization.",
     "Marketing QA": "SEO and campaign checks for marketing teams.",
+    "Content QA": "Tone, readability, and copy consistency checks.",
     "Utilities": "Small, practical tools for quick one-off tasks.",
     "Other": "Useful modules that do not fit a core category.",
 }
@@ -68,6 +70,7 @@ def import_attr(path: str) -> Any:
 
 def build_app() -> FastAPI:
     app = FastAPI(title="Sparky Universe")
+    attach_telemetry(app)
 
     brand_dir = Path(__file__).parent.parent / "brand"
     if brand_dir.exists():

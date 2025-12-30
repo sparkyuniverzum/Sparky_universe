@@ -1,0 +1,11 @@
+name: category_guess
+title: Category Guess
+version: 0.0.1
+description: Guess product categories from names and SKUs.
+public: true
+category: Data
+entrypoints:
+  api: modules.category_guess.tool.app:app
+mount: /data/category-guess
+flows:
+  after_success: []

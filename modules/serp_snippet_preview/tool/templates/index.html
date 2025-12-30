@@ -1,0 +1,162 @@
+{% extends "module_base.html" %}
+
+{% block title %}SERP Snippet Preview{% endblock %}
+{% block heading %}SERP Snippet Preview{% endblock %}
+{% block description %}Preview Google snippets and validate title/description lengths.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .snippet-card {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 14px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .snippet-title {
+        font-size: 1rem;
+        color: rgba(90, 200, 250, 0.95);
+        font-weight: 600;
+      }
+
+      .snippet-url {
+        font-size: 0.8rem;
+        color: rgba(167, 179, 199, 0.85);
+        text-transform: lowercase;
+      }
+
+      .snippet-desc {
+        font-size: 0.88rem;
+        color: rgba(245, 247, 251, 0.9);
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="serp-form" action="{{ base_path }}/preview" method="post">
+  <label for="title">Title</label>
+  <input id="title" name="title" placeholder="Boost Q4 revenue with faster checkout flows">
+  <label for="description">Description</label>
+  <textarea id="description" name="description" placeholder="Keep this between 120 and 160 characters for best display."></textarea>
+  <label for="url">URL</label>
+  <input id="url" name="url" placeholder="https://example.com/landing">
+  <button type="submit">Preview snippet</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Snippet preview</div>
+  <pre id="output">-</pre>
+  <div class="snippet-card">
+    <div id="snippet-title" class="snippet-title">Title appears here</div>
+    <div id="snippet-url" class="snippet-url">example.com / landing</div>
+    <div id="snippet-desc" class="snippet-desc">Description appears here.</div>
+  </div>
+  <div id="warnings" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Check length before the snippet truncates.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("serp-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const warnings = document.getElementById("warnings");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const titleEl = document.getElementById("snippet-title");
+  const urlEl = document.getElementById("snippet-url");
+  const descEl = document.getElementById("snippet-desc");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearWarnings = () => {
+    warnings.innerHTML = "";
+  };
+
+  const renderWarnings = (items) => {
+    clearWarnings();
+    if (!items || items.length === 0) {
+      const card = document.createElement("div");
+      card.className = "audit-item";
+      card.textContent = "No warnings found.";
+      warnings.appendChild(card);
+      return;
+    }
+    items.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "audit-item bad";
+      card.textContent = item;
+      warnings.appendChild(card);
+    });
+  };
+
+  const renderSnippet = (data) => {
+    titleEl.textContent = data.title || "Title appears here";
+    descEl.textContent = data.description || "Description appears here.";
+    const host = data.host || "example.com";
+    const path = data.path || "/landing";
+    urlEl.textContent = `${host} ${path}`;
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/preview`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Preview failed";
+        clearWarnings();
+      } else {
+        output.textContent = `title: ${data.lengths.title} | desc: ${data.lengths.description}`;
+        renderSnippet(data);
+        renderWarnings(data.warnings);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearWarnings();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

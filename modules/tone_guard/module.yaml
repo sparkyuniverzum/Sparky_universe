@@ -1,0 +1,15 @@
+name: tone_guard
+title: Tone Guard
+version: 0.0.1
+description: Check copy tone and flag mismatched phrasing.
+public: true
+category: Content QA
+entrypoints:
+  api: modules.tone_guard.tool.app:app
+mount: /content/tone-guard
+flows:
+  after_success:
+    - target: readability_check
+      label: Check readability
+    - target: style_consistency
+      label: Verify style consistency

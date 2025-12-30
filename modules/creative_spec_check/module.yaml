@@ -1,0 +1,11 @@
+name: creative_spec_check
+title: Creative Spec Check
+version: 0.0.1
+description: Validate creative dimensions against common ad specs.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.creative_spec_check.tool.app:app
+mount: /marketing/creative-spec-check
+flows:
+  after_success: []

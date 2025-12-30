@@ -1,0 +1,145 @@
+{% extends "module_base.html" %}
+
+{% block title %}Tone Guard{% endblock %}
+{% block heading %}Tone Guard{% endblock %}
+{% block description %}Check copy tone and flag mismatched phrasing.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 140px;
+        resize: vertical;
+      }
+
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        background: rgba(90, 200, 250, 0.2);
+        width: fit-content;
+      }
+
+      .pill.bad {
+        background: rgba(255, 111, 118, 0.2);
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="tone-form" action="{{ base_path }}/scan" method="post">
+  <label for="text">Copy to analyze</label>
+  <textarea id="text" name="text" placeholder="Thanks for jumping on this. Quick update on the launch..."></textarea>
+  <label for="target">Target tone</label>
+  <select id="target" name="target">
+    <option value="auto" selected>auto</option>
+    <option value="friendly">friendly</option>
+    <option value="professional">professional</option>
+    <option value="neutral">neutral</option>
+  </select>
+  <button type="submit">Scan tone</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Tone report</div>
+  <pre id="output">-</pre>
+  <div id="summary" class="pill"></div>
+  <div id="issues" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Catch tone mismatches before publish.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("tone-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const summary = document.getElementById("summary");
+  const issues = document.getElementById("issues");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearList = () => {
+    issues.innerHTML = "";
+  };
+
+  const addItem = (text, tone) => {
+    const card = document.createElement("div");
+    card.className = `audit-item ${tone}`;
+    card.textContent = text;
+    issues.appendChild(card);
+  };
+
+  const render = (data) => {
+    summary.className = "pill";
+    summary.textContent = `detected: ${data.detected}`;
+
+    clearList();
+    const issueList = data.issues || [];
+    const warningList = data.warnings || [];
+
+    if (issueList.length === 0 && warningList.length === 0) {
+      addItem("No issues found.", "ok");
+      return;
+    }
+    issueList.forEach((item) => addItem(item, "bad"));
+    warningList.forEach((item) => addItem(item, "ok"));
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/scan`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Scan failed";
+        summary.textContent = "";
+        clearList();
+      } else {
+        output.textContent = `words: ${data.word_count}`;
+        render(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      summary.textContent = "";
+      clearList();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends "module_base.html" %}
+
+{% block title %}Landing Copy Lint{% endblock %}
+{% block heading %}Landing Copy Lint{% endblock %}
+{% block description %}Lint landing page hero copy for clarity, CTA, and proof.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 90px;
+        resize: vertical;
+      }
+
+      .score-card {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 14px;
+        background: rgba(12, 16, 22, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .score-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        background: rgba(90, 200, 250, 0.2);
+        width: fit-content;
+      }
+
+      .pill.bad {
+        background: rgba(255, 111, 118, 0.2);
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="lint-form" action="{{ base_path }}/lint" method="post">
+  <label for="headline">Headline</label>
+  <input id="headline" name="headline" placeholder="Boost Q4 revenue with faster checkout flows">
+  <label for="subheadline">Subheadline</label>
+  <textarea id="subheadline" name="subheadline" placeholder="Reduce drop-off and ship in days, not weeks."></textarea>
+  <label for="cta">Primary CTA</label>
+  <input id="cta" name="cta" placeholder="Get the demo">
+  <label for="proof">Social proof</label>
+  <textarea id="proof" name="proof" placeholder="Trusted by 2,000 teams. Rated 4.9/5 by customers."></textarea>
+  <label for="risk">Risk reversal</label>
+  <textarea id="risk" name="risk" placeholder="Free trial. Cancel anytime."></textarea>
+  <button type="submit">Lint copy</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Lint report</div>
+  <pre id="output">-</pre>
+  <div id="score-card" class="score-card"></div>
+  <div id="issues" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Make sure hero copy hits the basics.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("lint-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const card = document.getElementById("score-card");
+  const issues = document.getElementById("issues");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearPanels = () => {
+    card.innerHTML = "";
+    issues.innerHTML = "";
+  };
+
+  const addIssue = (text, tone) => {
+    const card = document.createElement("div");
+    card.className = `audit-item ${tone}`;
+    card.textContent = text;
+    issues.appendChild(card);
+  };
+
+  const render = (data) => {
+    const pillClass = data.label === "weak" ? "pill bad" : "pill";
+    card.innerHTML = `
+      <div class="score-value">${data.score}</div>
+      <div class="${pillClass}">${data.label}</div>
+    `;
+
+    const issueList = data.issues || [];
+    const warningList = data.warnings || [];
+    if (issueList.length === 0 && warningList.length === 0) {
+      addIssue("No issues found.", "ok");
+      return;
+    }
+    issueList.forEach((item) => addIssue(item, "bad"));
+    warningList.forEach((item) => addIssue(item, "ok"));
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/lint`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Lint failed";
+        clearPanels();
+      } else {
+        output.textContent = `score: ${data.score}`;
+        clearPanels();
+        render(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearPanels();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
