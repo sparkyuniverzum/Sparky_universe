@@ -1,0 +1,260 @@
+{% extends "module_base.html" %}
+
+{% block title %}OG Preview{% endblock %}
+{% block heading %}OG Preview{% endblock %}
+{% block description %}Preview Open Graph and Twitter cards, validate lengths and image ratio.{% endblock %}
+
+{% block extra_styles %}
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .preview-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+
+      .preview-card {
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+      }
+
+      .preview-image {
+        height: 160px;
+        background: linear-gradient(135deg, rgba(90, 200, 250, 0.2), rgba(120, 120, 255, 0.15));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(245, 247, 251, 0.8);
+        font-size: 0.9rem;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .preview-body {
+        padding: 12px;
+        display: grid;
+        gap: 6px;
+      }
+
+      .preview-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: rgba(245, 247, 251, 0.95);
+      }
+
+      .preview-desc {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.9);
+      }
+
+      .preview-meta {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: rgba(167, 179, 199, 0.7);
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="preview-form" action="{{ base_path }}/preview" method="post">
+  <label for="title">Title</label>
+  <input id="title" name="title" placeholder="Boost Q4 revenue with faster checkout flows">
+  <label for="description">Description</label>
+  <textarea id="description" name="description" placeholder="A short summary that fits inside social previews."></textarea>
+  <label for="url">Page URL</label>
+  <input id="url" name="url" placeholder="https://example.com/landing">
+  <label for="image_url">Image URL</label>
+  <input id="image_url" name="image_url" placeholder="https://example.com/og.jpg">
+  <div class="two-col">
+    <div>
+      <label for="image_width">Image width (px)</label>
+      <input id="image_width" name="image_width" type="number" min="1" placeholder="1200">
+    </div>
+    <div>
+      <label for="image_height">Image height (px)</label>
+      <input id="image_height" name="image_height" type="number" min="1" placeholder="630">
+    </div>
+  </div>
+  <div class="two-col">
+    <div>
+      <label for="site_name">Site name</label>
+      <input id="site_name" name="site_name" placeholder="Sparky Universe">
+    </div>
+    <div>
+      <label for="twitter_handle">Twitter handle</label>
+      <input id="twitter_handle" name="twitter_handle" placeholder="@sparky">
+    </div>
+  </div>
+  <label for="card_type">Twitter card type</label>
+  <select id="card_type" name="card_type">
+    <option value="summary_large_image" selected>summary_large_image</option>
+    <option value="summary">summary</option>
+  </select>
+  <button type="submit">Preview cards</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Preview</div>
+  <pre id="output">-</pre>
+  <div class="preview-grid">
+    <div class="preview-card">
+      <div id="og-image" class="preview-image">OG image</div>
+      <div class="preview-body">
+        <div id="og-title" class="preview-title">Title appears here</div>
+        <div id="og-desc" class="preview-desc">Description appears here.</div>
+        <div id="og-meta" class="preview-meta">example.com</div>
+      </div>
+    </div>
+    <div class="preview-card">
+      <div id="tw-image" class="preview-image">Twitter image</div>
+      <div class="preview-body">
+        <div id="tw-title" class="preview-title">Title appears here</div>
+        <div id="tw-desc" class="preview-desc">Description appears here.</div>
+        <div id="tw-meta" class="preview-meta">@handle</div>
+      </div>
+    </div>
+  </div>
+  <div id="warnings" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Spot length and image issues before sharing.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("preview-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const warnings = document.getElementById("warnings");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const ogImage = document.getElementById("og-image");
+  const ogTitle = document.getElementById("og-title");
+  const ogDesc = document.getElementById("og-desc");
+  const ogMeta = document.getElementById("og-meta");
+  const twImage = document.getElementById("tw-image");
+  const twTitle = document.getElementById("tw-title");
+  const twDesc = document.getElementById("tw-desc");
+  const twMeta = document.getElementById("tw-meta");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearWarnings = () => {
+    warnings.innerHTML = "";
+  };
+
+  const setImage = (el, url, label) => {
+    if (url) {
+      el.style.backgroundImage = `url(${url})`;
+      el.textContent = "";
+    } else {
+      el.style.backgroundImage = "";
+      el.textContent = label;
+    }
+  };
+
+  const renderWarnings = (items) => {
+    clearWarnings();
+    if (!items || items.length === 0) {
+      const card = document.createElement("div");
+      card.className = "audit-item";
+      card.textContent = "No warnings found.";
+      warnings.appendChild(card);
+      return;
+    }
+    items.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "audit-item bad";
+      card.textContent = item;
+      warnings.appendChild(card);
+    });
+  };
+
+  const getHost = (value) => {
+    if (!value) {
+      return "example.com";
+    }
+    try {
+      return new URL(value).hostname;
+    } catch (error) {
+      return "example.com";
+    }
+  };
+
+  const renderPreview = (data) => {
+    ogTitle.textContent = data.title || "Title appears here";
+    ogDesc.textContent = data.description || "Description appears here.";
+    ogMeta.textContent = getHost(data.url);
+    twTitle.textContent = data.title || "Title appears here";
+    twDesc.textContent = data.description || "Description appears here.";
+    twMeta.textContent = data.twitter_handle || "@handle";
+    setImage(ogImage, data.image_url, "OG image");
+    setImage(twImage, data.image_url, "Twitter image");
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/preview`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Preview failed";
+        clearWarnings();
+      } else {
+        output.textContent = `title: ${data.lengths.title} | desc: ${data.lengths.description}`;
+        renderPreview(data);
+        renderWarnings(data.warnings);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearWarnings();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

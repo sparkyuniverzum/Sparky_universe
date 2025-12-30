@@ -1,0 +1,11 @@
+name: headline_score
+title: Headline Score
+version: 0.0.1
+description: Score headlines by length, clarity, benefit cues, and sentiment.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.headline_score.tool.app:app
+mount: /marketing/headline-score
+flows:
+  after_success: []

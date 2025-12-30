@@ -1,0 +1,11 @@
+name: og_preview
+title: OG Preview
+version: 0.0.1
+description: Preview Open Graph and Twitter cards, validate lengths and image ratio.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.og_preview.tool.app:app
+mount: /marketing/og-preview
+flows:
+  after_success: []

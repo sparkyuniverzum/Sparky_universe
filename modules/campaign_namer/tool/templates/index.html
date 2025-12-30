@@ -1,0 +1,196 @@
+{% extends "module_base.html" %}
+
+{% block title %}Campaign Naming Validator{% endblock %}
+{% block heading %}Campaign Naming Validator{% endblock %}
+{% block description %}Validate campaign names against regex, length rules, and required tokens.{% endblock %}
+
+{% block extra_styles %}
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+      }
+
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .hint {
+        font-size: 0.85rem;
+        color: rgba(167, 179, 199, 0.8);
+        margin: -6px 0 16px;
+      }
+
+      .audit-list {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-item {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 16, 22, 0.7);
+        padding: 12px;
+      }
+
+      .audit-item.ok {
+        border-color: rgba(90, 200, 250, 0.35);
+      }
+
+      .audit-item.bad {
+        border-color: rgba(255, 111, 118, 0.5);
+      }
+
+      .audit-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: rgba(245, 247, 251, 0.9);
+      }
+
+      .audit-meta {
+        margin-top: 8px;
+        color: rgba(167, 179, 199, 0.9);
+        font-size: 0.85rem;
+        display: grid;
+        gap: 6px;
+      }
+
+      .status-pill {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        background: rgba(90, 200, 250, 0.2);
+      }
+
+      .status-pill.bad {
+        background: rgba(255, 111, 118, 0.2);
+      }
+{% endblock %}
+
+{% block form %}
+<form id="namer-form" action="{{ base_path }}/validate" method="post">
+  <label for="name">Campaign name</label>
+  <input id="name" name="name" placeholder="brand_us_q4_launch_meta_us" required>
+  <label for="pattern">Regex pattern (optional)</label>
+  <input id="pattern" name="pattern" placeholder="^[a-z0-9_]+$">
+  <div class="two-col">
+    <div>
+      <label for="min_length">Min length</label>
+      <input id="min_length" name="min_length" type="number" min="0" placeholder="12">
+    </div>
+    <div>
+      <label for="max_length">Max length</label>
+      <input id="max_length" name="max_length" type="number" min="0" placeholder="64">
+    </div>
+  </div>
+  <label for="required_tokens">Required tokens (comma or line separated)</label>
+  <textarea id="required_tokens" name="required_tokens" placeholder="brand, us, q4"></textarea>
+  <div class="hint">Tokens are matched case-insensitively against name parts.</div>
+  <button type="submit">Validate name</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Validation</div>
+  <pre id="output">-</pre>
+  <div id="summary" class="audit-item"></div>
+  <div id="issues" class="audit-list"></div>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Keep naming consistent across channels.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("namer-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const summary = document.getElementById("summary");
+  const issues = document.getElementById("issues");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const clearIssues = () => {
+    issues.innerHTML = "";
+    summary.innerHTML = "";
+    summary.className = "audit-item";
+  };
+
+  const renderIssues = (data) => {
+    const issueList = data.issues || [];
+    const warningList = data.warnings || [];
+
+    summary.className = `audit-item ${data.valid ? "ok" : "bad"}`;
+    const statusClass = data.valid ? "status-pill" : "status-pill bad";
+    summary.innerHTML = `
+      <div class="audit-head">
+        <span class="${statusClass}">${data.valid ? "OK" : "Issues"}</span>
+        <span>${data.input}</span>
+      </div>
+      <div class="audit-meta">
+        <span>length: ${data.length}</span>
+        <span>tokens: ${(data.tokens || []).join(", ") || "-"}</span>
+        <span>missing: ${(data.missing_tokens || []).join(", ") || "-"}</span>
+        <span>regex: ${data.regex && data.regex.pattern ? (data.regex.matched ? "matched" : "no match") : "-"}</span>
+      </div>
+    `;
+
+    const addLine = (text, tone) => {
+      const card = document.createElement("div");
+      card.className = `audit-item ${tone}`;
+      card.textContent = text;
+      issues.appendChild(card);
+    };
+
+    if (issueList.length === 0 && warningList.length === 0) {
+      addLine("No issues found.", "ok");
+      return;
+    }
+
+    issueList.forEach((item) => addLine(item, "bad"));
+    warningList.forEach((item) => addLine(item, "ok"));
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/validate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Validation failed";
+        clearIssues();
+      } else {
+        output.textContent = data.valid ? "Valid name" : "Issues detected";
+        clearIssues();
+        renderIssues(data);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+      clearIssues();
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

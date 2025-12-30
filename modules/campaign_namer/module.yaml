@@ -1,0 +1,11 @@
+name: campaign_namer
+title: Campaign Naming Validator
+version: 0.0.1
+description: Validate campaign names against regex, length rules, and required tokens.
+public: true
+category: Marketing QA
+entrypoints:
+  api: modules.campaign_namer.tool.app:app
+mount: /marketing/campaign-namer
+flows:
+  after_success: []
