@@ -1,0 +1,11 @@
+name: cash_float_builder
+title: Cash Float Builder
+version: 0.0.1
+description: Build a cash float from target denominations.
+public: true
+category: Money
+entrypoints:
+  api: modules.cash_float_builder.tool.app:app
+mount: /money/float
+flows:
+  after_success: []

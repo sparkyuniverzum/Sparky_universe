@@ -1,0 +1,98 @@
+{% extends "module_base.html" %}
+
+{% block title %}Fee Gross Up{% endblock %}
+{% block heading %}Fee Gross Up{% endblock %}
+{% block description %}Compute gross or net amounts around payment fees.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="fee-form" action="{{ base_path }}/compute" method="post">
+  <label for="amount">Amount</label>
+  <input id="amount" name="amount" placeholder="100.00" required>
+  <div class="field-row">
+    <div>
+      <label for="percent_fee">Percent fee</label>
+      <input id="percent_fee" name="percent_fee" value="2.9">
+    </div>
+    <div>
+      <label for="fixed_fee">Fixed fee</label>
+      <input id="fixed_fee" name="fixed_fee" value="0.30">
+    </div>
+  </div>
+  <div class="field-row">
+    <div>
+      <label for="mode">Mode</label>
+      <select id="mode" name="mode">
+        <option value="gross_from_net" selected>Gross from net</option>
+        <option value="net_from_gross">Net from gross</option>
+      </select>
+    </div>
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+  </div>
+  <button type="submit">Compute fees</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("fee-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/compute`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Fee calculation failed";
+      } else {
+        output.textContent = [
+          `gross: ${data.gross}`,
+          `net: ${data.net}`,
+          `fee_total: ${data.fee_total}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "module_base.html" %}
+
+{% block title %}Weighted Split{% endblock %}
+{% block heading %}Weighted Split{% endblock %}
+{% block description %}Split money by weights or percentages.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="weighted-form" action="{{ base_path }}/split" method="post">
+  <label for="amount">Amount</label>
+  <input id="amount" name="amount" placeholder="120.00" required>
+  <label for="weights">Weights / percents (comma or space)</label>
+  <textarea id="weights" name="weights" rows="3" placeholder="1, 2, 3" required></textarea>
+  <div class="field-row">
+    <div>
+      <label for="mode">Mode</label>
+      <select id="mode" name="mode">
+        <option value="weights" selected>Weights</option>
+        <option value="percent">Percent</option>
+      </select>
+    </div>
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+  </div>
+  <button type="submit">Split amount</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("weighted-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/split`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Split failed";
+      } else {
+        const lines = [`total: ${data.total}`];
+        data.parts.forEach((part) => {
+          lines.push(`${part.index}. ${part.amount} (weight ${part.weight})`);
+        });
+        output.textContent = lines.join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

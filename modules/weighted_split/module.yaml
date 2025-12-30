@@ -1,0 +1,11 @@
+name: weighted_split
+title: Weighted Split
+version: 0.0.1
+description: Split money by weights or percentages.
+public: true
+category: Money
+entrypoints:
+  api: modules.weighted_split.tool.app:app
+mount: /money/weighted-split
+flows:
+  after_success: []

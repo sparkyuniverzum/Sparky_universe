@@ -1,0 +1,11 @@
+name: price_ending
+title: Price Ending
+version: 0.0.1
+description: Round prices to desired psychological endings.
+public: true
+category: Money
+entrypoints:
+  api: modules.price_ending.tool.app:app
+mount: /money/ending
+flows:
+  after_success: []

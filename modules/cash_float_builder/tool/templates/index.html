@@ -1,0 +1,91 @@
+{% extends "module_base.html" %}
+
+{% block title %}Cash Float Builder{% endblock %}
+{% block heading %}Cash Float Builder{% endblock %}
+{% block description %}Build a cash float from target denominations.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="float-form" action="{{ base_path }}/build" method="post">
+  <label for="denominations">Denominations (comma or space)</label>
+  <input id="denominations" name="denominations" value="100,50,20,10,5,2,1,0.5,0.2,0.1">
+  <label for="counts">Counts (same order)</label>
+  <input id="counts" name="counts" value="1,2,3,5,4,6,10,10,10,10">
+  <div class="field-row">
+    <div>
+      <label for="target">Target total (optional)</label>
+      <input id="target" name="target" placeholder="500.00">
+    </div>
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="2">
+    </div>
+  </div>
+  <button type="submit">Build float</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("float-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/build`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Float build failed";
+      } else {
+        const lines = [`total: ${data.total}`];
+        if (data.target) {
+          lines.push(`target: ${data.target}`);
+          lines.push(`delta: ${data.delta}`);
+        }
+        data.items.forEach((item) => {
+          lines.push(`${item.denomination} x ${item.count} = ${item.amount}`);
+        });
+        output.textContent = lines.join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

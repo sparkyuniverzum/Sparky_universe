@@ -1,0 +1,82 @@
+{% extends "module_base.html" %}
+
+{% block title %}Denomination Breakdown{% endblock %}
+{% block heading %}Denomination Breakdown{% endblock %}
+{% block description %}Break an amount into custom cash denominations.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="breakdown-form" action="{{ base_path }}/breakdown" method="post">
+  <label for="amount">Amount</label>
+  <input id="amount" name="amount" placeholder="128.40" required>
+  <label for="denominations">Denominations (comma separated)</label>
+  <textarea id="denominations" name="denominations" rows="2">100,50,20,10,5,2,1,0.5,0.2,0.1,0.05,0.02,0.01</textarea>
+  <label for="decimals">Decimals</label>
+  <input id="decimals" name="decimals" value="2">
+  <button type="submit">Break down amount</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("breakdown-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/breakdown`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Breakdown failed";
+      } else {
+        const lines = [
+          `amount: ${data.amount}`,
+          `remainder: ${data.remainder}`,
+        ];
+        data.breakdown.forEach((item) => {
+          lines.push(`${item.denomination} x ${item.count} = ${item.amount}`);
+        });
+        output.textContent = lines.join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

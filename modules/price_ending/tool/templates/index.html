@@ -1,0 +1,91 @@
+{% extends "module_base.html" %}
+
+{% block title %}Price Ending{% endblock %}
+{% block heading %}Price Ending{% endblock %}
+{% block description %}Round prices to desired psychological endings.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="ending-form" action="{{ base_path }}/apply" method="post">
+  <label for="price">Price</label>
+  <input id="price" name="price" placeholder="14.20" required>
+  <div class="field-row">
+    <div>
+      <label for="ending">Ending</label>
+      <input id="ending" name="ending" value="0.99">
+    </div>
+    <div>
+      <label for="mode">Mode</label>
+      <select id="mode" name="mode">
+        <option value="round" selected>Round</option>
+        <option value="floor">Floor</option>
+        <option value="ceil">Ceil</option>
+      </select>
+    </div>
+  </div>
+  <label for="decimals">Decimals</label>
+  <input id="decimals" name="decimals" value="2">
+  <button type="submit">Apply ending</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("ending-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/apply`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Ending calculation failed";
+      } else {
+        output.textContent = [
+          `price: ${data.price}`,
+          `result: ${data.result}`,
+          `delta: ${data.delta}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

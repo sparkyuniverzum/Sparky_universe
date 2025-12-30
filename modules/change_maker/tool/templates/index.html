@@ -1,0 +1,90 @@
+{% extends "module_base.html" %}
+
+{% block title %}Change Maker{% endblock %}
+{% block heading %}Change Maker{% endblock %}
+{% block description %}Compute cash change breakdown for a transaction.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="change-form" action="{{ base_path }}/compute" method="post">
+  <div class="field-row">
+    <div>
+      <label for="total">Total</label>
+      <input id="total" name="total" placeholder="19.50" required>
+    </div>
+    <div>
+      <label for="paid">Paid</label>
+      <input id="paid" name="paid" placeholder="20.00" required>
+    </div>
+  </div>
+  <label for="denominations">Denominations (comma separated)</label>
+  <textarea id="denominations" name="denominations" rows="2">100,50,20,10,5,2,1,0.5,0.2,0.1,0.05,0.02,0.01</textarea>
+  <label for="decimals">Decimals</label>
+  <input id="decimals" name="decimals" value="2">
+  <button type="submit">Make change</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("change-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/compute`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Change calculation failed";
+      } else {
+        const lines = [
+          `change: ${data.change}`,
+          `remainder: ${data.remainder}`,
+        ];
+        data.breakdown.forEach((item) => {
+          lines.push(`${item.denomination} x ${item.count} = ${item.amount}`);
+        });
+        output.textContent = lines.join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

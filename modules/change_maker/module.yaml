@@ -1,0 +1,11 @@
+name: change_maker
+title: Change Maker
+version: 0.0.1
+description: Compute cash change breakdown for a transaction.
+public: true
+category: Money
+entrypoints:
+  api: modules.change_maker.tool.app:app
+mount: /money/change
+flows:
+  after_success: []

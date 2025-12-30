@@ -1,0 +1,11 @@
+name: fee_gross_up
+title: Fee Gross Up
+version: 0.0.1
+description: Compute gross or net amounts around payment fees.
+public: true
+category: Money
+entrypoints:
+  api: modules.fee_gross_up.tool.app:app
+mount: /money/fee-gross-up
+flows:
+  after_success: []
