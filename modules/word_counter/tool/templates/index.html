@@ -1,0 +1,85 @@
+{% extends "module_base.html" %}
+
+{% block title %}Word Counter{% endblock %}
+{% block heading %}Word Counter{% endblock %}
+{% block description %}Count words, characters, and sentences.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="count-form" action="{{ base_path }}/count" method="post">
+  <label for="text">Text</label>
+  <textarea id="text" name="text" rows="6" placeholder="Hello world" required></textarea>
+  <div class="field-row">
+    <div>
+      <label for="wpm">Words per minute</label>
+      <input id="wpm" name="wpm" value="200">
+    </div>
+  </div>
+  <button type="submit">Count text</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("count-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/count`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Count failed";
+      } else {
+        output.textContent = [
+          `words: ${data.words}`,
+          `characters: ${data.characters}`,
+          `characters_no_space: ${data.characters_no_space}`,
+          `sentences: ${data.sentences}`,
+          `lines: ${data.lines}`,
+          `paragraphs: ${data.paragraphs}`,
+          `reading_minutes: ${data.reading_minutes}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

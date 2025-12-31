@@ -1,0 +1,11 @@
+name: text_diff
+title: Text Diff
+version: 0.0.1
+description: Show line-level differences between two texts.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.text_diff.tool.app:app
+mount: /text/diff
+flows:
+  after_success: []

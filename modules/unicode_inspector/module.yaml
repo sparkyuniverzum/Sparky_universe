@@ -1,0 +1,11 @@
+name: unicode_inspector
+title: Unicode Inspector
+version: 0.0.1
+description: Find hidden characters and normalize text.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.unicode_inspector.tool.app:app
+mount: /text/unicode
+flows:
+  after_success: []

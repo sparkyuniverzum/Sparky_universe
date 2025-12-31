@@ -1,0 +1,88 @@
+{% extends "module_base.html" %}
+
+{% block title %}Line Tools{% endblock %}
+{% block heading %}Line Tools{% endblock %}
+{% block description %}Sort, dedupe, and normalize text lines.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="lines-form" action="{{ base_path }}/process" method="post">
+  <label for="text">Text (one item per line)</label>
+  <textarea id="text" name="text" rows="6" placeholder="apple&#10;Banana&#10;apple" required></textarea>
+  <div class="field-row">
+    <label><input type="checkbox" name="trim_lines" checked> Trim lines</label>
+    <label><input type="checkbox" name="remove_empty"> Remove empty</label>
+    <label><input type="checkbox" name="dedupe"> Dedupe</label>
+    <label><input type="checkbox" name="reverse"> Reverse</label>
+    <label><input type="checkbox" name="case_sensitive" checked> Case sensitive</label>
+  </div>
+  <div class="field-row">
+    <div>
+      <label for="sort_mode">Sort</label>
+      <select id="sort_mode" name="sort_mode">
+        <option value="none" selected>None</option>
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+      </select>
+    </div>
+  </div>
+  <button type="submit">Process lines</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("lines-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/process`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Process failed";
+      } else {
+        output.textContent = data.result || "-";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+name: find_replace
+title: Find & Replace
+version: 0.0.1
+description: Replace text using literal or regex patterns.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.find_replace.tool.app:app
+mount: /text/find-replace
+flows:
+  after_success: []

@@ -1,0 +1,76 @@
+{% extends "module_base.html" %}
+
+{% block title %}Find & Replace{% endblock %}
+{% block heading %}Find & Replace{% endblock %}
+{% block description %}Replace text using literal or regex patterns.{% endblock %}
+
+{% block form %}
+<form id="replace-form" action="{{ base_path }}/replace" method="post">
+  <label for="text">Text</label>
+  <textarea id="text" name="text" rows="6" placeholder="Hello world" required></textarea>
+  <label for="find">Find</label>
+  <input id="find" name="find" placeholder="world" required>
+  <label for="replace_with">Replace with</label>
+  <input id="replace_with" name="replace_with" placeholder="Sparky">
+  <label><input type="checkbox" name="use_regex"> Regex mode</label>
+  <label><input type="checkbox" name="ignore_case"> Ignore case</label>
+  <label for="max_replacements">Max replacements (0 = all)</label>
+  <input id="max_replacements" name="max_replacements" value="0">
+  <button type="submit">Replace</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("replace-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/replace`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Replace failed";
+      } else {
+        output.textContent = [
+          `matches: ${data.matches}`,
+          `samples: ${data.samples.join(", ") || "-"}`,
+          "",
+          data.result || "-",
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

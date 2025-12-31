@@ -1,0 +1,74 @@
+{% extends "module_base.html" %}
+
+{% block title %}Template Filler{% endblock %}
+{% block heading %}Template Filler{% endblock %}
+{% block description %}Fill placeholders with provided values.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="fill-form" action="{{ base_path }}/fill" method="post">
+  <label for="text">Template</label>
+  <textarea id="text" name="text" rows="6" placeholder="Hello {{name}}" required></textarea>
+  <label for="mapping">Mapping (key=value per line)</label>
+  <textarea id="mapping" name="mapping" rows="4" placeholder="name=Ada" required></textarea>
+  <label><input type="checkbox" name="strict"> Require all placeholders</label>
+  <button type="submit">Fill template</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("fill-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/fill`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Fill failed";
+      } else {
+        output.textContent = data.result || "-";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

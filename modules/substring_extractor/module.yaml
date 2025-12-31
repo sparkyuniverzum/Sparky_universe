@@ -1,0 +1,11 @@
+name: substring_extractor
+title: Substring Extractor
+version: 0.0.1
+description: Extract slices or regex groups from text.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.substring_extractor.tool.app:app
+mount: /text/extract
+flows:
+  after_success: []

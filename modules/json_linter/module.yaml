@@ -1,0 +1,11 @@
+name: json_linter
+title: JSON Linter
+version: 0.0.1
+description: Validate and format JSON input.
+public: true
+category: Data
+entrypoints:
+  api: modules.json_linter.tool.app:app
+mount: /data/json-lint
+flows:
+  after_success: []

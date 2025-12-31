@@ -1,0 +1,81 @@
+{% extends "module_base.html" %}
+
+{% block title %}JSON Linter{% endblock %}
+{% block heading %}JSON Linter{% endblock %}
+{% block description %}Validate and format JSON input.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="json-form" action="{{ base_path }}/lint" method="post">
+  <label for="json_text">JSON</label>
+  <textarea id="json_text" name="json_text" rows="8" placeholder='{"name":"Ada"}' required></textarea>
+  <div class="field-row">
+    <div>
+      <label for="indent">Indent</label>
+      <input id="indent" name="indent" value="2">
+    </div>
+    <label>
+      <input type="checkbox" name="sort_keys">
+      Sort keys
+    </label>
+  </div>
+  <button type="submit">Lint JSON</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("json-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/lint`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Lint failed";
+      } else {
+        output.textContent = data.pretty || "-";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

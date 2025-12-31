@@ -1,0 +1,79 @@
+{% extends "module_base.html" %}
+
+{% block title %}Text Diff{% endblock %}
+{% block heading %}Text Diff{% endblock %}
+{% block description %}Show line-level differences between two texts.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="diff-form" action="{{ base_path }}/diff" method="post">
+  <label for="original">Original text</label>
+  <textarea id="original" name="original" rows="6" placeholder="Hello world" required></textarea>
+  <label for="updated">Updated text</label>
+  <textarea id="updated" name="updated" rows="6" placeholder="Hello Sparky" required></textarea>
+  <div class="field-row">
+    <div>
+      <label for="context">Context lines</label>
+      <input id="context" name="context" value="3">
+    </div>
+  </div>
+  <button type="submit">Generate diff</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("diff-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/diff`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Diff failed";
+      } else {
+        output.textContent = data.diff || "No changes";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

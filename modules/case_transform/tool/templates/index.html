@@ -1,0 +1,72 @@
+{% extends "module_base.html" %}
+
+{% block title %}Case Transform{% endblock %}
+{% block heading %}Case Transform{% endblock %}
+{% block description %}Convert text into common casing styles.{% endblock %}
+
+{% block form %}
+<form id="case-form" action="{{ base_path }}/transform" method="post">
+  <label for="text">Text</label>
+  <textarea id="text" name="text" rows="4" placeholder="helloWorld example" required></textarea>
+  <button type="submit">Transform case</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("case-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/transform`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Transform failed";
+      } else {
+        output.textContent = [
+          `lower: ${data.lower}`,
+          `upper: ${data.upper}`,
+          `title: ${data.title}`,
+          `sentence: ${data.sentence}`,
+          `snake: ${data.snake}`,
+          `kebab: ${data.kebab}`,
+          `camel: ${data.camel}`,
+          `pascal: ${data.pascal}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+name: regex_tester
+title: Regex Tester
+version: 0.0.1
+description: Test regex matches and capture groups.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.regex_tester.tool.app:app
+mount: /text/regex
+flows:
+  after_success: []

@@ -1,0 +1,92 @@
+{% extends "module_base.html" %}
+
+{% block title %}Slug Tuner{% endblock %}
+{% block heading %}Slug Tuner{% endblock %}
+{% block description %}Tune URL slugs with stop words and length rules.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="slug-form" action="{{ base_path }}/tune" method="post">
+  <label for="text">Text</label>
+  <textarea id="text" name="text" rows="4" placeholder="A quick intro to Sparky Universe" required></textarea>
+  <div class="field-row">
+    <div>
+      <label for="separator">Separator</label>
+      <select id="separator" name="separator">
+        <option value="-" selected>Dash (-)</option>
+        <option value="_">Underscore (_)</option>
+      </select>
+    </div>
+    <div>
+      <label for="max_length">Max length</label>
+      <input id="max_length" name="max_length" placeholder="60">
+    </div>
+  </div>
+  <label><input type="checkbox" name="lowercase" checked> Lowercase</label>
+  <label><input type="checkbox" name="strip_accents" checked> Strip accents</label>
+  <label><input type="checkbox" name="remove_stop_words"> Remove stop words</label>
+  <label for="custom_stop_words">Custom stop words (comma separated)</label>
+  <input id="custom_stop_words" name="custom_stop_words" placeholder="guide,intro">
+  <button type="submit">Tune slug</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("slug-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/tune`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Slug tuning failed";
+      } else {
+        output.textContent = [
+          `slug: ${data.slug}`,
+          `length: ${data.length}`,
+        ].join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

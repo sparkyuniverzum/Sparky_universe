@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Sparky Universe 100 Modules">
+  <defs>
+    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="40%" stop-color="#7c3aed"/>
+      <stop offset="70%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#0b0e12"/>
+  <circle cx="600" cy="315" r="240" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+  <circle cx="600" cy="315" r="190" fill="none" stroke="url(#spark)" stroke-width="18"/>
+  <text x="600" y="300" text-anchor="middle" fill="#f8fafc" font-family="system-ui, -apple-system, Arial, sans-serif" font-size="96" font-weight="700">100</text>
+  <text x="600" y="362" text-anchor="middle" fill="#94a3b8" font-family="system-ui, -apple-system, Arial, sans-serif" font-size="28" letter-spacing="6">MODULES</text>
+  <text x="600" y="420" text-anchor="middle" fill="#64748b" font-family="system-ui, -apple-system, Arial, sans-serif" font-size="20" letter-spacing="3">SPARKY UNIVERSE</text>
+</svg>

@@ -1,0 +1,11 @@
+name: string_cleaner
+title: String Cleaner
+version: 0.0.1
+description: Clean and normalize text with configurable rules.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.string_cleaner.tool.app:app
+mount: /text/clean
+flows:
+  after_success: []

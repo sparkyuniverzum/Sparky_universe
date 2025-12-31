@@ -1,0 +1,11 @@
+name: line_tools
+title: Line Tools
+version: 0.0.1
+description: Sort, dedupe, and normalize text lines.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.line_tools.tool.app:app
+mount: /text/lines
+flows:
+  after_success: []

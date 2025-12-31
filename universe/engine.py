@@ -24,6 +24,7 @@ CATEGORY_DESCRIPTIONS = {
     "Data": "Batch-friendly utilities like CSV normalization.",
     "Marketing QA": "SEO and campaign checks for marketing teams.",
     "Content QA": "Tone, readability, and copy consistency checks.",
+    "Text/String": "Text utilities for cleaning, parsing, and transforming strings.",
     "Utilities": "Small, practical tools for quick one-off tasks.",
     "Other": "Useful modules that do not fit a core category.",
 }
@@ -31,7 +32,7 @@ DEFAULT_CATEGORY_DESCRIPTION = "Practical utilities for quick tasks."
 
 
 def _slugify(value: str) -> str:
-    return value.strip().lower().replace(" ", "-")
+    return value.strip().lower().replace(" ", "-").replace("/", "-")
 
 
 def build_categories() -> list[dict[str, Any]]:

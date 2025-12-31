@@ -1,0 +1,104 @@
+{% extends "module_base.html" %}
+
+{% block title %}Substring Extractor{% endblock %}
+{% block heading %}Substring Extractor{% endblock %}
+{% block description %}Extract slices or regex groups from text.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="extract-form" action="{{ base_path }}/extract" method="post">
+  <label for="text">Text</label>
+  <textarea id="text" name="text" rows="6" placeholder="Invoice #12345" required></textarea>
+  <div class="field-row">
+    <div>
+      <label for="mode">Mode</label>
+      <select id="mode" name="mode">
+        <option value="slice" selected>Slice</option>
+        <option value="regex">Regex</option>
+      </select>
+    </div>
+    <div>
+      <label for="per_line">Apply per line</label>
+      <input id="per_line" type="checkbox" name="per_line">
+    </div>
+  </div>
+  <div class="field-row">
+    <div>
+      <label for="start">Start index</label>
+      <input id="start" name="start" placeholder="0">
+    </div>
+    <div>
+      <label for="end">End index</label>
+      <input id="end" name="end" placeholder="7">
+    </div>
+  </div>
+  <div class="field-row">
+    <div>
+      <label for="pattern">Regex pattern</label>
+      <input id="pattern" name="pattern" placeholder="\\d+">
+    </div>
+    <div>
+      <label for="group">Group</label>
+      <input id="group" name="group" value="0">
+    </div>
+  </div>
+  <button type="submit">Extract</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("extract-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/extract`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Extract failed";
+      } else {
+        output.textContent = data.result || "-";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

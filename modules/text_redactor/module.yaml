@@ -1,0 +1,11 @@
+name: text_redactor
+title: Text Redactor
+version: 0.0.1
+description: Mask sensitive patterns in text.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.text_redactor.tool.app:app
+mount: /text/redact
+flows:
+  after_success: []

@@ -1,0 +1,11 @@
+name: template_filler
+title: Template Filler
+version: 0.0.1
+description: Fill placeholders with provided values.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.template_filler.tool.app:app
+mount: /text/template
+flows:
+  after_success: []

@@ -1,0 +1,11 @@
+name: word_counter
+title: Word Counter
+version: 0.0.1
+description: Count words, characters, and sentences.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.word_counter.tool.app:app
+mount: /text/word-count
+flows:
+  after_success: []

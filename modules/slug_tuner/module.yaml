@@ -1,0 +1,11 @@
+name: slug_tuner
+title: Slug Tuner
+version: 0.0.1
+description: Tune URL slugs with stop words and length rules.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.slug_tuner.tool.app:app
+mount: /text/slug
+flows:
+  after_success: []

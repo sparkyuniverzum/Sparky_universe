@@ -1,0 +1,11 @@
+name: case_transform
+title: Case Transform
+version: 0.0.1
+description: Convert text into common casing styles.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.case_transform.tool.app:app
+mount: /text/case
+flows:
+  after_success: []

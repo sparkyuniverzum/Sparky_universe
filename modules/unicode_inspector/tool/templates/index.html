@@ -1,0 +1,71 @@
+{% extends "module_base.html" %}
+
+{% block title %}Unicode Inspector{% endblock %}
+{% block heading %}Unicode Inspector{% endblock %}
+{% block description %}Find hidden characters and normalize text.{% endblock %}
+
+{% block form %}
+<form id="unicode-form" action="{{ base_path }}/inspect" method="post">
+  <label for="text">Text</label>
+  <textarea id="text" name="text" rows="6" placeholder="Paste text to inspect" required></textarea>
+  <label for="normalization">Normalization</label>
+  <select id="normalization" name="normalization">
+    <option value="none" selected>None</option>
+    <option value="nfc">NFC</option>
+    <option value="nfd">NFD</option>
+    <option value="nfkc">NFKC</option>
+    <option value="nfkd">NFKD</option>
+  </select>
+  <button type="submit">Inspect text</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("unicode-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/inspect`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Inspect failed";
+      } else {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
