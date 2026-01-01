@@ -6,11 +6,11 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from universe.ads import ads_enabled
+from universe.ads import ads_enabled, ads_txt_content
 from universe.registry import load_modules
 from universe.telemetry import attach_telemetry
 
@@ -95,6 +95,13 @@ def build_app() -> FastAPI:
                 "adsense_enabled": ads_enabled(),
             },
         )
+
+    @app.get("/ads.txt", response_class=PlainTextResponse)
+    def ads_txt():
+        content = ads_txt_content(Path(__file__).parent.parent)
+        if not content:
+            raise HTTPException(status_code=404, detail="ads.txt not configured")
+        return PlainTextResponse(content)
 
     @app.get("/category/{slug}", response_class=HTMLResponse)
     def category_index(request: Request, slug: str):

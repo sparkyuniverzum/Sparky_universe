@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any, Dict
 
 DEFAULT_SLOT_ORDER = ["inline", "footer"]
@@ -79,3 +80,16 @@ def get_ads_config(page_type: str = "tool") -> Dict[str, Any]:
 
 def attach_ads_globals(templates: Any) -> None:
     templates.env.globals.setdefault("ads_config", get_ads_config)
+
+
+def ads_txt_content(root_dir: Path | None = None) -> str | None:
+    raw = os.getenv("SPARKY_ADS_TXT", "").strip()
+    if not raw and root_dir is not None:
+        ads_path = root_dir / "ads.txt"
+        if ads_path.exists():
+            raw = ads_path.read_text(encoding="utf-8").strip()
+    if not raw:
+        return None
+    if not raw.endswith("\n"):
+        raw += "\n"
+    return raw
