@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 from universe.admin import (
     DisabledModulesMiddleware,
     build_mount_map,
+    fetch_metrics,
     get_module_overrides,
     last_db_check,
     module_enabled,
@@ -196,6 +197,14 @@ def build_app() -> FastAPI:
                 "overrides_source": overrides_source(),
                 "db_check": db_check,
             },
+        )
+
+    @app.get("/admin/metrics", response_class=HTMLResponse)
+    def admin_metrics(request: Request, _: None = Depends(require_admin)):
+        metrics = fetch_metrics()
+        return templates.TemplateResponse(
+            "admin_metrics.html",
+            {"request": request, "metrics": metrics},
         )
 
     @app.post("/admin/toggle")

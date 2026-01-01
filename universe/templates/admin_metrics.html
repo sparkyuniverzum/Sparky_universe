@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sparky Universe · Metrics</title>
+    <style>
+      :root {
+        --bg: #0f1116;
+        --card: #171b22;
+        --text: #f5f7fb;
+        --muted: #9aa6bf;
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #5ac8fa;
+        --ok: #53d38f;
+        --bad: #ff7b7b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 32px 20px;
+      }
+
+      .panel {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 1.9rem;
+      }
+
+      p {
+        margin: 0 0 18px;
+        color: var(--muted);
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .summary {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        margin-bottom: 18px;
+      }
+
+      .summary-card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: rgba(14, 18, 24, 0.6);
+      }
+
+      .summary-label {
+        font-size: 0.72rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .summary-value {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-top: 6px;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 18px;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--muted);
+      }
+
+      .status-dot.ok {
+        background: var(--ok);
+      }
+
+      .status-dot.error {
+        background: var(--bad);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        margin-bottom: 22px;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <h1>Metrics</h1>
+      <p><a href="/admin">Back to admin</a></p>
+      <div class="status">
+        <span class="status-dot {% if metrics.ok %}ok{% else %}error{% endif %}"></span>
+        <span>{{ "Connected" if metrics.ok else "Error" }} · {{ metrics.detail }}</span>
+      </div>
+
+      {% if metrics.ok %}
+      <section class="summary">
+        <div class="summary-card">
+          <div class="summary-label">Total events</div>
+          <div class="summary-value">{{ metrics.summary.total_events }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Last 24h</div>
+          <div class="summary-value">{{ metrics.summary.last_24h }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Last 7d</div>
+          <div class="summary-value">{{ metrics.summary.last_7d }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Distinct modules</div>
+          <div class="summary-value">{{ metrics.summary.distinct_modules }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Avg duration (7d)</div>
+          <div class="summary-value">{{ metrics.summary.avg_duration_ms_7d }} ms</div>
+        </div>
+      </section>
+
+      <h2>Top modules (7d)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, count in metrics.by_module %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h2>Outcomes (7d)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Outcome</th>
+            <th>Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, count in metrics.by_outcome %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h2>Event types (7d)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, count in metrics.by_event_type %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </main>
+  </body>
+</html>

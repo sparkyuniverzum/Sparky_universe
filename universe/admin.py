@@ -30,6 +30,7 @@ _LAST_DB_CHECK: Dict[str, Any] = {
     "detail": "",
     "tables": {},
 }
+_METRICS_CACHE: Dict[str, Any] = {"ts": 0.0, "data": None}
 
 
 def _admin_user() -> str:
@@ -123,6 +124,107 @@ def test_db_health() -> Dict[str, Any]:
 
 def last_db_check() -> Dict[str, Any]:
     return dict(_LAST_DB_CHECK)
+
+
+def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
+    now = time.time()
+    cached = _METRICS_CACHE.get("data")
+    if cached is not None and now - _METRICS_CACHE["ts"] < 30:
+        return dict(cached)
+
+    result: Dict[str, Any] = {
+        "ok": False,
+        "detail": "",
+        "summary": {},
+        "by_module": [],
+        "by_outcome": [],
+        "by_event_type": [],
+    }
+    if psycopg is None:
+        result["detail"] = "psycopg is not installed"
+        _METRICS_CACHE.update({"ts": now, "data": result})
+        return result
+    dsn = _dsn()
+    if not dsn:
+        result["detail"] = "DB not configured"
+        _METRICS_CACHE.update({"ts": now, "data": result})
+        return result
+    try:
+        with psycopg.connect(dsn, autocommit=True) as conn:
+            if not _table_exists(conn, "public.telemetry_events"):
+                result["detail"] = "telemetry_events table missing"
+                _METRICS_CACHE.update({"ts": now, "data": result})
+                return result
+            total = conn.execute("SELECT COUNT(*) FROM telemetry_events").fetchone()[0]
+            last_24h = conn.execute(
+                "SELECT COUNT(*) FROM telemetry_events WHERE ts >= now() - interval '24 hours'"
+            ).fetchone()[0]
+            last_7d = conn.execute(
+                "SELECT COUNT(*) FROM telemetry_events WHERE ts >= now() - interval '7 days'"
+            ).fetchone()[0]
+            distinct_modules = conn.execute(
+                "SELECT COUNT(DISTINCT module) FROM telemetry_events"
+            ).fetchone()[0]
+            avg_duration = conn.execute(
+                """
+                SELECT COALESCE(ROUND(AVG(duration_ms))::int, 0)
+                FROM telemetry_events
+                WHERE duration_ms IS NOT NULL
+                  AND ts >= now() - interval '7 days'
+                """
+            ).fetchone()[0]
+
+            by_module = conn.execute(
+                """
+                SELECT module, COUNT(*) AS count
+                FROM telemetry_events
+                WHERE ts >= now() - interval '7 days'
+                GROUP BY module
+                ORDER BY count DESC
+                LIMIT %s
+                """,
+                (limit,),
+            ).fetchall()
+            by_outcome = conn.execute(
+                """
+                SELECT outcome, COUNT(*) AS count
+                FROM telemetry_events
+                WHERE ts >= now() - interval '7 days'
+                GROUP BY outcome
+                ORDER BY count DESC
+                """
+            ).fetchall()
+            by_event_type = conn.execute(
+                """
+                SELECT event_type, COUNT(*) AS count
+                FROM telemetry_events
+                WHERE ts >= now() - interval '7 days'
+                GROUP BY event_type
+                ORDER BY count DESC
+                """
+            ).fetchall()
+
+            result.update(
+                {
+                    "ok": True,
+                    "detail": "OK",
+                    "summary": {
+                        "total_events": int(total),
+                        "last_24h": int(last_24h),
+                        "last_7d": int(last_7d),
+                        "distinct_modules": int(distinct_modules),
+                        "avg_duration_ms_7d": int(avg_duration),
+                    },
+                    "by_module": [(row[0], int(row[1])) for row in by_module],
+                    "by_outcome": [(row[0], int(row[1])) for row in by_outcome],
+                    "by_event_type": [(row[0], int(row[1])) for row in by_event_type],
+                }
+            )
+    except Exception as exc:
+        result["detail"] = str(exc)
+
+    _METRICS_CACHE.update({"ts": now, "data": result})
+    return result
 
 
 def _fetch_overrides_from_db() -> Dict[str, bool]:

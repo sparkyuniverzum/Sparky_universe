@@ -206,6 +206,17 @@
         border-color: rgba(246, 195, 86, 0.5);
         color: var(--warn);
       }
+
+      .link-button {
+        padding: 6px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(18, 24, 34, 0.9);
+        color: var(--text);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+      }
     </style>
   </head>
   <body>
@@ -219,6 +230,7 @@
         <form method="post" action="/admin/test-db">
           <button type="submit">Test DB</button>
         </form>
+        <a class="link-button" href="/admin/metrics">View metrics</a>
         {% if db_check.ok is not none %}
         <div class="status">
           {% if db_check.ok %}
