@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, List
 
 from universe.registry import load_modules
@@ -7,6 +8,66 @@ from universe.registry import load_modules
 
 def _normalize_key(value: str) -> str:
     return "".join(char for char in value.lower() if char.isalnum())
+
+
+def _flag(name: str, default: str = "off") -> bool:
+    value = os.getenv(name, default).strip().lower()
+    return value in {"1", "true", "yes", "on"}
+
+
+def _flow_fallback_enabled() -> bool:
+    return _flag("SPARKY_FLOW_FALLBACK", "on")
+
+
+def _flow_fallback_limit() -> int:
+    raw = os.getenv("SPARKY_FLOW_FALLBACK_LIMIT", "3").strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        return 3
+    return max(0, value)
+
+
+def _build_link(meta: Dict[str, Any], base_url: str | None) -> Dict[str, str]:
+    href = meta.get("mount") or f"/{meta.get('slug', meta.get('name', ''))}"
+    if base_url:
+        href = base_url.rstrip("/") + href
+    label = meta.get("flow_label") or meta.get("title") or meta.get("name", "Module")
+    return {"label": str(label), "href": str(href)}
+
+
+def _fallback_links(
+    module_key: str,
+    modules: Dict[str, Dict[str, Any]],
+    *,
+    base_url: str | None,
+    limit: int,
+) -> List[Dict[str, str]]:
+    if limit <= 0:
+        return []
+    source = modules.get(module_key)
+    if not source:
+        return []
+
+    category = source.get("category") or "Other"
+    candidates = [
+        meta
+        for name, meta in modules.items()
+        if name != module_key and meta.get("public", True)
+    ]
+    if not candidates:
+        return []
+
+    same_category = [
+        meta for meta in candidates if (meta.get("category") or "Other") == category
+    ]
+    pool = same_category if same_category else candidates
+    pool.sort(key=lambda meta: (meta.get("title") or meta.get("name", "")).lower())
+
+    links: List[Dict[str, str]] = []
+    for meta in pool[:limit]:
+        links.append(_build_link(meta, base_url))
+    return links
 
 
 def resolve_flow_links(
@@ -50,4 +111,12 @@ def resolve_flow_links(
 
         links.append({"label": str(label), "href": str(href)})
 
-    return links
+    if links or not _flow_fallback_enabled():
+        return links
+
+    return _fallback_links(
+        module_key,
+        modules,
+        base_url=base_url,
+        limit=_flow_fallback_limit(),
+    )

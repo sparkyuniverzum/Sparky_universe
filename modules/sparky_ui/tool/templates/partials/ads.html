@@ -9,7 +9,8 @@
   data-ad-position="{{ position }}"
   data-ad-size="{{ size }}"
   data-ad-page="{{ page_type }}"
-  data-ad-enabled="{{ 'true' if meta and meta.enabled else 'false' }}">
+  data-ad-enabled="{{ 'true' if meta and meta.enabled else 'false' }}"
+  data-ad-preview="{{ 'true' if meta and meta.preview else 'false' }}">
   <div class="ad-label">{{ label }}</div>
   <div id="{{ slot_id }}" class="ad-slot{% if slot == "inline" %} inline{% endif %}"
     data-ad-unit="{{ slot }}"

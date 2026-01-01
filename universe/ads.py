@@ -34,6 +34,10 @@ def ads_enabled() -> bool:
     return _flag("SPARKY_ADS", "off")
 
 
+def ads_preview_enabled() -> bool:
+    return _flag("SPARKY_ADS_PREVIEW", "on")
+
+
 def _slot_enabled(slot: str) -> bool:
     env_name = f"SPARKY_ADS_{slot.upper()}"
     return _flag(env_name, "on")
@@ -41,15 +45,16 @@ def _slot_enabled(slot: str) -> bool:
 
 def get_ads_config(page_type: str = "tool") -> Dict[str, Any]:
     enabled = ads_enabled()
+    preview = ads_preview_enabled()
     max_slots = PAGE_TYPE_LIMITS.get(page_type, PAGE_TYPE_LIMITS["tool"])
 
     slots: Dict[str, Dict[str, Any]] = {}
     used = 0
     for slot in DEFAULT_SLOT_ORDER:
         slot_allowed = used < max_slots
-        slot_on = enabled and _slot_enabled(slot) and slot_allowed
-        if slot_on:
+        if slot_allowed:
             used += 1
+        slot_on = enabled and _slot_enabled(slot) and slot_allowed
 
         meta = SLOT_DEFS.get(slot, {})
         slots[slot] = {
@@ -58,11 +63,14 @@ def get_ads_config(page_type: str = "tool") -> Dict[str, Any]:
             "position": meta.get("position", ""),
             "size": meta.get("size", "responsive"),
             "enabled": bool(slot_on),
+            "allowed": bool(slot_allowed),
+            "preview": bool(preview),
             "page_type": page_type,
         }
 
     return {
         "enabled": bool(enabled),
+        "preview": bool(preview),
         "page_type": page_type,
         "max_slots": max_slots,
         "slots": slots,

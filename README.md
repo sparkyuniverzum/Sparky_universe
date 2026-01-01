@@ -32,6 +32,14 @@ flows:
       label: Verify this QR
 ```
 
+## Flow fallback (optional)
+If a module has no `flows.after_success`, the UI can show fallback links from the same
+category.
+
+Configure with:
+- `SPARKY_FLOW_FALLBACK=on|off` (default on)
+- `SPARKY_FLOW_FALLBACK_LIMIT=3`
+
 ## UI standard (recommended)
 - Title + one-line description.
 - Ad layout (top + bottom) around the form, non-intrusive.
@@ -95,6 +103,16 @@ Optional settings:
 - `SPARKY_TENANT` to tag events per domain
 - `SPARKY_TRUST_PROXY=on` to honor `X-Forwarded-For`
 - `SPARKY_TELEMETRY_SALT` for hashing user agent/IP
+
+## Ads (optional)
+Enable ad/affiliate slots in module templates.
+
+```bash
+export SPARKY_ADS=on
+export SPARKY_ADS_INLINE=on
+export SPARKY_ADS_FOOTER=on
+export SPARKY_ADS_PREVIEW=on
+```
 
 Retention cleanup (default 90 days):
 ```bash
