@@ -51,7 +51,13 @@ def lint_module(meta: Dict[str, Any]) -> Dict[str, Any]:
         required_fields.extend(["entrypoints", "mount"])
 
     for field in required_fields:
-        if field not in manifest_data or manifest_data.get(field) in {"", None}:
+        if field not in manifest_data:
+            issues.append(f"missing field: {field}")
+            continue
+        value = manifest_data.get(field)
+        if value is None:
+            issues.append(f"missing field: {field}")
+        elif isinstance(value, str) and not value.strip():
             issues.append(f"missing field: {field}")
 
     entrypoint = ""
