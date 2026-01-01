@@ -1,0 +1,26 @@
+name: import_readiness
+title: Import Readiness
+version: 0.0.1
+description: Řekne, jestli jsou data připravená k importu do systému.
+public: false
+category: Data
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true
+entrypoints:
+  api: modules.import_readiness.tool.app:app
+mount: /data/import-readiness
+flows:
+  after_success: []

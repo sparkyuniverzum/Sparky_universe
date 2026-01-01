@@ -1,0 +1,94 @@
+{% extends "module_base.html" %}
+
+{% block title %}Data Difference{% endblock %}
+{% block heading %}Data Difference{% endblock %}
+{% block description %}Ukáže, co se změnilo mezi dvěma verzemi dat.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/diff" method="post" enctype="multipart/form-data">
+  <label for="file_a">Dataset A (CSV, JSON, or XLSX)</label>
+  <input id="file_a" name="file_a" type="file" required>
+
+  <label for="file_b">Dataset B (CSV, JSON, or XLSX)</label>
+  <input id="file_b" name="file_b" type="file" required>
+
+  <label for="key_columns">Key columns (optional, comma-separated)</label>
+  <input id="key_columns" name="key_columns" placeholder="id,email">
+
+  <button type="submit">Compare datasets</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <div id="dataset-meta" class="result-meta">-</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast utility, zero accounts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const meta = document.getElementById("dataset-meta");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const formatReport = (label, report, fallbackFormat) => {
+    const parts = [];
+    const fmt = report?.format || fallbackFormat;
+    if (fmt) {
+      parts.push(`${label} ${String(fmt).toUpperCase()}`);
+    }
+    if (report?.sheet) {
+      parts.push(`sheet ${report.sheet}`);
+    }
+    if (typeof report?.header_detected === "boolean") {
+      parts.push(`header ${report.header_detected ? "yes" : "no"}`);
+    }
+    return parts.join(" | ");
+  };
+
+  const renderMeta = (data) => {
+    if (!meta) {
+      return;
+    }
+    const left = formatReport("A", data?.report_a, data?.format_a);
+    const right = formatReport("B", data?.report_b, data?.format_b);
+    const parts = [left, right].filter(Boolean);
+    meta.textContent = parts.length ? parts.join(" | ") : "-";
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/diff`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+      renderMeta(data);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
