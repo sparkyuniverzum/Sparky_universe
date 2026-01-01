@@ -98,12 +98,28 @@
         font-weight: 600;
         align-self: start;
       }
+
+      .control-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        background: rgba(14, 18, 24, 0.6);
+      }
     </style>
   </head>
   <body>
     <main class="panel">
       <h1>Sparky Universe</h1>
       <p>Browse categories and open the modules you need.</p>
+      <a class="control-link" href="/admin">Control panel</a>
       <div class="categories">
         {% for category in categories %}
         <section class="category-card">

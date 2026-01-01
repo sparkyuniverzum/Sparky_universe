@@ -14,10 +14,12 @@ from universe.admin import (
     DisabledModulesMiddleware,
     build_mount_map,
     get_module_overrides,
+    last_db_check,
     module_enabled,
     overrides_source,
     require_admin,
     set_module_override,
+    test_db_health,
 )
 from universe.ads import ads_enabled, ads_txt_content
 from universe.registry import load_modules
@@ -140,6 +142,7 @@ def build_app() -> FastAPI:
     def admin_index(request: Request, _: None = Depends(require_admin)):
         modules = load_modules()
         overrides = get_module_overrides()
+        db_check = last_db_check()
         items: list[dict[str, Any]] = []
         for meta in modules.values():
             name = meta.get("name", "")
@@ -191,6 +194,7 @@ def build_app() -> FastAPI:
                 "request": request,
                 "modules": items,
                 "overrides_source": overrides_source(),
+                "db_check": db_check,
             },
         )
 
@@ -202,6 +206,11 @@ def build_app() -> FastAPI:
     ):
         enable_value = enabled.strip().lower() in {"1", "true", "yes", "on"}
         set_module_override(name, enable_value)
+        return RedirectResponse(url="/admin", status_code=303)
+
+    @app.post("/admin/test-db")
+    def admin_test_db(_: None = Depends(require_admin)):
+        test_db_health()
         return RedirectResponse(url="/admin", status_code=303)
 
     modules = load_modules()

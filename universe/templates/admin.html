@@ -55,6 +55,41 @@
         margin-bottom: 16px;
       }
 
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--muted);
+      }
+
+      .status-dot.ok {
+        background: var(--ok);
+      }
+
+      .status-dot.error {
+        background: var(--bad);
+      }
+
+      .status-dot.warn {
+        background: var(--warn);
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
@@ -180,6 +215,32 @@
       {% if overrides_source != "db" %}
       <div class="note">Warning: overrides are in memory only until Postgres is configured.</div>
       {% endif %}
+      <div class="toolbar">
+        <form method="post" action="/admin/test-db">
+          <button type="submit">Test DB</button>
+        </form>
+        {% if db_check.ok is not none %}
+        <div class="status">
+          {% if db_check.ok %}
+          <span class="status-dot ok"></span>
+          <span>DB ok · {{ db_check.detail }}</span>
+          {% else %}
+          <span class="status-dot error"></span>
+          <span>DB error · {{ db_check.detail }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% if db_check.tables %}
+        <div class="status">
+          <span class="status-dot {% if db_check.tables.sparky_module_overrides %}ok{% else %}warn{% endif %}"></span>
+          <span>overrides: {{ "ok" if db_check.tables.sparky_module_overrides else "missing" }}</span>
+        </div>
+        <div class="status">
+          <span class="status-dot {% if db_check.tables.telemetry_events %}ok{% else %}warn{% endif %}"></span>
+          <span>telemetry: {{ "ok" if db_check.tables.telemetry_events else "missing" }}</span>
+        </div>
+        {% endif %}
+      </div>
       <table>
         <thead>
           <tr>

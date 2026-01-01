@@ -24,6 +24,12 @@ _CACHE_TTL_SECONDS = 5.0
 _OVERRIDES_CACHE: Dict[str, Any] = {"ts": 0.0, "data": {}, "source": "memory"}
 _IN_MEMORY_OVERRIDES: Dict[str, bool] = {}
 _SCHEMA_READY = False
+_LAST_DB_CHECK: Dict[str, Any] = {
+    "ts": 0.0,
+    "ok": None,
+    "detail": "",
+    "tables": {},
+}
 
 
 def _admin_user() -> str:
@@ -75,6 +81,48 @@ def _ensure_schema(conn: Any) -> None:
         """
     )
     _SCHEMA_READY = True
+
+
+def _table_exists(conn: Any, name: str) -> bool:
+    try:
+        row = conn.execute("SELECT to_regclass(%s)", (name,)).fetchone()
+    except Exception:
+        return False
+    if not row:
+        return False
+    return row[0] is not None
+
+
+def test_db_health() -> Dict[str, Any]:
+    result: Dict[str, Any] = {"ok": False, "detail": "", "tables": {}}
+    if psycopg is None:
+        result["detail"] = "psycopg is not installed"
+        _LAST_DB_CHECK.update({"ts": time.time(), **result})
+        return result
+    dsn = _dsn()
+    if not dsn:
+        result["detail"] = "DB not configured"
+        _LAST_DB_CHECK.update({"ts": time.time(), **result})
+        return result
+    try:
+        with psycopg.connect(dsn, autocommit=True) as conn:
+            _ensure_schema(conn)
+            result["tables"] = {
+                "sparky_module_overrides": _table_exists(
+                    conn, "public.sparky_module_overrides"
+                ),
+                "telemetry_events": _table_exists(conn, "public.telemetry_events"),
+            }
+            result["ok"] = True
+            result["detail"] = "Connected"
+    except Exception as exc:
+        result["detail"] = str(exc)
+    _LAST_DB_CHECK.update({"ts": time.time(), **result})
+    return result
+
+
+def last_db_check() -> Dict[str, Any]:
+    return dict(_LAST_DB_CHECK)
 
 
 def _fetch_overrides_from_db() -> Dict[str, bool]:
