@@ -35,6 +35,11 @@ _LAST_DB_CHECK: Dict[str, Any] = {
 _METRICS_CACHE: Dict[str, Any] = {"ts": 0.0, "data": None}
 
 
+def _flag(name: str, default: str = "off") -> bool:
+    value = os.getenv(name, default).strip().lower()
+    return value in {"1", "true", "yes", "on"}
+
+
 def _admin_user() -> str:
     return os.getenv("SPARKY_ADMIN_USER", "").strip()
 
