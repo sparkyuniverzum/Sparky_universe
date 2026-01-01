@@ -8,4 +8,7 @@ entrypoints:
   api: modules.currencyconvert.tool.app:app
 mount: /currency/convert
 flows:
-  after_success: []
+  after_success:
+    - target: cash_float_builder
+    - target: cashround
+    - target: change_maker

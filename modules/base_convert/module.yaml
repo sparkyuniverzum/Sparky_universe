@@ -8,4 +8,7 @@ entrypoints:
   api: modules.base_convert.tool.app:app
 mount: /numbers/base
 flows:
-  after_success: []
+  after_success:
+    - target: fraction_tools
+    - target: gcd_lcm
+    - target: numformat

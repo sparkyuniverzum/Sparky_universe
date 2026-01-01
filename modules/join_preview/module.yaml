@@ -8,4 +8,7 @@ entrypoints:
   api: modules.join_preview.tool.app:app
 mount: /data/join-preview
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

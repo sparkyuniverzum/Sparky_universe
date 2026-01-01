@@ -8,4 +8,7 @@ entrypoints:
   api: modules.randnumgen.tool.app:app
 mount: /generate/random-numbers
 flows:
-  after_success: []
+  after_success:
+    - target: palettegen
+    - target: csvsamplegen
+    - target: fakepersongen

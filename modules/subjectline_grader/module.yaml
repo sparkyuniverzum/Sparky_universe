@@ -8,4 +8,7 @@ entrypoints:
   api: modules.subjectline_grader.tool.app:app
 mount: /marketing/subjectline-grader
 flows:
-  after_success: []
+  after_success:
+    - target: adcopylint
+    - target: ad_policy_guard
+    - target: campaign_namer

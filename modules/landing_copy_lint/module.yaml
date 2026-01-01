@@ -8,4 +8,7 @@ entrypoints:
   api: modules.landing_copy_lint.tool.app:app
 mount: /marketing/landing-copy-lint
 flows:
-  after_success: []
+  after_success:
+    - target: adcopylint
+    - target: ad_policy_guard
+    - target: campaign_namer

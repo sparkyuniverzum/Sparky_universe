@@ -8,4 +8,7 @@ entrypoints:
   api: modules.palettegen.tool.app:app
 mount: /generate/palette
 flows:
-  after_success: []
+  after_success:
+    - target: csvsamplegen
+    - target: fakepersongen
+    - target: loremgen

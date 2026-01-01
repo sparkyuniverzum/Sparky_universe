@@ -8,4 +8,7 @@ entrypoints:
   api: modules.pdf_invoice_parser.tool.app:app
 mount: /data/pdf-invoice-parser
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

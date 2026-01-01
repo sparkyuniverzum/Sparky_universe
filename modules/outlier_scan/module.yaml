@@ -8,4 +8,7 @@ entrypoints:
   api: modules.outlier_scan.tool.app:app
 mount: /data/outliers
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

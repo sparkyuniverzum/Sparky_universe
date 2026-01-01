@@ -8,4 +8,7 @@ entrypoints:
   api: modules.line_tools.tool.app:app
 mount: /text/lines
 flows:
-  after_success: []
+  after_success:
+    - target: case_transform
+    - target: find_replace
+    - target: regex_tester

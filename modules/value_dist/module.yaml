@@ -8,4 +8,7 @@ entrypoints:
   api: modules.value_dist.tool.app:app
 mount: /data/value-dist
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

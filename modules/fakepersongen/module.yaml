@@ -8,4 +8,7 @@ entrypoints:
   api: modules.fakepersongen.tool.app:app
 mount: /generate/person
 flows:
-  after_success: []
+  after_success:
+    - target: palettegen
+    - target: csvsamplegen
+    - target: loremgen

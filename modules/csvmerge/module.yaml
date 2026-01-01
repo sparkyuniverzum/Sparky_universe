@@ -8,4 +8,7 @@ entrypoints:
   api: modules.csvmerge.tool.app:app
 mount: /csv/merge
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

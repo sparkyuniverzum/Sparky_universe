@@ -8,4 +8,7 @@ entrypoints:
   api: modules.stats_summary.tool.app:app
 mount: /numbers/stats
 flows:
-  after_success: []
+  after_success:
+    - target: base_convert
+    - target: fraction_tools
+    - target: gcd_lcm

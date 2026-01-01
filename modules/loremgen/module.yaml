@@ -8,4 +8,7 @@ entrypoints:
   api: modules.loremgen.tool.app:app
 mount: /generate/lorem
 flows:
-  after_success: []
+  after_success:
+    - target: palettegen
+    - target: csvsamplegen
+    - target: fakepersongen

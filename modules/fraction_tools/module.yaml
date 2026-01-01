@@ -8,4 +8,7 @@ entrypoints:
   api: modules.fraction_tools.tool.app:app
 mount: /numbers/fractions
 flows:
-  after_success: []
+  after_success:
+    - target: base_convert
+    - target: gcd_lcm
+    - target: numformat

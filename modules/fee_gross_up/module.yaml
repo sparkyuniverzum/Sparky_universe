@@ -8,4 +8,7 @@ entrypoints:
   api: modules.fee_gross_up.tool.app:app
 mount: /money/fee-gross-up
 flows:
-  after_success: []
+  after_success:
+    - target: cash_float_builder
+    - target: cashround
+    - target: change_maker

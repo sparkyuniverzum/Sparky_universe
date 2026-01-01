@@ -8,4 +8,7 @@ entrypoints:
   api: modules.sigfig_round.tool.app:app
 mount: /numbers/sigfig
 flows:
-  after_success: []
+  after_success:
+    - target: base_convert
+    - target: fraction_tools
+    - target: gcd_lcm

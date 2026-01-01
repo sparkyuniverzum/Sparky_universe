@@ -8,4 +8,7 @@ entrypoints:
   api: modules.creative_spec_check.tool.app:app
 mount: /marketing/creative-spec-check
 flows:
-  after_success: []
+  after_success:
+    - target: adcopylint
+    - target: ad_policy_guard
+    - target: campaign_namer

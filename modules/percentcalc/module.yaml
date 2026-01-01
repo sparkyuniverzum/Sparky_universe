@@ -8,4 +8,7 @@ entrypoints:
   api: modules.percentcalc.tool.app:app
 mount: /percent/calc
 flows:
-  after_success: []
+  after_success:
+    - target: breakevencalc
+    - target: discountcalc
+    - target: margincalc

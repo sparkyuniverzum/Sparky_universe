@@ -8,4 +8,7 @@ entrypoints:
   api: modules.cashround.tool.app:app
 mount: /cash/round
 flows:
-  after_success: []
+  after_success:
+    - target: cash_float_builder
+    - target: change_maker
+    - target: currencyconvert

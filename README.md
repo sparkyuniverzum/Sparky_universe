@@ -114,6 +114,17 @@ export SPARKY_ADS_FOOTER=on
 export SPARKY_ADS_PREVIEW=on
 ```
 
+## Admin panel (optional)
+Private control panel at `/admin` with Basic Auth and module enable/disable overrides.
+
+```bash
+export SPARKY_ADMIN_USER="admin"
+export SPARKY_ADMIN_PASSWORD="change-me"
+export SPARKY_ADMIN_DB_DSN="postgresql://..."
+```
+If `SPARKY_ADMIN_DB_DSN` is not set, it falls back to `SPARKY_DB_DSN`/`DATABASE_URL`
+and stores overrides in memory only (not persistent).
+
 Retention cleanup (default 90 days):
 ```bash
 python scripts/telemetry_cleanup.py

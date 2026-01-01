@@ -8,4 +8,7 @@ entrypoints:
   api: modules.case_transform.tool.app:app
 mount: /text/case
 flows:
-  after_success: []
+  after_success:
+    - target: find_replace
+    - target: line_tools
+    - target: regex_tester

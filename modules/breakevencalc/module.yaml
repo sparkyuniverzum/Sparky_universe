@@ -8,4 +8,7 @@ entrypoints:
   api: modules.breakevencalc.tool.app:app
 mount: /breakeven/calc
 flows:
-  after_success: []
+  after_success:
+    - target: discountcalc
+    - target: margincalc
+    - target: markupcalc

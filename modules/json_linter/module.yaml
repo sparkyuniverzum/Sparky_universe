@@ -8,4 +8,7 @@ entrypoints:
   api: modules.json_linter.tool.app:app
 mount: /data/json-lint
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

@@ -8,4 +8,7 @@ entrypoints:
   api: modules.sluggen.tool.app:app
 mount: /generate/slug
 flows:
-  after_success: []
+  after_success:
+    - target: palettegen
+    - target: csvsamplegen
+    - target: fakepersongen

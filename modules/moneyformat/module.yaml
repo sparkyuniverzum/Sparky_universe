@@ -8,4 +8,7 @@ entrypoints:
   api: modules.moneyformat.tool.app:app
 mount: /money/format
 flows:
-  after_success: []
+  after_success:
+    - target: cash_float_builder
+    - target: cashround
+    - target: change_maker

@@ -8,4 +8,7 @@ entrypoints:
   api: modules.markupcalc.tool.app:app
 mount: /markup/calc
 flows:
-  after_success: []
+  after_success:
+    - target: breakevencalc
+    - target: discountcalc
+    - target: margincalc

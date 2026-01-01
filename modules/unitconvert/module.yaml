@@ -8,4 +8,7 @@ entrypoints:
   api: modules.unitconvert.tool.app:app
 mount: /convert
 flows:
-  after_success: []
+  after_success:
+    - target: colorconvert
+    - target: datasizeconvert
+    - target: fueleconomy

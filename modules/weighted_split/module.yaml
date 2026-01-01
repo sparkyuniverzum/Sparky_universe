@@ -8,4 +8,7 @@ entrypoints:
   api: modules.weighted_split.tool.app:app
 mount: /money/weighted-split
 flows:
-  after_success: []
+  after_success:
+    - target: cash_float_builder
+    - target: cashround
+    - target: change_maker

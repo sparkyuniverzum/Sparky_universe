@@ -8,4 +8,7 @@ entrypoints:
   api: modules.text_diff.tool.app:app
 mount: /text/diff
 flows:
-  after_success: []
+  after_success:
+    - target: case_transform
+    - target: find_replace
+    - target: line_tools

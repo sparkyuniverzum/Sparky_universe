@@ -8,4 +8,7 @@ entrypoints:
   api: modules.csvsamplegen.tool.app:app
 mount: /generate/csv-sample
 flows:
-  after_success: []
+  after_success:
+    - target: palettegen
+    - target: fakepersongen
+    - target: loremgen

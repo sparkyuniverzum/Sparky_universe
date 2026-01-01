@@ -8,4 +8,7 @@ entrypoints:
   api: modules.substring_extractor.tool.app:app
 mount: /text/extract
 flows:
-  after_success: []
+  after_success:
+    - target: case_transform
+    - target: find_replace
+    - target: line_tools

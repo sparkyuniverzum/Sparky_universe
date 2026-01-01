@@ -8,4 +8,7 @@ entrypoints:
   api: modules.schema_profiler.tool.app:app
 mount: /data/schema
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

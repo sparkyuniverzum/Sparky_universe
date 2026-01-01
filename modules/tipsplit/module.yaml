@@ -8,4 +8,7 @@ entrypoints:
   api: modules.tipsplit.tool.app:app
 mount: /tip/split
 flows:
-  after_success: []
+  after_success:
+    - target: cash_float_builder
+    - target: cashround
+    - target: change_maker

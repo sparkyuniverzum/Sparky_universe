@@ -8,4 +8,7 @@ entrypoints:
   api: modules.qr_vcard.tool.app:app
 mount: /qr/vcard
 flows:
-  after_success: []
+  after_success:
+    - target: qr_batch
+    - target: qrdecode
+    - target: qredit

@@ -8,4 +8,7 @@ entrypoints:
   api: modules.csvdedupe.tool.app:app
 mount: /csv/dedupe
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

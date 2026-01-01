@@ -8,4 +8,7 @@ entrypoints:
   api: modules.datasizeconvert.tool.app:app
 mount: /data/size
 flows:
-  after_success: []
+  after_success:
+    - target: colorconvert
+    - target: fueleconomy
+    - target: speedconvert

@@ -8,4 +8,7 @@ entrypoints:
   api: modules.ad_policy_guard.tool.app:app
 mount: /marketing/ad-policy-guard
 flows:
-  after_success: []
+  after_success:
+    - target: adcopylint
+    - target: campaign_namer
+    - target: creative_spec_check

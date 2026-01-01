@@ -8,4 +8,7 @@ entrypoints:
   api: modules.category_guess.tool.app:app
 mount: /data/category-guess
 flows:
-  after_success: []
+  after_success:
+    - target: csvclean
+    - target: csvcolumns
+    - target: csvdedupe

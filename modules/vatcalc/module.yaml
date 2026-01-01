@@ -8,4 +8,7 @@ entrypoints:
   api: modules.vatcalc.tool.app:app
 mount: /vat/calc
 flows:
-  after_success: []
+  after_success:
+    - target: breakevencalc
+    - target: discountcalc
+    - target: margincalc

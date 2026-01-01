@@ -8,4 +8,7 @@ entrypoints:
   api: modules.adcopylint.tool.app:app
 mount: /marketing/ad-copy-lint
 flows:
-  after_success: []
+  after_success:
+    - target: ad_policy_guard
+    - target: campaign_namer
+    - target: creative_spec_check

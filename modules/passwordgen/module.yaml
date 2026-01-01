@@ -8,4 +8,7 @@ entrypoints:
   api: modules.passwordgen.tool.app:app
 mount: /generate/password
 flows:
-  after_success: []
+  after_success:
+    - target: palettegen
+    - target: csvsamplegen
+    - target: fakepersongen

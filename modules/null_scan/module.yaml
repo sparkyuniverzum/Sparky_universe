@@ -8,4 +8,7 @@ entrypoints:
   api: modules.null_scan.tool.app:app
 mount: /data/null-scan
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

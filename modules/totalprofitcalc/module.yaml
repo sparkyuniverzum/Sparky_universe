@@ -8,4 +8,7 @@ entrypoints:
   api: modules.totalprofitcalc.tool.app:app
 mount: /profit/total
 flows:
-  after_success: []
+  after_success:
+    - target: breakevencalc
+    - target: discountcalc
+    - target: margincalc

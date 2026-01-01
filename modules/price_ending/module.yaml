@@ -8,4 +8,7 @@ entrypoints:
   api: modules.price_ending.tool.app:app
 mount: /money/ending
 flows:
-  after_success: []
+  after_success:
+    - target: cash_float_builder
+    - target: cashround
+    - target: change_maker

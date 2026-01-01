@@ -8,4 +8,7 @@ entrypoints:
   api: modules.template_filler.tool.app:app
 mount: /text/template
 flows:
-  after_success: []
+  after_success:
+    - target: case_transform
+    - target: find_replace
+    - target: line_tools

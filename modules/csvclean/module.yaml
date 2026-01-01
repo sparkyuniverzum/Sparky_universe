@@ -8,4 +8,7 @@ entrypoints:
   api: modules.csvclean.tool.app:app
 mount: /csv/clean
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvcolumns
+    - target: csvdedupe

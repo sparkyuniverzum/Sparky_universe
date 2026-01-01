@@ -8,4 +8,7 @@ entrypoints:
   api: modules.discountcalc.tool.app:app
 mount: /discount/calc
 flows:
-  after_success: []
+  after_success:
+    - target: breakevencalc
+    - target: margincalc
+    - target: markupcalc

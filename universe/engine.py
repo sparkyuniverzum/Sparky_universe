@@ -5,11 +5,20 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from universe.admin import (
+    DisabledModulesMiddleware,
+    build_mount_map,
+    get_module_overrides,
+    module_enabled,
+    overrides_source,
+    require_admin,
+    set_module_override,
+)
 from universe.ads import ads_enabled, ads_txt_content
 from universe.registry import load_modules
 from universe.telemetry import attach_telemetry
@@ -37,9 +46,15 @@ def _slugify(value: str) -> str:
 
 
 def build_categories() -> list[dict[str, Any]]:
-    modules = [
-        module for module in load_modules().values() if module.get("public", True)
-    ]
+    overrides = get_module_overrides()
+    modules = []
+    for module in load_modules().values():
+        if not module.get("public", True):
+            continue
+        name = module.get("name")
+        if name and not module_enabled(name, overrides):
+            continue
+        modules.append(module)
     modules.sort(key=lambda item: item.get("title") or item.get("name", ""))
     grouped: dict[str, list[dict[str, Any]]] = {}
     for module in modules:
@@ -73,6 +88,7 @@ def import_attr(path: str) -> Any:
 def build_app() -> FastAPI:
     app = FastAPI(title="Sparky Universe")
     attach_telemetry(app)
+    app.add_middleware(DisabledModulesMiddleware, mount_map=build_mount_map())
 
     brand_dir = Path(__file__).parent.parent / "brand"
     if brand_dir.exists():
@@ -119,6 +135,74 @@ def build_app() -> FastAPI:
                 "adsense_enabled": ads_enabled(),
             },
         )
+
+    @app.get("/admin", response_class=HTMLResponse)
+    def admin_index(request: Request, _: None = Depends(require_admin)):
+        modules = load_modules()
+        overrides = get_module_overrides()
+        items: list[dict[str, Any]] = []
+        for meta in modules.values():
+            name = meta.get("name", "")
+            public = bool(meta.get("public", True))
+            enabled = module_enabled(name, overrides) if name else True
+            entrypoint = (meta.get("entrypoints") or {}).get("api")
+            import_ok = True
+            import_error = ""
+            if entrypoint:
+                try:
+                    import_attr(entrypoint)
+                except Exception as exc:  # pragma: no cover - admin-only
+                    import_ok = False
+                    import_error = str(exc)
+            path = meta.get("path")
+            has_app = bool(path and (Path(path) / "tool" / "app.py").exists())
+            has_template = bool(
+                path and (Path(path) / "tool" / "templates" / "index.html").exists()
+            )
+            has_core = bool(path and (Path(path) / "core").exists())
+            status = "ok"
+            if not enabled:
+                status = "disabled"
+            elif entrypoint and not import_ok:
+                status = "error"
+            items.append(
+                {
+                    "name": name,
+                    "title": meta.get("title") or name,
+                    "category": meta.get("category") or "Other",
+                    "mount": meta.get("mount") or f"/{meta.get('slug', name)}",
+                    "public": public,
+                    "enabled": enabled,
+                    "status": status,
+                    "source": meta.get("source", ""),
+                    "entrypoint": entrypoint or "",
+                    "import_ok": import_ok,
+                    "import_error": import_error,
+                    "has_app": has_app,
+                    "has_template": has_template,
+                    "has_core": has_core,
+                }
+            )
+
+        items.sort(key=lambda item: (item["category"], item["title"]))
+        return templates.TemplateResponse(
+            "admin.html",
+            {
+                "request": request,
+                "modules": items,
+                "overrides_source": overrides_source(),
+            },
+        )
+
+    @app.post("/admin/toggle")
+    def admin_toggle(
+        name: str = Form(...),
+        enabled: str = Form(...),
+        _: None = Depends(require_admin),
+    ):
+        enable_value = enabled.strip().lower() in {"1", "true", "yes", "on"}
+        set_module_override(name, enable_value)
+        return RedirectResponse(url="/admin", status_code=303)
 
     modules = load_modules()
     for meta in modules.values():

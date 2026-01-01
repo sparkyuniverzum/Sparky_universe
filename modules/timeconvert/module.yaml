@@ -8,4 +8,7 @@ entrypoints:
   api: modules.timeconvert.tool.app:app
 mount: /time/convert
 flows:
-  after_success: []
+  after_success:
+    - target: colorconvert
+    - target: datasizeconvert
+    - target: fueleconomy

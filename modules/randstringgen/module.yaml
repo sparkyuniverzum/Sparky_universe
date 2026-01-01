@@ -8,4 +8,7 @@ entrypoints:
   api: modules.randstringgen.tool.app:app
 mount: /generate/random-strings
 flows:
-  after_success: []
+  after_success:
+    - target: palettegen
+    - target: csvsamplegen
+    - target: fakepersongen

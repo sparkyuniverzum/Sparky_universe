@@ -8,4 +8,7 @@ entrypoints:
   api: modules.pii_linter.tool.app:app
 mount: /data/pii
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

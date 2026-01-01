@@ -8,4 +8,7 @@ entrypoints:
   api: modules.cta_score.tool.app:app
 mount: /marketing/cta-score
 flows:
-  after_success: []
+  after_success:
+    - target: adcopylint
+    - target: ad_policy_guard
+    - target: campaign_namer

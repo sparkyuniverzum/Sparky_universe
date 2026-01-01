@@ -8,4 +8,7 @@ entrypoints:
   api: modules.colorconvert.tool.app:app
 mount: /convert/color
 flows:
-  after_success: []
+  after_success:
+    - target: datasizeconvert
+    - target: fueleconomy
+    - target: speedconvert

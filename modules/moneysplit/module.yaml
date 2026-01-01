@@ -8,4 +8,7 @@ entrypoints:
   api: modules.moneysplit.tool.app:app
 mount: /money/split
 flows:
-  after_success: []
+  after_success:
+    - target: cash_float_builder
+    - target: cashround
+    - target: change_maker

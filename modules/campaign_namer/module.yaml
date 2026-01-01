@@ -8,4 +8,7 @@ entrypoints:
   api: modules.campaign_namer.tool.app:app
 mount: /marketing/campaign-namer
 flows:
-  after_success: []
+  after_success:
+    - target: adcopylint
+    - target: ad_policy_guard
+    - target: creative_spec_check

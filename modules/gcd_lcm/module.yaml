@@ -8,4 +8,7 @@ entrypoints:
   api: modules.gcd_lcm.tool.app:app
 mount: /numbers/gcd-lcm
 flows:
-  after_success: []
+  after_success:
+    - target: base_convert
+    - target: fraction_tools
+    - target: numformat

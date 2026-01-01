@@ -8,4 +8,7 @@ entrypoints:
   api: modules.qr_event.tool.app:app
 mount: /qr/event
 flows:
-  after_success: []
+  after_success:
+    - target: qr_batch
+    - target: qrdecode
+    - target: qredit

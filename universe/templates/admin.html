@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sparky Universe · Admin</title>
+    <style>
+      :root {
+        --bg: #0f1116;
+        --card: #171b22;
+        --text: #f5f7fb;
+        --muted: #9aa6bf;
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #5ac8fa;
+        --ok: #53d38f;
+        --bad: #ff7b7b;
+        --warn: #f6c356;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 32px 20px;
+      }
+
+      .panel {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 1.9rem;
+      }
+
+      p {
+        margin: 0 0 18px;
+        color: var(--muted);
+      }
+
+      .note {
+        font-size: 0.85rem;
+        color: var(--warn);
+        margin-bottom: 16px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        background: rgba(90, 200, 250, 0.12);
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .badge.ok {
+        color: var(--ok);
+        background: rgba(83, 211, 143, 0.15);
+      }
+
+      .badge.disabled {
+        color: var(--warn);
+        background: rgba(246, 195, 86, 0.14);
+      }
+
+      .badge.error {
+        color: var(--bad);
+        background: rgba(255, 123, 123, 0.14);
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .checks {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .check {
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .check.ok {
+        color: var(--ok);
+        border-color: rgba(83, 211, 143, 0.4);
+      }
+
+      .check.bad {
+        color: var(--bad);
+        border-color: rgba(255, 123, 123, 0.4);
+      }
+
+      .entrypoint {
+        margin-top: 6px;
+        font-size: 0.78rem;
+        color: var(--muted);
+        word-break: break-word;
+      }
+
+      .error {
+        margin-top: 4px;
+        font-size: 0.76rem;
+        color: var(--bad);
+      }
+
+      button {
+        padding: 6px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(18, 24, 34, 0.9);
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      button.enable {
+        border-color: rgba(83, 211, 143, 0.5);
+        color: var(--ok);
+      }
+
+      button.disable {
+        border-color: rgba(246, 195, 86, 0.5);
+        color: var(--warn);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <h1>Universe Admin</h1>
+      <p>Overrides source: {{ overrides_source }}</p>
+      {% if overrides_source != "db" %}
+      <div class="note">Warning: overrides are in memory only until Postgres is configured.</div>
+      {% endif %}
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Module</th>
+            <th>Status</th>
+            <th>Mount</th>
+            <th>Public</th>
+            <th>Source</th>
+            <th>Checks</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for module in modules %}
+          <tr>
+            <td>{{ module.category }}</td>
+            <td>
+              {{ module.title }}
+              <div class="muted">{{ module.name }}</div>
+            </td>
+            <td>
+              <span class="badge {{ module.status }}">{{ module.status }}</span>
+            </td>
+            <td><a href="{{ module.mount }}" target="_blank" rel="noreferrer">{{ module.mount }}</a></td>
+            <td>{{ "yes" if module.public else "no" }}</td>
+            <td>{{ module.source }}</td>
+            <td>
+              <div class="checks">
+                <span class="check {{ 'ok' if module.has_app else 'bad' }}">app.py</span>
+                <span class="check {{ 'ok' if module.has_template else 'bad' }}">template</span>
+                <span class="check {{ 'ok' if module.has_core else 'bad' }}">core</span>
+                <span class="check {{ 'ok' if module.import_ok else 'bad' }}">entrypoint</span>
+              </div>
+              {% if module.entrypoint %}
+              <div class="entrypoint">{{ module.entrypoint }}</div>
+              {% endif %}
+              {% if module.import_error %}
+              <div class="error">{{ module.import_error }}</div>
+              {% endif %}
+            </td>
+            <td>
+              <form method="post" action="/admin/toggle">
+                <input type="hidden" name="name" value="{{ module.name }}">
+                <input type="hidden" name="enabled" value="{{ '0' if module.enabled else '1' }}">
+                {% if module.enabled %}
+                <button class="disable" type="submit">Disable</button>
+                {% else %}
+                <button class="enable" type="submit">Enable</button>
+                {% endif %}
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </main>
+  </body>
+</html>

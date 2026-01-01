@@ -8,4 +8,7 @@ entrypoints:
   api: modules.csvnormalize.tool.app:app
 mount: /csv/normalize
 flows:
-  after_success: []
+  after_success:
+    - target: category_guess
+    - target: csvclean
+    - target: csvcolumns

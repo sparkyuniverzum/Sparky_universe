@@ -8,4 +8,7 @@ entrypoints:
   api: modules.fueleconomy.tool.app:app
 mount: /fuel/economy
 flows:
-  after_success: []
+  after_success:
+    - target: colorconvert
+    - target: datasizeconvert
+    - target: speedconvert
