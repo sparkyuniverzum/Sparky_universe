@@ -212,6 +212,26 @@
         </tbody>
       </table>
 
+      <h2>Client errors (7d)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, count in metrics.by_outcome %}
+          {% if name in ["client_error", "validation_error", "not_found"] %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ count }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+
       <h2>Event types (7d)</h2>
       <table>
         <thead>

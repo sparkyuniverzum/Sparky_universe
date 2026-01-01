@@ -252,8 +252,12 @@ class TelemetryMiddleware:
 
         event_type = "page_view" if method == "GET" else "action_submit"
         outcome = "success" if status_code < 400 else "error"
-        if method in {"POST", "PUT", "PATCH"} and 400 <= status_code < 500:
+        if status_code == 404:
+            outcome = "not_found"
+        elif method in {"POST", "PUT", "PATCH"} and 400 <= status_code < 500:
             outcome = "validation_error"
+        elif 400 <= status_code < 500:
+            outcome = "client_error"
 
         content_length = _header_value(headers, b"content-length")
         payload = {

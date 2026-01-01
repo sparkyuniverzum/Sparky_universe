@@ -25,6 +25,7 @@ from universe.admin import (
     test_db_health,
 )
 from universe.ads import ads_enabled, ads_txt_content
+from universe.errors import ValidationNormalizeMiddleware
 from universe.lint import lint_module
 from universe.registry import load_modules
 from universe.seo import (
@@ -101,6 +102,7 @@ def import_attr(path: str) -> Any:
 def build_app() -> FastAPI:
     app = FastAPI(title="Sparky Universe")
     attach_telemetry(app)
+    app.add_middleware(ValidationNormalizeMiddleware)
     app.add_middleware(DisabledModulesMiddleware, mount_map=build_mount_map())
     admin_prefix = admin_path()
 
