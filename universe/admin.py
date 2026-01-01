@@ -7,7 +7,7 @@ import secrets
 import time
 from typing import Any, Dict
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
@@ -94,7 +94,7 @@ def _ip_allowed(ip: str, allowlist: list[str]) -> bool:
 
 
 def require_admin(
-    request: Any,
+    request: Request,
     credentials: HTTPBasicCredentials = Depends(security),
 ) -> None:
     user = _admin_user()
