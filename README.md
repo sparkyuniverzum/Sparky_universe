@@ -17,6 +17,8 @@ Each module must provide:
 - `modules/<name>/core/` with the business logic.
 
 Expanded standard: `docs/module_standard.md`.
+Module standard is versioned; current is v1.0 (frozen). Any changes require a new
+standard version (v1.1, v2.0, etc.).
 
 Internal shared modules (like `sparky_ui`) are `public: false` and can omit entrypoints and runtime code.
 
@@ -114,6 +116,14 @@ export SPARKY_ADS_FOOTER=on
 export SPARKY_ADS_PREVIEW=on
 ```
 
+## SEO (optional)
+SEO is disabled by default. Enable it explicitly to serve sitemap and JSON-LD.
+
+```bash
+export SPARKY_SEO=on
+export SPARKY_SEO_BASE_URL="https://sparky-universe.com"
+```
+
 ## Admin panel (optional)
 Private control panel at `/admin` with Basic Auth and module enable/disable overrides.
 
@@ -121,9 +131,19 @@ Private control panel at `/admin` with Basic Auth and module enable/disable over
 export SPARKY_ADMIN_USER="admin"
 export SPARKY_ADMIN_PASSWORD="change-me"
 export SPARKY_ADMIN_DB_DSN="postgresql://..."
+export SPARKY_ADMIN_PATH="/admin"
+export SPARKY_ADMIN_LINK=off
+export SPARKY_ADMIN_IP_ALLOWLIST="203.0.113.10,198.51.100.0/24"
 ```
 If `SPARKY_ADMIN_DB_DSN` is not set, it falls back to `SPARKY_DB_DSN`/`DATABASE_URL`
 and stores overrides in memory only (not persistent).
+
+## Module lint (optional)
+Minimal lint for required fields, structure, and entrypoint.
+
+```bash
+python scripts/module_lint.py
+```
 
 Retention cleanup (default 90 days):
 ```bash

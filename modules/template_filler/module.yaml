@@ -9,6 +9,21 @@ entrypoints:
 mount: /text/template
 flows:
   after_success:
-    - target: case_transform
-    - target: find_replace
-    - target: line_tools
+  - target: case_transform
+  - target: find_replace
+  - target: line_tools
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

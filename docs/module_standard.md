@@ -1,6 +1,7 @@
 % Module Standard (Expanded)
 
 This document defines the unified standard for every Sparky module.
+Standard version: 1.0 (frozen). Changes require a new version.
 
 ## 1) Module layout
 - modules/<name>/
@@ -30,6 +31,19 @@ Recommended:
 - slug: kebab-case (default from name)
 - flow_label: short label for flow cards
 - flows.after_success: list of flow targets
+- standard_version: "1.0"
+
+Optional (v1.0 extensions):
+- tags: list of short labels for discovery
+- status: alpha | beta | stable
+- priority: P0 | P1 | P2
+- owner: responsible person or team
+- seo_title, seo_description, canonical
+- og_image or og_image_key
+- input_spec: freeform input schema or shape (YAML/JSON)
+- output_spec: freeform output schema or shape (YAML/JSON)
+- sample_input, sample_output (string or YAML/JSON)
+- privacy.no_raw_inputs: true/false
 
 ## 3) API contract
 - GET / returns HTML UI (template)
@@ -68,3 +82,25 @@ In index.html:
 - module name: snake_case
 - URL mount: /<category>/<slug> when possible
 - Avoid collisions with existing mounts
+
+## 9) Example extensions (v1.0)
+```yaml
+standard_version: "1.0"
+tags: [csv, clean, normalize]
+status: beta
+priority: P2
+owner: "growth"
+seo_title: "CSV Cleaner"
+seo_description: "Clean CSV files by trimming and removing empty rows."
+canonical: "https://sparky-universe.com/csv/clean"
+og_image: "/brand/og/csv-clean.png"
+input_spec:
+  type: file
+  format: csv
+output_spec:
+  format: csv
+sample_input: "name,price\\nWidget,10\\n"
+sample_output: "name,price\\nWidget,10\\n"
+privacy:
+  no_raw_inputs: true
+```

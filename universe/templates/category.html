@@ -8,6 +8,11 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7363912383995147"
       crossorigin="anonymous"></script>
     {% endif %}
+    {% if seo_enabled() %}
+    <script type="application/ld+json">
+      {{ seo_collection_json_ld(request, category.name, category.description) | safe }}
+    </script>
+    {% endif %}
     <style>
       :root {
         --bg: #0f1116;

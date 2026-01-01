@@ -131,11 +131,26 @@
   <body>
     <main class="panel">
       <h1>Metrics</h1>
-      <p><a href="/admin">Back to admin</a></p>
+      <p><a href="{{ admin_base }}">Back to admin</a></p>
       <div class="status">
         <span class="status-dot {% if metrics.ok %}ok{% else %}error{% endif %}"></span>
         <span>{{ "Connected" if metrics.ok else "Error" }} · {{ metrics.detail }}</span>
       </div>
+
+      <section class="summary">
+        <div class="summary-card">
+          <div class="summary-label">Modules total</div>
+          <div class="summary-value">{{ metrics.lint.total }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Modules ok</div>
+          <div class="summary-value">{{ metrics.lint.ok }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Modules error</div>
+          <div class="summary-value">{{ metrics.lint.error }}</div>
+        </div>
+      </section>
 
       {% if metrics.ok %}
       <section class="summary">

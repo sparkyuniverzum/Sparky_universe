@@ -15,6 +15,21 @@ version: 0.0.1
 description: ${description}
 public: true
 category: ${category}
+standard_version: "1.0"
+tags: []
+status: beta
+priority: P2
+owner: ""
+seo_title: ""
+seo_description: ""
+canonical: ""
+og_image: ""
+input_spec: {}
+output_spec: {}
+sample_input: ""
+sample_output: ""
+privacy:
+  no_raw_inputs: true
 entrypoints:
   api: modules.${name}.tool.app:app
 mount: ${mount}

@@ -6,11 +6,13 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from universe.admin import (
+    admin_link_enabled,
+    admin_path,
     DisabledModulesMiddleware,
     build_mount_map,
     fetch_metrics,
@@ -23,7 +25,15 @@ from universe.admin import (
     test_db_health,
 )
 from universe.ads import ads_enabled, ads_txt_content
+from universe.lint import lint_module
 from universe.registry import load_modules
+from universe.seo import (
+    seo_collection_json_ld,
+    seo_enabled,
+    seo_module_json_ld,
+    seo_site_json_ld,
+    sitemap_xml,
+)
 from universe.telemetry import attach_telemetry
 
 logger = logging.getLogger(__name__)
@@ -92,6 +102,7 @@ def build_app() -> FastAPI:
     app = FastAPI(title="Sparky Universe")
     attach_telemetry(app)
     app.add_middleware(DisabledModulesMiddleware, mount_map=build_mount_map())
+    admin_prefix = admin_path()
 
     brand_dir = Path(__file__).parent.parent / "brand"
     if brand_dir.exists():
@@ -100,6 +111,10 @@ def build_app() -> FastAPI:
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
     templates.env.auto_reload = True
     templates.env.cache = {}
+    templates.env.globals.setdefault("seo_enabled", seo_enabled)
+    templates.env.globals.setdefault("seo_site_json_ld", seo_site_json_ld)
+    templates.env.globals.setdefault("seo_collection_json_ld", seo_collection_json_ld)
+    templates.env.globals.setdefault("seo_module_json_ld", seo_module_json_ld)
 
     @app.get("/", response_class=HTMLResponse)
     def universe_index(request: Request):
@@ -112,6 +127,8 @@ def build_app() -> FastAPI:
                 "categories": categories,
                 "base_path": base_path,
                 "adsense_enabled": ads_enabled(),
+                "admin_link_enabled": admin_link_enabled(),
+                "admin_path": admin_prefix,
             },
         )
 
@@ -121,6 +138,23 @@ def build_app() -> FastAPI:
         if not content:
             raise HTTPException(status_code=404, detail="ads.txt not configured")
         return PlainTextResponse(content)
+
+    @app.get("/sitemap.xml", response_class=Response)
+    def sitemap(request: Request):
+        if not seo_enabled():
+            raise HTTPException(status_code=404, detail="SEO disabled")
+        base_url = str(request.base_url).rstrip("/")
+        categories = build_categories()
+        urls = [f"{base_url}/"]
+        for category in categories:
+            urls.append(f"{base_url}/category/{category['slug']}")
+            for module in category.get("modules", []):
+                mount = module.get("mount") or f"/{module.get('slug', module['name'])}"
+                if not mount.startswith("/"):
+                    mount = "/" + mount
+                urls.append(f"{base_url}{mount}")
+        xml = sitemap_xml(urls)
+        return Response(content=xml, media_type="application/xml")
 
     @app.get("/category/{slug}", response_class=HTMLResponse)
     def category_index(request: Request, slug: str):
@@ -139,7 +173,7 @@ def build_app() -> FastAPI:
             },
         )
 
-    @app.get("/admin", response_class=HTMLResponse)
+    @app.get(f"{admin_prefix}", response_class=HTMLResponse)
     def admin_index(request: Request, _: None = Depends(require_admin)):
         modules = load_modules()
         overrides = get_module_overrides()
@@ -149,25 +183,12 @@ def build_app() -> FastAPI:
             name = meta.get("name", "")
             public = bool(meta.get("public", True))
             enabled = module_enabled(name, overrides) if name else True
-            entrypoint = (meta.get("entrypoints") or {}).get("api")
-            import_ok = True
-            import_error = ""
-            if entrypoint:
-                try:
-                    import_attr(entrypoint)
-                except Exception as exc:  # pragma: no cover - admin-only
-                    import_ok = False
-                    import_error = str(exc)
-            path = meta.get("path")
-            has_app = bool(path and (Path(path) / "tool" / "app.py").exists())
-            has_template = bool(
-                path and (Path(path) / "tool" / "templates" / "index.html").exists()
-            )
-            has_core = bool(path and (Path(path) / "core").exists())
+            lint = lint_module(meta)
+            entrypoint = lint.get("entrypoint") or ""
             status = "ok"
             if not enabled:
                 status = "disabled"
-            elif entrypoint and not import_ok:
+            elif not lint.get("ok", True):
                 status = "error"
             items.append(
                 {
@@ -179,12 +200,13 @@ def build_app() -> FastAPI:
                     "enabled": enabled,
                     "status": status,
                     "source": meta.get("source", ""),
-                    "entrypoint": entrypoint or "",
-                    "import_ok": import_ok,
-                    "import_error": import_error,
-                    "has_app": has_app,
-                    "has_template": has_template,
-                    "has_core": has_core,
+                    "entrypoint": entrypoint,
+                    "entrypoint_ok": lint.get("entrypoint_ok", True),
+                    "entrypoint_error": lint.get("entrypoint_error", ""),
+                    "has_app": lint.get("has_app", False),
+                    "has_template": lint.get("has_template", False),
+                    "has_core": lint.get("has_core", False),
+                    "lint_issues": lint.get("issues", []),
                 }
             )
 
@@ -196,18 +218,19 @@ def build_app() -> FastAPI:
                 "modules": items,
                 "overrides_source": overrides_source(),
                 "db_check": db_check,
+                "admin_base": admin_prefix,
             },
         )
 
-    @app.get("/admin/metrics", response_class=HTMLResponse)
+    @app.get(f"{admin_prefix}/metrics", response_class=HTMLResponse)
     def admin_metrics(request: Request, _: None = Depends(require_admin)):
         metrics = fetch_metrics()
         return templates.TemplateResponse(
             "admin_metrics.html",
-            {"request": request, "metrics": metrics},
+            {"request": request, "metrics": metrics, "admin_base": admin_prefix},
         )
 
-    @app.post("/admin/toggle")
+    @app.post(f"{admin_prefix}/toggle")
     def admin_toggle(
         name: str = Form(...),
         enabled: str = Form(...),
@@ -215,12 +238,12 @@ def build_app() -> FastAPI:
     ):
         enable_value = enabled.strip().lower() in {"1", "true", "yes", "on"}
         set_module_override(name, enable_value)
-        return RedirectResponse(url="/admin", status_code=303)
+        return RedirectResponse(url=admin_prefix, status_code=303)
 
-    @app.post("/admin/test-db")
+    @app.post(f"{admin_prefix}/test-db")
     def admin_test_db(_: None = Depends(require_admin)):
         test_db_health()
-        return RedirectResponse(url="/admin", status_code=303)
+        return RedirectResponse(url=admin_prefix, status_code=303)
 
     modules = load_modules()
     for meta in modules.values():

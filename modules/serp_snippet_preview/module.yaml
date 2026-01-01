@@ -9,6 +9,21 @@ entrypoints:
 mount: /marketing/serp-snippet-preview
 flows:
   after_success:
-    - target: adcopylint
-    - target: ad_policy_guard
-    - target: campaign_namer
+  - target: adcopylint
+  - target: ad_policy_guard
+  - target: campaign_namer
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

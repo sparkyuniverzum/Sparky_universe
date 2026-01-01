@@ -4,6 +4,13 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
+from universe.seo import (
+    seo_collection_json_ld,
+    seo_enabled,
+    seo_module_json_ld,
+    seo_site_json_ld,
+)
+
 DEFAULT_SLOT_ORDER = ["inline", "footer"]
 SLOT_DEFS: Dict[str, Dict[str, str]] = {
     "inline": {
@@ -80,6 +87,10 @@ def get_ads_config(page_type: str = "tool") -> Dict[str, Any]:
 
 def attach_ads_globals(templates: Any) -> None:
     templates.env.globals.setdefault("ads_config", get_ads_config)
+    templates.env.globals.setdefault("seo_enabled", seo_enabled)
+    templates.env.globals.setdefault("seo_module_json_ld", seo_module_json_ld)
+    templates.env.globals.setdefault("seo_site_json_ld", seo_site_json_ld)
+    templates.env.globals.setdefault("seo_collection_json_ld", seo_collection_json_ld)
 
 
 def ads_txt_content(root_dir: Path | None = None) -> str | None:

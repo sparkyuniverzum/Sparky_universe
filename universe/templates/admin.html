@@ -227,10 +227,10 @@
       <div class="note">Warning: overrides are in memory only until Postgres is configured.</div>
       {% endif %}
       <div class="toolbar">
-        <form method="post" action="/admin/test-db">
+        <form method="post" action="{{ admin_base }}/test-db">
           <button type="submit">Test DB</button>
         </form>
-        <a class="link-button" href="/admin/metrics">View metrics</a>
+        <a class="link-button" href="{{ admin_base }}/metrics">View metrics</a>
         {% if db_check.ok is not none %}
         <div class="status">
           {% if db_check.ok %}
@@ -285,17 +285,20 @@
                 <span class="check {{ 'ok' if module.has_app else 'bad' }}">app.py</span>
                 <span class="check {{ 'ok' if module.has_template else 'bad' }}">template</span>
                 <span class="check {{ 'ok' if module.has_core else 'bad' }}">core</span>
-                <span class="check {{ 'ok' if module.import_ok else 'bad' }}">entrypoint</span>
+                <span class="check {{ 'ok' if module.entrypoint_ok else 'bad' }}">entrypoint</span>
               </div>
               {% if module.entrypoint %}
               <div class="entrypoint">{{ module.entrypoint }}</div>
               {% endif %}
-              {% if module.import_error %}
-              <div class="error">{{ module.import_error }}</div>
+              {% if module.entrypoint_error %}
+              <div class="error">{{ module.entrypoint_error }}</div>
+              {% endif %}
+              {% if module.lint_issues %}
+              <div class="error">{{ module.lint_issues | join(", ") }}</div>
               {% endif %}
             </td>
             <td>
-              <form method="post" action="/admin/toggle">
+              <form method="post" action="{{ admin_base }}/toggle">
                 <input type="hidden" name="name" value="{{ module.name }}">
                 <input type="hidden" name="enabled" value="{{ '0' if module.enabled else '1' }}">
                 {% if module.enabled %}

@@ -8,6 +8,11 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7363912383995147"
       crossorigin="anonymous"></script>
     {% endif %}
+    {% if seo_enabled() %}
+    <script type="application/ld+json">
+      {{ seo_site_json_ld(request, "Sparky Universe", "Browse categories and open the modules you need.") | safe }}
+    </script>
+    {% endif %}
     <style>
       :root {
         --bg: #0f1116;
@@ -119,7 +124,9 @@
     <main class="panel">
       <h1>Sparky Universe</h1>
       <p>Browse categories and open the modules you need.</p>
-      <a class="control-link" href="/admin">Control panel</a>
+      {% if admin_link_enabled %}
+      <a class="control-link" href="{{ admin_path }}">Control panel</a>
+      {% endif %}
       <div class="categories">
         {% for category in categories %}
         <section class="category-card">

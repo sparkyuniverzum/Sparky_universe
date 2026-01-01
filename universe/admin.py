@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import ipaddress
 import secrets
 import time
 from typing import Any, Dict
@@ -10,6 +11,7 @@ from fastapi import Depends, HTTPException
 from fastapi.responses import PlainTextResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
+from universe.lint import lint_module
 from universe.registry import load_modules
 
 try:  # Optional if running without DB yet.
@@ -41,11 +43,64 @@ def _admin_password() -> str:
     return os.getenv("SPARKY_ADMIN_PASSWORD", "").strip()
 
 
-def require_admin(credentials: HTTPBasicCredentials = Depends(security)) -> None:
+def admin_path() -> str:
+    raw = os.getenv("SPARKY_ADMIN_PATH", "/admin").strip()
+    if not raw:
+        raw = "/admin"
+    if not raw.startswith("/"):
+        raw = "/" + raw
+    if raw != "/" and raw.endswith("/"):
+        raw = raw.rstrip("/")
+    return raw
+
+
+def admin_link_enabled() -> bool:
+    return _flag("SPARKY_ADMIN_LINK", "off")
+
+
+def _admin_allowlist() -> list[str]:
+    raw = os.getenv("SPARKY_ADMIN_IP_ALLOWLIST", "").strip()
+    if not raw:
+        return []
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def _client_ip(request: Any) -> str | None:
+    if _flag("SPARKY_TRUST_PROXY", "off"):
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+    if request.client:
+        return request.client.host
+    return None
+
+
+def _ip_allowed(ip: str, allowlist: list[str]) -> bool:
+    for entry in allowlist:
+        if "/" in entry:
+            try:
+                if ipaddress.ip_address(ip) in ipaddress.ip_network(entry, strict=False):
+                    return True
+            except ValueError:
+                continue
+        elif ip == entry:
+            return True
+    return False
+
+
+def require_admin(
+    request: Any,
+    credentials: HTTPBasicCredentials = Depends(security),
+) -> None:
     user = _admin_user()
     password = _admin_password()
     if not user or not password:
         raise HTTPException(status_code=503, detail="Admin auth not configured")
+    allowlist = _admin_allowlist()
+    if allowlist:
+        ip = _client_ip(request)
+        if not ip or not _ip_allowed(ip, allowlist):
+            raise HTTPException(status_code=403, detail="Forbidden")
     valid_user = secrets.compare_digest(credentials.username, user)
     valid_pass = secrets.compare_digest(credentials.password, password)
     if not (valid_user and valid_pass):
@@ -132,6 +187,16 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
     if cached is not None and now - _METRICS_CACHE["ts"] < 30:
         return dict(cached)
 
+    lint_total = 0
+    lint_ok = 0
+    lint_error = 0
+    for meta in load_modules().values():
+        lint_total += 1
+        if lint_module(meta).get("ok", True):
+            lint_ok += 1
+        else:
+            lint_error += 1
+
     result: Dict[str, Any] = {
         "ok": False,
         "detail": "",
@@ -139,6 +204,11 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
         "by_module": [],
         "by_outcome": [],
         "by_event_type": [],
+        "lint": {
+            "total": lint_total,
+            "ok": lint_ok,
+            "error": lint_error,
+        },
     }
     if psycopg is None:
         result["detail"] = "psycopg is not installed"
@@ -339,9 +409,10 @@ class DisabledModulesMiddleware:
             return
 
         path = scope.get("path", "")
+        admin_prefix = admin_path()
         if (
             path == "/"
-            or path.startswith("/admin")
+            or path.startswith(admin_prefix)
             or path.startswith("/category")
             or path.startswith("/docs")
             or path.startswith("/openapi.json")
