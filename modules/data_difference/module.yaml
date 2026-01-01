@@ -2,7 +2,7 @@ name: data_difference
 title: Data Difference
 version: 0.0.1
 description: Ukáže, co se změnilo mezi dvěma verzemi dat.
-public: false
+public: true
 category: Data
 standard_version: '1.0'
 tags: []

@@ -1,0 +1,63 @@
+{% extends "module_base.html" %}
+
+{% block title %}Reading Time Estimator{% endblock %}
+{% block heading %}Reading Time Estimator{% endblock %}
+{% block description %}Estimate how long a reader will take to finish the text.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/estimate" method="post">
+  <label for="text">Text to analyze</label>
+  <textarea id="text" name="text" placeholder="Paste content here"></textarea>
+
+  <label for="wpm">Words per minute</label>
+  <input id="wpm" name="wpm" type="number" min="80" max="500" value="200">
+
+  <button type="submit">Estimate time</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Reading time</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Predict reading time before publishing.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/estimate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

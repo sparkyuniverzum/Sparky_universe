@@ -2,7 +2,7 @@ name: data_snapshot
 title: Data Snapshot
 version: 0.0.1
 description: Rychle řekne, co to je za data, ještě než s nimi něco uděláš.
-public: false
+public: true
 category: Data
 standard_version: '1.0'
 tags: []

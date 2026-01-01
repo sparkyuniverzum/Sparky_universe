@@ -1,0 +1,59 @@
+{% extends "module_base.html" %}
+
+{% block title %}Content Brief Completeness{% endblock %}
+{% block heading %}Content Brief Completeness{% endblock %}
+{% block description %}Check if a brief includes goal, audience, tone, length, and CTA.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/check" method="post">
+  <label for="text">Brief to analyze</label>
+  <textarea id="text" name="text" placeholder="Paste the brief here"></textarea>
+  <button type="submit">Check brief</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Completeness</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Quick checklist before work starts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/check`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

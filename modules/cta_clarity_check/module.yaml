@@ -1,0 +1,30 @@
+name: cta_clarity_check
+title: CTA Clarity Check
+version: 0.0.1
+description: Detect and score calls-to-action in content.
+public: true
+category: Content QA
+entrypoints:
+  api: modules.cta_clarity_check.tool.app:app
+mount: /content/cta-clarity
+flows:
+  after_success:
+  - target: content_structure_check
+    label: Check structure
+  - target: readability_check
+    label: Check readability
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

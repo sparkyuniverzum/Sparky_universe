@@ -1,0 +1,30 @@
+name: content_brief_check
+title: Content Brief Completeness
+version: 0.0.1
+description: Check whether a content brief includes goal, audience, tone, length, and CTA.
+public: true
+category: Content QA
+entrypoints:
+  api: modules.content_brief_check.tool.app:app
+mount: /content/brief-completeness
+flows:
+  after_success:
+  - target: content_structure_check
+    label: Check structure
+  - target: cta_clarity_check
+    label: Check CTA clarity
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

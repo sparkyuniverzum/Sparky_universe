@@ -3,7 +3,7 @@ title: Structure / Format Translator
 version: 0.0.1
 description: Převede neznámá nebo rozbitá strukturovaná data do čitelného, validního
   formátu.
-public: false
+public: true
 category: Data
 standard_version: '1.0'
 tags: []

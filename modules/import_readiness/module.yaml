@@ -2,7 +2,7 @@ name: import_readiness
 title: Import Readiness
 version: 0.0.1
 description: Řekne, jestli jsou data připravená k importu do systému.
-public: false
+public: true
 category: Data
 standard_version: '1.0'
 tags: []
