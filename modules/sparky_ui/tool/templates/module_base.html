@@ -6,6 +6,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Sparky Module{% endblock %}</title>
+    {% set ads = ads_config(page_type if page_type is defined else "tool") %}
+    {% if ads.enabled %}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7363912383995147"
+      crossorigin="anonymous"></script>
+    {% endif %}
     <style>
       :root {
         --bg: #0f1116;
@@ -319,7 +324,6 @@
     </style>
   </head>
   <body>
-    {% set ads = ads_config(page_type if page_type is defined else "tool") %}
     <div class="page">
       <main class="panel">
         <img class="brand-mark" src="/brand/logo/sparky-universe.icon.png" alt="">

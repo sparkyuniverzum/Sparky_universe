@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from universe.ads import ads_enabled
 from universe.registry import load_modules
 from universe.telemetry import attach_telemetry
 
@@ -87,7 +88,12 @@ def build_app() -> FastAPI:
         base_path = request.scope.get("root_path", "").rstrip("/")
         return templates.TemplateResponse(
             "index.html",
-            {"request": request, "categories": categories, "base_path": base_path},
+            {
+                "request": request,
+                "categories": categories,
+                "base_path": base_path,
+                "adsense_enabled": ads_enabled(),
+            },
         )
 
     @app.get("/category/{slug}", response_class=HTMLResponse)
@@ -99,7 +105,12 @@ def build_app() -> FastAPI:
         base_path = request.scope.get("root_path", "").rstrip("/")
         return templates.TemplateResponse(
             "category.html",
-            {"request": request, "category": category, "base_path": base_path},
+            {
+                "request": request,
+                "category": category,
+                "base_path": base_path,
+                "adsense_enabled": ads_enabled(),
+            },
         )
 
     modules = load_modules()
