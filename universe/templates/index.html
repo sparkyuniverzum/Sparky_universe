@@ -63,6 +63,63 @@
         gap: 16px;
       }
 
+      .planet-section {
+        display: grid;
+        gap: 14px;
+        margin: 24px 0 28px;
+      }
+
+      .planet-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .planet-title {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+
+      .planet-desc {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .planet-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .planet-card {
+        border: 1px solid rgba(90, 200, 250, 0.25);
+        border-radius: 16px;
+        padding: 16px 18px;
+        background: rgba(20, 30, 40, 0.75);
+        display: grid;
+        gap: 8px;
+      }
+
+      .planet-card h3 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .planet-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .planet-link {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        align-self: start;
+      }
+
       .category-card {
         border: 1px solid var(--border);
         border-radius: 16px;
@@ -127,8 +184,29 @@
       {% if admin_link_enabled %}
       <a class="control-link" href="{{ admin_path }}">Control panel</a>
       {% endif %}
+      {% set planets = categories | selectattr("name", "equalto", "Planets") | list %}
+      {% set other_categories = categories | rejectattr("name", "equalto", "Planets") | list %}
+      {% if planets %}
+      <section class="planet-section">
+        <div class="planet-header">
+          <h2 class="planet-title">Planets</h2>
+        </div>
+        <p class="planet-desc">Bigger tools for full situations, not single steps.</p>
+        <div class="planet-grid">
+          {% for module in planets[0].modules %}
+          <article class="planet-card">
+            <h3>{{ module.title or module.name }}</h3>
+            {% if module.description %}
+            <p>{{ module.description }}</p>
+            {% endif %}
+            <a class="planet-link" href="{{ base_path }}{{ module.mount }}">Open planet</a>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
       <div class="categories">
-        {% for category in categories %}
+        {% for category in other_categories %}
         <section class="category-card">
           <div class="category-header">
             <h2 class="category-title">{{ category.name }}</h2>

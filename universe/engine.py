@@ -61,6 +61,7 @@ CATEGORY_DESCRIPTIONS = {
     "Other": "Useful modules that do not fit a core category.",
 }
 DEFAULT_CATEGORY_DESCRIPTION = "Practical utilities for quick tasks."
+CATEGORY_ORDER = ["Planets"]
 
 
 def _slugify(value: str) -> str:
@@ -84,7 +85,13 @@ def build_categories() -> list[dict[str, Any]]:
         grouped.setdefault(str(category), []).append(module)
 
     categories: list[dict[str, Any]] = []
-    for category, items in sorted(grouped.items(), key=lambda item: item[0].lower()):
+    def _category_sort(entry: tuple[str, list[dict[str, Any]]]) -> tuple[int, str]:
+        name = entry[0]
+        if name in CATEGORY_ORDER:
+            return (0, CATEGORY_ORDER.index(name))
+        return (1, name.lower())
+
+    for category, items in sorted(grouped.items(), key=_category_sort):
         items.sort(key=lambda item: item.get("title") or item.get("name", ""))
         categories.append(
             {
