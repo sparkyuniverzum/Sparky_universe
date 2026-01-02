@@ -1,0 +1,30 @@
+name: quote_dash_normalizer
+title: Quote & Dash Normalizer
+version: 0.0.1
+description: Normalize quotes and dashes to ASCII or typographic forms.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.quote_dash_normalizer.tool.app:app
+mount: /text/quote-dash-normalizer
+flows:
+  after_success:
+  - target: string_cleaner
+    label: Clean up text
+  - target: case_transform
+    label: Convert case
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

@@ -1,0 +1,69 @@
+{% extends "module_base.html" %}
+
+{% block title %}Quote & Dash Normalizer{% endblock %}
+{% block heading %}Quote & Dash Normalizer{% endblock %}
+{% block description %}Normalize quotes and dashes to ASCII or typographic forms.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/normalize" method="post" enctype="multipart/form-data">
+  <label for="file">Upload text file (max 4 MB)</label>
+  <input id="file" name="file" type="file">
+
+  <label for="text">Or paste text</label>
+  <textarea id="text" name="text" placeholder="Paste content here"></textarea>
+
+  <label for="mode">Mode</label>
+  <select id="mode" name="mode">
+    <option value="ascii">ASCII</option>
+    <option value="typographic">Typographic</option>
+  </select>
+
+  <button type="submit">Normalize</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Normalized text</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Keep typography consistent.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/normalize`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

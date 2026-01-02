@@ -1,0 +1,30 @@
+name: placeholder_finder
+title: Placeholder Finder
+version: 0.0.1
+description: Find template placeholders like {{name}} or [NAME] in text.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.placeholder_finder.tool.app:app
+mount: /text/placeholder-finder
+flows:
+  after_success:
+  - target: find_replace
+    label: Replace placeholders
+  - target: string_cleaner
+    label: Clean up text
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

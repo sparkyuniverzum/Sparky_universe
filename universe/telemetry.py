@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 import os
+import random
 import time
 import uuid
 from http.cookies import SimpleCookie
@@ -45,6 +46,31 @@ def _dsn() -> str | None:
 
 def _telemetry_salt() -> str:
     return os.getenv("SPARKY_TELEMETRY_SALT", "")
+
+
+def _sample_rate(name: str, default: float) -> float:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        return default
+    if value <= 0:
+        return 0.0
+    if value > 1:
+        return 1.0
+    return value
+
+
+def _should_sample(event_type: str, outcome: str) -> Tuple[bool, float]:
+    if outcome in {"error", "client_error", "validation_error", "not_found"}:
+        return True, 1.0
+    if event_type == "page_view":
+        rate = _sample_rate("SPARKY_TELEMETRY_SAMPLE_PAGE_VIEW", 1.0)
+        return random.random() <= rate, rate
+    rate = _sample_rate("SPARKY_TELEMETRY_SAMPLE_ACTION", 1.0)
+    return random.random() <= rate, rate
 
 
 def _hash_value(value: str | None) -> str | None:
@@ -323,6 +349,10 @@ class TelemetryMiddleware:
             "referrer_host": referrer_host,
             **utm,
         }
+        sampled, sample_rate = _should_sample(event_type, outcome)
+        if not sampled:
+            return
+        payload["sample_rate"] = sample_rate
 
         event = {
             "id": str(uuid.uuid4()),

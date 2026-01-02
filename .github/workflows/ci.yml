@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          python-version: '3.11'
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --frozen --no-dev
+      - name: Module lint
+        run: uv run python scripts/module_lint.py
+      - name: Module sanity
+        run: uv run python scripts/module_sanity.py

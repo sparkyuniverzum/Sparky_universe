@@ -105,6 +105,18 @@ Optional settings:
 - `SPARKY_TENANT` to tag events per domain
 - `SPARKY_TRUST_PROXY=on` to honor `X-Forwarded-For`
 - `SPARKY_TELEMETRY_SALT` for hashing user agent/IP
+- `SPARKY_TELEMETRY_SAMPLE_PAGE_VIEW=1.0` (0-1 sampling rate)
+- `SPARKY_TELEMETRY_SAMPLE_ACTION=1.0` (0-1 sampling rate)
+
+## Performance guardrails (optional)
+Limit request size and processing time to protect throughput.
+
+```bash
+export SPARKY_MAX_BODY_BYTES=5000000
+export SPARKY_REQUEST_TIMEOUT_SECONDS=15
+export SPARKY_MODULE_MAX_BODY_BYTES="data_snapshot=8000000,import_readiness=10000000"
+export SPARKY_MODULE_TIMEOUTS="data_snapshot=20,import_readiness=25"
+```
 
 ## Ads (optional)
 Enable ad/affiliate slots in module templates.

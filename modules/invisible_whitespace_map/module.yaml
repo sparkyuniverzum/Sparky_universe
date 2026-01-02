@@ -1,0 +1,30 @@
+name: invisible_whitespace_map
+title: Invisible Whitespace Map
+version: 0.0.1
+description: Reveal tabs, extra spaces, and line endings in text.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.invisible_whitespace_map.tool.app:app
+mount: /text/invisible-whitespace-map
+flows:
+  after_success:
+  - target: line_deduplicator
+    label: Remove duplicate lines
+  - target: string_cleaner
+    label: Clean up text
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

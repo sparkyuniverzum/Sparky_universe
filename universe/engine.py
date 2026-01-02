@@ -27,6 +27,13 @@ from universe.admin import (
 from universe.ads import ads_enabled, ads_txt_content
 from universe.errors import ValidationNormalizeMiddleware
 from universe.lint import lint_module
+from universe.limits import (
+    RequestLimitsMiddleware,
+    max_body_bytes,
+    module_max_body_overrides,
+    module_timeout_overrides,
+    request_timeout_seconds,
+)
 from universe.registry import load_modules
 from universe.seo import (
     seo_collection_json_ld,
@@ -101,10 +108,20 @@ def import_attr(path: str) -> Any:
 
 def build_app() -> FastAPI:
     app = FastAPI(title="Sparky Universe")
-    attach_telemetry(app)
-    app.add_middleware(ValidationNormalizeMiddleware)
-    app.add_middleware(DisabledModulesMiddleware, mount_map=build_mount_map())
+    mount_map = build_mount_map()
     admin_prefix = admin_path()
+    app.add_middleware(ValidationNormalizeMiddleware)
+    app.add_middleware(DisabledModulesMiddleware, mount_map=mount_map)
+    app.add_middleware(
+        RequestLimitsMiddleware,
+        mount_map=mount_map,
+        admin_prefix=admin_prefix,
+        max_body=max_body_bytes(),
+        timeout_seconds=request_timeout_seconds(),
+        module_max_body=module_max_body_overrides(),
+        module_timeouts=module_timeout_overrides(),
+    )
+    attach_telemetry(app)
 
     brand_dir = Path(__file__).parent.parent / "brand"
     if brand_dir.exists():

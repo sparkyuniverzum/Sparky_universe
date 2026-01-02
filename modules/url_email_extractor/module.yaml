@@ -1,0 +1,30 @@
+name: url_email_extractor
+title: URL & Email Extractor
+version: 0.0.1
+description: Extract URLs and email addresses from text.
+public: true
+category: Text/String
+entrypoints:
+  api: modules.url_email_extractor.tool.app:app
+mount: /text/url-email-extractor
+flows:
+  after_success:
+  - target: find_replace
+    label: Find and replace
+  - target: string_cleaner
+    label: Clean up text
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true
