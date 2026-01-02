@@ -117,6 +117,17 @@
         text-decoration: none;
       }
 
+      .category-row td {
+        padding: 14px 12px;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        background: rgba(10, 14, 20, 0.6);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+
       .badge {
         display: inline-flex;
         align-items: center;
@@ -256,7 +267,6 @@
       <table>
         <thead>
           <tr>
-            <th>Category</th>
             <th>Module</th>
             <th>Status</th>
             <th>Mount</th>
@@ -267,9 +277,15 @@
           </tr>
         </thead>
         <tbody>
+          {% set ns = namespace(category="") %}
           {% for module in modules %}
+          {% if module.category != ns.category %}
+          {% set ns.category = module.category %}
+          <tr class="category-row">
+            <td colspan="7">{{ module.category }}</td>
+          </tr>
+          {% endif %}
           <tr>
-            <td>{{ module.category }}</td>
             <td>
               {{ module.title }}
               <div class="muted">{{ module.name }}</div>

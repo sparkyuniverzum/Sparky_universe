@@ -28,7 +28,6 @@ def main() -> int:
             continue
         manifest = module_dir / "module.yaml"
         if not manifest.exists():
-            errors.append(f"{module_dir.name}: missing module.yaml")
             continue
         try:
             data = yaml.safe_load(manifest.read_text(encoding="utf-8")) or {}

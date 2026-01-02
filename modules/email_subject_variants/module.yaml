@@ -1,0 +1,30 @@
+name: email_subject_variants
+title: Email Subject Variants
+version: 0.0.1
+description: Generate subject line variations from a base idea.
+public: true
+category: Generators
+entrypoints:
+  api: modules.email_subject_variants.tool.app:app
+mount: /generate/email-subjects
+flows:
+  after_success:
+  - target: subjectline_grader
+    label: Score subjects
+  - target: cta_score
+    label: Check CTA clarity
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

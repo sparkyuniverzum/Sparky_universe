@@ -1,0 +1,75 @@
+{% extends "module_base.html" %}
+
+{% block title %}Invoice Number Generator{% endblock %}
+{% block heading %}Invoice Number Generator{% endblock %}
+{% block description %}Generate invoice numbers with year and counter.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/generate" method="post">
+  <label for="prefix">Prefix</label>
+  <input id="prefix" name="prefix" value="INV">
+
+  <label for="year">Year (optional)</label>
+  <input id="year" name="year" type="number" placeholder="2025">
+
+  <label for="start">Start number</label>
+  <input id="start" name="start" type="number" min="0" value="1">
+
+  <label for="count">Count</label>
+  <input id="count" name="count" type="number" min="1" max="5000" value="20">
+
+  <label for="width">Number width</label>
+  <input id="width" name="width" type="number" min="1" max="12" value="6">
+
+  <label for="separator">Separator</label>
+  <input id="separator" name="separator" value="-">
+
+  <button type="submit">Generate invoices</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Invoice numbers</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Keep invoice sequences consistent.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

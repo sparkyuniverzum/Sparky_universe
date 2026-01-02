@@ -1,0 +1,63 @@
+{% extends "module_base.html" %}
+
+{% block title %}JSON Template Generator{% endblock %}
+{% block heading %}JSON Template Generator{% endblock %}
+{% block description %}Create a JSON skeleton from field names and types.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/generate" method="post">
+  <label for="fields_text">Fields (one per line: name:type)</label>
+  <textarea id="fields_text" name="fields_text" rows="8" placeholder="user.id:int
+user.name:string
+user.email:email
+items:object"></textarea>
+
+  <button type="submit">Generate template</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Template</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Quick JSON scaffolding for APIs.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

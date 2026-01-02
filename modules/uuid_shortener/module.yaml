@@ -1,0 +1,30 @@
+name: uuid_shortener
+title: UUID Shortener
+version: 0.0.1
+description: Shorten UUIDs into compact base36 or base62 tokens.
+public: true
+category: Generators
+entrypoints:
+  api: modules.uuid_shortener.tool.app:app
+mount: /generate/uuid-shortener
+flows:
+  after_success:
+  - target: uuid7gen
+    label: Generate UUIDs
+  - target: nanoidgen
+    label: Generate Nano IDs
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

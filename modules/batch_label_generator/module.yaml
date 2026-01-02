@@ -1,0 +1,30 @@
+name: batch_label_generator
+title: Batch Label Generator
+version: 0.0.1
+description: Generate batch or lot labels with dates and counters.
+public: true
+category: Generators
+entrypoints:
+  api: modules.batch_label_generator.tool.app:app
+mount: /generate/batch-labels
+flows:
+  after_success:
+  - target: filename_generator
+    label: Generate filenames
+  - target: csvsamplegen
+    label: Make CSV sample
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

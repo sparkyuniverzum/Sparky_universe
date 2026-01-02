@@ -1,0 +1,30 @@
+name: campaign_name_generator
+title: Campaign Name Generator
+version: 0.0.1
+description: Build structured campaign names from channel, offer, region, and date.
+public: true
+category: Generators
+entrypoints:
+  api: modules.campaign_name_generator.tool.app:app
+mount: /generate/campaign-names
+flows:
+  after_success:
+  - target: utm_builder_bulk
+    label: Build UTM URLs
+  - target: campaign_namer
+    label: Compare naming helper
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

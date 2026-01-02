@@ -1,0 +1,30 @@
+name: date_range_expander
+title: Date Range Expander
+version: 0.0.1
+description: Expand a date range into an explicit list of dates.
+public: true
+category: Generators
+entrypoints:
+  api: modules.date_range_expander.tool.app:app
+mount: /generate/date-range
+flows:
+  after_success:
+  - target: time_slot_generator
+    label: Build time slots
+  - target: randdategen
+    label: Random dates
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

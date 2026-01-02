@@ -1,0 +1,30 @@
+name: json_template_generator
+title: JSON Template Generator
+version: 0.0.1
+description: Create a JSON skeleton from field names and types.
+public: true
+category: Generators
+entrypoints:
+  api: modules.json_template_generator.tool.app:app
+mount: /generate/json-template
+flows:
+  after_success:
+  - target: json_linter
+    label: Validate JSON
+  - target: schema_profiler
+    label: Profile schema
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true
