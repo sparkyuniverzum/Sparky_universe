@@ -4,16 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sparky Universe · Metrics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
       :root {
-        --bg: #0f1116;
-        --card: #171b22;
-        --text: #f5f7fb;
-        --muted: #9aa6bf;
+        --bg: #0b0d12;
+        --panel: rgba(17, 20, 28, 0.92);
+        --panel-solid: #151924;
+        --text: #f3f6ff;
+        --muted: #9aa6c2;
         --border: rgba(255, 255, 255, 0.08);
-        --accent: #5ac8fa;
+        --accent: #6fb7ff;
         --ok: #53d38f;
         --bad: #ff7b7b;
+        --shadow: 0 24px 60px rgba(4, 6, 10, 0.5);
       }
 
       * {
@@ -23,29 +28,49 @@
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: var(--bg);
+        font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(74, 126, 255, 0.16), transparent 55%),
+          radial-gradient(circle at 85% 0%, rgba(92, 222, 200, 0.15), transparent 55%),
+          var(--bg);
         color: var(--text);
-        padding: 32px 20px;
+        padding: 32px 20px 48px;
       }
 
-      .panel {
-        max-width: 1200px;
+      .shell {
+        max-width: 1250px;
         margin: 0 auto;
-        background: var(--card);
+        background: var(--panel);
         border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 28px;
+        border-radius: 24px;
+        padding: 28px 28px 32px;
+        backdrop-filter: blur(14px);
+        box-shadow: var(--shadow);
       }
 
       h1 {
-        margin: 0 0 6px;
-        font-size: 1.9rem;
+        margin: 0 0 8px;
+        font-size: 2.1rem;
+        letter-spacing: -0.02em;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        letter-spacing: -0.01em;
       }
 
       p {
-        margin: 0 0 18px;
+        margin: 0;
         color: var(--muted);
+      }
+
+      .eyebrow {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(155, 186, 255, 0.8);
+        margin-bottom: 8px;
       }
 
       a {
@@ -53,40 +78,16 @@
         text-decoration: none;
       }
 
-      .summary {
-        display: grid;
-        gap: 14px;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        margin-bottom: 18px;
-      }
-
-      .summary-card {
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 12px 14px;
-        background: rgba(14, 18, 24, 0.6);
-      }
-
-      .summary-label {
-        font-size: 0.72rem;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-
-      .summary-value {
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin-top: 6px;
-      }
-
       .status {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         color: var(--muted);
-        margin-bottom: 18px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(17, 20, 28, 0.7);
+        border: 1px solid var(--border);
       }
 
       .status-dot {
@@ -104,16 +105,105 @@
         background: var(--bad);
       }
 
+      .header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .header-info {
+        display: grid;
+        gap: 6px;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .link-button {
+        padding: 7px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(18, 24, 34, 0.9);
+        color: var(--text);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.9rem;
+      }
+
+      .section {
+        margin-bottom: 22px;
+      }
+
+      .section-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: baseline;
+        justify-content: space-between;
+        margin: 0 0 12px;
+      }
+
+      .stat-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .stat-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 12px 14px;
+        background: var(--panel-solid);
+      }
+
+      .stat-label {
+        font-size: 0.72rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .stat-value {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-top: 6px;
+      }
+
+      .table-card {
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: rgba(12, 14, 20, 0.65);
+        overflow: hidden;
+        margin-bottom: 22px;
+      }
+
+      .table-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(10, 12, 18, 0.7);
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
         font-size: 0.9rem;
-        margin-bottom: 22px;
       }
 
       th,
       td {
-        padding: 10px 12px;
+        padding: 12px 14px;
         border-bottom: 1px solid var(--border);
         vertical-align: top;
       }
@@ -122,260 +212,342 @@
         text-align: left;
         color: var(--muted);
         font-weight: 600;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.12em;
+        background: rgba(14, 16, 22, 0.7);
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          padding: 24px 18px;
+        }
+
+        th,
+        td {
+          padding: 10px 10px;
+        }
       }
     </style>
   </head>
   <body>
-    <main class="panel">
-      <h1>Metrics</h1>
-      <p><a href="{{ admin_base }}">Back to admin</a></p>
-      <div class="status">
-        <span class="status-dot {% if metrics.ok %}ok{% else %}error{% endif %}"></span>
-        <span>{{ "Connected" if metrics.ok else "Error" }} · {{ metrics.detail }}</span>
+    <main class="shell">
+      <div class="header">
+        <div class="header-info">
+          <div class="eyebrow">Admin</div>
+          <h1>Metrics</h1>
+          <span class="status">
+            <span class="status-dot {% if metrics.ok %}ok{% else %}error{% endif %}"></span>
+            <span>{{ "Connected" if metrics.ok else "Error" }} · {{ metrics.detail }}</span>
+          </span>
+        </div>
+        <div class="header-actions">
+          <a class="link-button" href="{{ admin_base }}">Back to admin</a>
+        </div>
       </div>
 
-      <section class="summary">
-        <div class="summary-card">
-          <div class="summary-label">Modules total</div>
-          <div class="summary-value">{{ metrics.lint.total }}</div>
+      <section class="section">
+        <div class="section-header">
+          <h2>Lint</h2>
+          <p class="muted">Module health snapshot.</p>
         </div>
-        <div class="summary-card">
-          <div class="summary-label">Modules ok</div>
-          <div class="summary-value">{{ metrics.lint.ok }}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Modules error</div>
-          <div class="summary-value">{{ metrics.lint.error }}</div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Modules total</div>
+            <div class="stat-value">{{ metrics.lint.total }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Modules ok</div>
+            <div class="stat-value">{{ metrics.lint.ok }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Modules error</div>
+            <div class="stat-value">{{ metrics.lint.error }}</div>
+          </div>
         </div>
       </section>
 
       {% if metrics.ok %}
-      <section class="summary">
-        <div class="summary-card">
-          <div class="summary-label">Total events</div>
-          <div class="summary-value">{{ metrics.summary.total_events }}</div>
+      <section class="section">
+        <div class="section-header">
+          <h2>Events summary</h2>
+          <p class="muted">Traffic + action pulse.</p>
         </div>
-        <div class="summary-card">
-          <div class="summary-label">Last 24h</div>
-          <div class="summary-value">{{ metrics.summary.last_24h }}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Last 7d</div>
-          <div class="summary-value">{{ metrics.summary.last_7d }}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Distinct stars</div>
-          <div class="summary-value">{{ metrics.summary.distinct_modules }}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Avg duration (7d)</div>
-          <div class="summary-value">{{ metrics.summary.avg_duration_ms_7d }} ms</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Avg action duration (7d)</div>
-          <div class="summary-value">{{ metrics.usage.avg_action_duration_ms_7d }} ms</div>
-        </div>
-      </section>
-
-      <section class="summary">
-        <div class="summary-card">
-          <div class="summary-label">Page views (7d)</div>
-          <div class="summary-value">{{ metrics.usage.page_views_7d }}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Actions (7d)</div>
-          <div class="summary-value">{{ metrics.usage.action_submits_7d }}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Conversion (7d)</div>
-          <div class="summary-value">{{ metrics.usage.conversion_rate_7d }}%</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Unique sessions (24h)</div>
-          <div class="summary-value">{{ metrics.usage.unique_sessions_24h }}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Unique sessions (7d)</div>
-          <div class="summary-value">{{ metrics.usage.unique_sessions_7d }}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Unique visitors (24h)</div>
-          <div class="summary-value">{{ metrics.usage.unique_visitors_24h }}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Unique visitors (7d)</div>
-          <div class="summary-value">{{ metrics.usage.unique_visitors_7d }}</div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total events</div>
+            <div class="stat-value">{{ metrics.summary.total_events }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Last 24h</div>
+            <div class="stat-value">{{ metrics.summary.last_24h }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Last 7d</div>
+            <div class="stat-value">{{ metrics.summary.last_7d }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Distinct stars</div>
+            <div class="stat-value">{{ metrics.summary.distinct_modules }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg duration (7d)</div>
+            <div class="stat-value">{{ metrics.summary.avg_duration_ms_7d }} ms</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg action duration (7d)</div>
+            <div class="stat-value">{{ metrics.usage.avg_action_duration_ms_7d }} ms</div>
+          </div>
         </div>
       </section>
 
-      <h2>Module usage (7d)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Module</th>
-            <th>Views</th>
-            <th>Actions</th>
-            <th>Conversion</th>
-            <th>Sessions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in metrics.by_module_usage %}
-          <tr>
-            <td>{{ row.module }}</td>
-            <td>{{ row.page_views }}</td>
-            <td>{{ row.actions }}</td>
-            <td>{{ row.conversion_rate }}%</td>
-            <td>{{ row.sessions }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <section class="section">
+        <div class="section-header">
+          <h2>Usage (7d)</h2>
+          <p class="muted">Conversion and audience reach.</p>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Page views</div>
+            <div class="stat-value">{{ metrics.usage.page_views_7d }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Actions</div>
+            <div class="stat-value">{{ metrics.usage.action_submits_7d }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Conversion</div>
+            <div class="stat-value">{{ metrics.usage.conversion_rate_7d }}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Unique sessions (24h)</div>
+            <div class="stat-value">{{ metrics.usage.unique_sessions_24h }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Unique sessions (7d)</div>
+            <div class="stat-value">{{ metrics.usage.unique_sessions_7d }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Unique visitors (24h)</div>
+            <div class="stat-value">{{ metrics.usage.unique_visitors_24h }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Unique visitors (7d)</div>
+            <div class="stat-value">{{ metrics.usage.unique_visitors_7d }}</div>
+          </div>
+        </div>
+      </section>
 
-      <h2>Top referrers (7d)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Referrer</th>
-            <th>Events</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for name, count in metrics.top_referrers %}
-          <tr>
-            <td>{{ name }}</td>
-            <td>{{ count }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Star usage (7d)</h2>
+          <p class="muted">Views, actions, and conversion.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Star</th>
+              <th>Views</th>
+              <th>Actions</th>
+              <th>Conversion</th>
+              <th>Sessions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in metrics.by_module_usage %}
+            <tr>
+              <td>{{ row.module }}</td>
+              <td>{{ row.page_views }}</td>
+              <td>{{ row.actions }}</td>
+              <td>{{ row.conversion_rate }}%</td>
+              <td>{{ row.sessions }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
 
-      <h2>Top campaigns (7d)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Source</th>
-            <th>Medium</th>
-            <th>Campaign</th>
-            <th>Views</th>
-            <th>Actions</th>
-            <th>Conversion</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in metrics.top_campaigns %}
-          <tr>
-            <td>{{ row.source }}</td>
-            <td>{{ row.medium }}</td>
-            <td>{{ row.campaign }}</td>
-            <td>{{ row.page_views }}</td>
-            <td>{{ row.actions }}</td>
-            <td>{{ row.conversion_rate }}%</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Top referrers (7d)</h2>
+          <p class="muted">Where traffic is coming from.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Referrer</th>
+              <th>Events</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for name, count in metrics.top_referrers %}
+            <tr>
+              <td>{{ name }}</td>
+              <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
 
-      <h2>Top stars (7d)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Module</th>
-            <th>Events</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for name, count in metrics.by_module %}
-          <tr>
-            <td>{{ name }}</td>
-            <td>{{ count }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Top campaigns (7d)</h2>
+          <p class="muted">UTM signals and conversion.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Medium</th>
+              <th>Campaign</th>
+              <th>Views</th>
+              <th>Actions</th>
+              <th>Conversion</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in metrics.top_campaigns %}
+            <tr>
+              <td>{{ row.source }}</td>
+              <td>{{ row.medium }}</td>
+              <td>{{ row.campaign }}</td>
+              <td>{{ row.page_views }}</td>
+              <td>{{ row.actions }}</td>
+              <td>{{ row.conversion_rate }}%</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
 
-      <h2>Outcomes (7d)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Outcome</th>
-            <th>Events</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for name, count in metrics.by_outcome %}
-          <tr>
-            <td>{{ name }}</td>
-            <td>{{ count }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Top stars (7d)</h2>
+          <p class="muted">Most active stars by events.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Star</th>
+              <th>Events</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for name, count in metrics.by_module %}
+            <tr>
+              <td>{{ name }}</td>
+              <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
 
-      <h2>Client errors (7d)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Events</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for name, count in metrics.by_outcome %}
-          {% if name in ["client_error", "validation_error", "not_found"] %}
-          <tr>
-            <td>{{ name }}</td>
-            <td>{{ count }}</td>
-          </tr>
-          {% endif %}
-          {% endfor %}
-        </tbody>
-      </table>
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Outcomes (7d)</h2>
+          <p class="muted">Top outcomes by volume.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Outcome</th>
+              <th>Events</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for name, count in metrics.by_outcome %}
+            <tr>
+              <td>{{ name }}</td>
+              <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
 
-      <h2>Top 404 paths (7d)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Path</th>
-            <th>Events</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% if metrics.top_not_found %}
-          {% for path, count in metrics.top_not_found %}
-          <tr>
-            <td>{{ path }}</td>
-            <td>{{ count }}</td>
-          </tr>
-          {% endfor %}
-          {% else %}
-          <tr>
-            <td colspan="2">No 404s recorded.</td>
-          </tr>
-          {% endif %}
-        </tbody>
-      </table>
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Client errors (7d)</h2>
+          <p class="muted">Client-side failures to review.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Events</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for name, count in metrics.by_outcome %}
+            {% if name in ["client_error", "validation_error", "not_found"] %}
+            <tr>
+              <td>{{ name }}</td>
+              <td>{{ count }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
 
-      <h2>Event types (7d)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Events</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for name, count in metrics.by_event_type %}
-          <tr>
-            <td>{{ name }}</td>
-            <td>{{ count }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Top 404 paths (7d)</h2>
+          <p class="muted">Broken links worth fixing.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Path</th>
+              <th>Events</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if metrics.top_not_found %}
+            {% for path, count in metrics.top_not_found %}
+            <tr>
+              <td>{{ path }}</td>
+              <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="2">No 404s recorded.</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Event types (7d)</h2>
+          <p class="muted">Volume by event type.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Events</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for name, count in metrics.by_event_type %}
+            <tr>
+              <td>{{ name }}</td>
+              <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
       {% endif %}
     </main>
   </body>

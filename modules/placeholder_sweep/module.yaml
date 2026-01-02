@@ -1,0 +1,30 @@
+name: placeholder_sweep
+title: Placeholder and TODO Sweep
+version: 0.0.1
+description: Find TODOs, placeholders, and unfinished copy.
+public: true
+category: Content QA
+entrypoints:
+  api: modules.placeholder_sweep.tool.app:app
+mount: /content/placeholder-sweep
+flows:
+  after_success:
+  - target: readability_check
+    label: Check readability
+  - target: tone_guard
+    label: Scan tone
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

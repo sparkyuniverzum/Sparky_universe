@@ -1,0 +1,63 @@
+{% extends "module_base.html" %}
+
+{% block title %}Structure Hygiene{% endblock %}
+{% block heading %}Structure Hygiene{% endblock %}
+{% block description %}Check heading order, missing sections, and layout drift.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/check" method="post" enctype="multipart/form-data">
+  <label for="file">Upload text file (max 4 MB)</label>
+  <input id="file" name="file" type="file">
+
+  <label for="text">Or paste text</label>
+  <textarea id="text" name="text" placeholder="Paste content here"></textarea>
+
+  <button type="submit">Check structure</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Structure issues</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Flag heading jumps and empty sections.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/check`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

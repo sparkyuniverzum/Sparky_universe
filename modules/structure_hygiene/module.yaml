@@ -1,0 +1,30 @@
+name: structure_hygiene
+title: Structure Hygiene
+version: 0.0.1
+description: Check heading order, missing sections, and layout drift.
+public: true
+category: Content QA
+entrypoints:
+  api: modules.structure_hygiene.tool.app:app
+mount: /content/structure-hygiene
+flows:
+  after_success:
+  - target: readability_check
+    label: Check readability
+  - target: tone_guard
+    label: Scan tone
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true
