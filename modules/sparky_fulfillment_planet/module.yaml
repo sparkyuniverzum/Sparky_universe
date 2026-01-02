@@ -1,0 +1,24 @@
+name: sparky_fulfillment_planet
+title: Sparky Fulfillment Planet
+version: 0.0.1
+description: A calm space to size up fulfillment work and act fast.
+public: true
+category: Planets
+entrypoints:
+  api: modules.sparky_fulfillment_planet.tool.app:app
+mount: /planet/fulfillment
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P1
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

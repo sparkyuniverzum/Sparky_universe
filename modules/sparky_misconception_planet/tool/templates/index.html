@@ -1,0 +1,192 @@
+{% extends "planet_base.html" %}
+
+{% block title %}Sparky Misconception Planet{% endblock %}
+
+{% block styles %}
+<style>
+  .brief-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .section-title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    color: var(--planet-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .field-row {
+    display: grid;
+    gap: 12px;
+  }
+
+  .field-row.two {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  textarea {
+    min-height: 90px;
+    resize: vertical;
+  }
+
+  .result-primary {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .result-value {
+    font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+    font-weight: 600;
+  }
+
+  .sparky-line {
+    font-size: 0.95rem;
+    color: var(--planet-text);
+  }
+
+  .monetize-note {
+    font-size: 0.85rem;
+    color: var(--planet-muted);
+  }
+
+  .brief-output {
+    margin: 0;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(31, 138, 112, 0.2);
+    background: #fefcf8;
+    white-space: pre-wrap;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="scene">
+  <header class="hero">
+    <div class="eyebrow">Sparky Planet</div>
+    <h1>Sparky Misconception Planet</h1>
+    <p>Map misconceptions to corrections and generate a clean myth-vs-fact brief.</p>
+  </header>
+
+  <section class="panel brief-grid">
+    <h2 class="section-title">Inputs</h2>
+    <form id="misconception-form">
+      <div class="field-row two">
+        <div>
+          <label for="topic">Topic</label>
+          <input id="topic" name="topic" placeholder="Photosynthesis">
+        </div>
+        <div>
+          <label for="audience">Audience</label>
+          <input id="audience" name="audience" placeholder="High school biology students">
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="misconceptions">Misconceptions (one per line)</label>
+          <textarea id="misconceptions" name="misconceptions" placeholder="Plants only photosynthesize during the day\nOxygen comes from CO2"></textarea>
+        </div>
+        <div>
+          <label for="corrections">Corrections (one per line)</label>
+          <textarea id="corrections" name="corrections" placeholder="Plants can photosynthesize with adequate light\nOxygen comes from water splitting"></textarea>
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="proof_points">Proof points (optional, one per line)</label>
+          <textarea id="proof_points" name="proof_points" placeholder="Lab experiment showing oxygen release\nChlorophyll absorption data"></textarea>
+        </div>
+        <div>
+          <label for="examples">Examples (optional, one per line)</label>
+          <textarea id="examples" name="examples" placeholder="Leaf disk flotation experiment\nAquatic plant oxygen bubbles"></textarea>
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="constraints">Constraints (optional, one per line)</label>
+          <textarea id="constraints" name="constraints" placeholder="No advanced chemistry jargon"></textarea>
+        </div>
+        <div>
+          <label for="owner">Owner (optional)</label>
+          <input id="owner" name="owner" placeholder="Curriculum lead">
+        </div>
+      </div>
+
+      <button type="submit">Build misconception brief</button>
+    </form>
+  </section>
+
+  <section class="result" id="result">
+    <div class="result-primary">
+      <div class="result-label" id="result-label">Brief</div>
+      <div class="result-value" id="result-value">-</div>
+    </div>
+    <pre class="brief-output" id="brief-output">-</pre>
+    <div class="sparky-line" id="sparky-line"></div>
+    <div class="monetize-note">Optional: pro training packs and export options are available in Pro.</div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("misconception-form");
+  const result = document.getElementById("result");
+  const resultValue = document.getElementById("result-value");
+  const briefOutput = document.getElementById("brief-output");
+  const sparkyLine = document.getElementById("sparky-line");
+  const monetizeNote = document.querySelector(".monetize-note");
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/build`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        resultValue.textContent = data.error || "Something went wrong.";
+        resultValue.classList.add("error");
+        briefOutput.textContent = "-";
+        sparkyLine.textContent = "";
+        if (monetizeNote) {
+          monetizeNote.style.display = "none";
+        }
+        return;
+      }
+
+      resultValue.classList.remove("error");
+      resultValue.textContent = data.title || "Misconception Planet";
+      briefOutput.textContent = data.brief_text || "-";
+      sparkyLine.textContent = data.sparky || "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "block";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      resultValue.textContent = "Request failed.";
+      resultValue.classList.add("error");
+      briefOutput.textContent = "-";
+      sparkyLine.textContent = "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "none";
+      }
+    }
+  });
+</script>
+{% endblock %}

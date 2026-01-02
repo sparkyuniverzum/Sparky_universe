@@ -1,0 +1,30 @@
+name: key_terms_map
+title: Key Terms Map
+version: 0.0.1
+description: Extract key terms and reuse the best sentence as a definition.
+public: true
+category: Learning Shortcuts
+entrypoints:
+  api: modules.key_terms_map.tool.app:app
+mount: /learning/key-terms-map
+flows:
+  after_success:
+  - target: active_recall_builder
+    label: Create recall prompts
+  - target: definition_snap
+    label: Extract definitions
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

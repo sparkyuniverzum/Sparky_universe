@@ -55,6 +55,7 @@ CATEGORY_DESCRIPTIONS = {
     "Data": "Batch-friendly utilities like CSV normalization.",
     "Marketing QA": "SEO and campaign checks for marketing teams.",
     "Content QA": "Tone, readability, and copy consistency checks.",
+    "Learning Shortcuts": "Fast learning aids for studying, recall, and practice.",
     "Text/String": "Text utilities for cleaning, parsing, and transforming strings.",
     "Utilities": "Small, practical tools for quick one-off tasks.",
     "Planets": "Larger tools for full situations, not single steps.",

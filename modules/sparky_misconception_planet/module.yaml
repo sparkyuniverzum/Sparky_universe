@@ -1,0 +1,24 @@
+name: sparky_misconception_planet
+title: Sparky Misconception Planet
+version: 0.0.1
+description: Map misconceptions to corrections and build a myth-vs-fact brief.
+public: true
+category: Planets
+entrypoints:
+  api: modules.sparky_misconception_planet.tool.app:app
+mount: /planet/misconception
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P1
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

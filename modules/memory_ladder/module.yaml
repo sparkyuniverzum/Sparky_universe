@@ -1,0 +1,30 @@
+name: memory_ladder
+title: Memory Ladder
+version: 0.0.1
+description: Split study items into must-know, should-know, and nice-to-know.
+public: true
+category: Learning Shortcuts
+entrypoints:
+  api: modules.memory_ladder.tool.app:app
+mount: /learning/memory-ladder
+flows:
+  after_success:
+  - target: active_recall_builder
+    label: Build recall prompts
+  - target: example_generator
+    label: Generate examples
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

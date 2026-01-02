@@ -1,0 +1,30 @@
+name: active_recall_builder
+title: Active Recall Builder
+version: 0.0.1
+description: Turn study text into quick recall questions.
+public: true
+category: Learning Shortcuts
+entrypoints:
+  api: modules.active_recall_builder.tool.app:app
+mount: /learning/active-recall
+flows:
+  after_success:
+  - target: definition_snap
+    label: Extract definitions
+  - target: key_terms_map
+    label: Build key terms map
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

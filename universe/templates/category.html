@@ -114,7 +114,7 @@
       <a class="back-link" href="{{ base_path }}/">Back to overview</a>
       <div class="meta">
         <h1>{{ category.name }}</h1>
-        <span>{{ category.modules | length }} modules</span>
+        <span>{{ category.modules | length }} stars</span>
       </div>
       <p>{{ category.description }}</p>
       <div class="module-grid">
@@ -124,7 +124,7 @@
           {% if module.description %}
           <div class="module-desc">{{ module.description }}</div>
           {% endif %}
-          <a class="module-link" href="{{ base_path }}{{ module.mount }}">Open module</a>
+          <a class="module-link" href="{{ base_path }}{{ module.mount }}">Open star</a>
         </article>
         {% endfor %}
       </div>

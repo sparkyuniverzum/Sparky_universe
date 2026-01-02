@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from modules.sparky_support_triage.core.brief import build_triage_brief
 from universe.settings import shared_templates_dir
 
-app = FastAPI(title="Sparky Support Triage Room")
+app = FastAPI(title="Sparky Support Triage Planet")
 
 BASE_DIR = Path(__file__).parent
 ROOT_DIR = BASE_DIR.parents[2]

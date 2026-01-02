@@ -1,0 +1,65 @@
+{% extends "module_base.html" %}
+
+{% block title %}Formula to Steps{% endblock %}
+{% block heading %}Formula to Steps{% endblock %}
+{% block description %}Turn a formula into a clear sequence of steps.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/generate" method="post">
+  <label for="formula">Formula</label>
+  <input id="formula" name="formula" placeholder="A = (B + C) / D">
+
+  <label for="values">Known values (optional, one per line)</label>
+  <textarea id="values" name="values" placeholder="B=10
+C=6
+D=4"></textarea>
+
+  <button type="submit">Build steps</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Steps</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Explain formulas in a simple flow.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

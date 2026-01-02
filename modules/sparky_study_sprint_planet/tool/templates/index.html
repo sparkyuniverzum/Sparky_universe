@@ -1,0 +1,177 @@
+{% extends "planet_base.html" %}
+
+{% block title %}Sparky Study Sprint Planet{% endblock %}
+
+{% block styles %}
+<style>
+  .brief-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .section-title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    color: var(--planet-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .field-row {
+    display: grid;
+    gap: 12px;
+  }
+
+  .field-row.two {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  textarea {
+    min-height: 90px;
+    resize: vertical;
+  }
+
+  .result-primary {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .result-value {
+    font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+    font-weight: 600;
+  }
+
+  .sparky-line {
+    font-size: 0.95rem;
+    color: var(--planet-text);
+  }
+
+  .monetize-note {
+    font-size: 0.85rem;
+    color: var(--planet-muted);
+  }
+
+  .brief-output {
+    margin: 0;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(31, 138, 112, 0.2);
+    background: #fefcf8;
+    white-space: pre-wrap;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="scene">
+  <header class="hero">
+    <div class="eyebrow">Sparky Planet</div>
+    <h1>Sparky Study Sprint Planet</h1>
+    <p>Turn a study goal into a day-by-day sprint plan with clear sessions.</p>
+  </header>
+
+  <section class="panel brief-grid">
+    <h2 class="section-title">Inputs</h2>
+    <form id="sprint-form">
+      <div>
+        <label for="goal">Goal</label>
+        <input id="goal" name="goal" placeholder="Prepare for biology exam">
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="days">Days available</label>
+          <input id="days" name="days" type="number" min="1" value="7">
+        </div>
+        <div>
+          <label for="minutes_per_day">Minutes per day</label>
+          <input id="minutes_per_day" name="minutes_per_day" type="number" min="10" value="90">
+        </div>
+      </div>
+
+      <div>
+        <label for="session_length">Session length (minutes, optional)</label>
+        <input id="session_length" name="session_length" type="number" min="10" placeholder="25">
+      </div>
+
+      <div>
+        <label for="topics">Topics (one per line)</label>
+        <textarea id="topics" name="topics" placeholder="Cell structure
+Genetics
+Evolution
+Ecology"></textarea>
+      </div>
+
+      <button type="submit">Build sprint plan</button>
+    </form>
+  </section>
+
+  <section class="result" id="result">
+    <div class="result-primary">
+      <div class="result-label" id="result-label">Plan</div>
+      <div class="result-value" id="result-value">-</div>
+    </div>
+    <pre class="brief-output" id="brief-output">-</pre>
+    <div class="sparky-line" id="sparky-line"></div>
+    <div class="monetize-note">Optional: pro study templates and export options are available in Pro.</div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("sprint-form");
+  const result = document.getElementById("result");
+  const resultValue = document.getElementById("result-value");
+  const briefOutput = document.getElementById("brief-output");
+  const sparkyLine = document.getElementById("sparky-line");
+  const monetizeNote = document.querySelector(".monetize-note");
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/build`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        resultValue.textContent = data.error || "Something went wrong.";
+        resultValue.classList.add("error");
+        briefOutput.textContent = "-";
+        sparkyLine.textContent = "";
+        if (monetizeNote) {
+          monetizeNote.style.display = "none";
+        }
+        return;
+      }
+
+      resultValue.classList.remove("error");
+      resultValue.textContent = data.title || "Study Sprint Planet";
+      briefOutput.textContent = data.brief_text || "-";
+      sparkyLine.textContent = data.sparky || "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "block";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      resultValue.textContent = "Request failed.";
+      resultValue.classList.add("error");
+      briefOutput.textContent = "-";
+      sparkyLine.textContent = "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "none";
+      }
+    }
+  });
+</script>
+{% endblock %}

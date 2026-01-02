@@ -1,0 +1,63 @@
+{% extends "module_base.html" %}
+
+{% block title %}Key Terms Map{% endblock %}
+{% block heading %}Key Terms Map{% endblock %}
+{% block description %}Extract key terms and reuse the best sentence as a definition.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/generate" method="post">
+  <label for="text">Text</label>
+  <textarea id="text" name="text" placeholder="Paste the study text here..."></textarea>
+
+  <label for="limit">How many terms</label>
+  <input id="limit" name="limit" type="number" min="1" max="20" value="8">
+
+  <button type="submit">Build terms map</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Key Terms</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Fast vocabulary map for any topic.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

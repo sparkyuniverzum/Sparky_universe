@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from modules.sparky_data_intake.core.brief import build_data_intake_brief
 from universe.settings import shared_templates_dir
 
-app = FastAPI(title="Sparky Data Intake Room")
+app = FastAPI(title="Sparky Data Intake Planet")
 
 BASE_DIR = Path(__file__).parent
 ROOT_DIR = BASE_DIR.parents[2]

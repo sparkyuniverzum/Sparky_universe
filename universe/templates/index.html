@@ -10,7 +10,7 @@
     {% endif %}
     {% if seo_enabled() %}
     <script type="application/ld+json">
-      {{ seo_site_json_ld(request, "Sparky Universe", "Browse categories and open the modules you need.") | safe }}
+      {{ seo_site_json_ld(request, "Sparky Universe", "Browse categories and open the stars you need.") | safe }}
     </script>
     {% endif %}
     <style>
@@ -180,7 +180,7 @@
   <body>
     <main class="panel">
       <h1>Sparky Universe</h1>
-      <p>Browse categories and open the modules you need.</p>
+      <p>Browse categories and open the stars you need.</p>
       {% if admin_link_enabled %}
       <a class="control-link" href="{{ admin_path }}">Control panel</a>
       {% endif %}
@@ -211,11 +211,11 @@
         <section class="category-card">
           <div class="category-header">
             <h2 class="category-title">{{ category.name }}</h2>
-            <span class="category-count">{{ category.modules | length }} modules</span>
+            <span class="category-count">{{ category.modules | length }} stars</span>
           </div>
           <p class="category-desc">{{ category.description }}</p>
           <a class="category-link" href="{{ base_path }}/category/{{ category.slug }}">
-            View modules
+            View stars
           </a>
         </section>
         {% endfor %}

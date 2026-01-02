@@ -1,0 +1,30 @@
+name: definition_snap
+title: Definition Snap
+version: 0.0.1
+description: Pull the strongest definition sentences from a passage.
+public: true
+category: Learning Shortcuts
+entrypoints:
+  api: modules.definition_snap.tool.app:app
+mount: /learning/definition-snap
+flows:
+  after_success:
+  - target: key_terms_map
+    label: Build key terms map
+  - target: active_recall_builder
+    label: Create recall prompts
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

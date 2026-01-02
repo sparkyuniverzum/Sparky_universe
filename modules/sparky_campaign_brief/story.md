@@ -1,3 +1,3 @@
-# Sparky Campaign Brief Room
+# Sparky Campaign Brief Planet
 
 Turn a campaign situation into a clean one-page brief.

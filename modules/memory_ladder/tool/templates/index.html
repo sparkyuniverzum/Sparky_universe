@@ -1,0 +1,72 @@
+{% extends "module_base.html" %}
+
+{% block title %}Memory Ladder{% endblock %}
+{% block heading %}Memory Ladder{% endblock %}
+{% block description %}Split study items into must-know, should-know, and nice-to-know.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/generate" method="post">
+  <label for="topic">Topic (optional)</label>
+  <input id="topic" name="topic" placeholder="Cell biology">
+
+  <label for="items">Items (one per line, ordered by importance)</label>
+  <textarea id="items" name="items" placeholder="Cell membrane
+Mitochondria
+Nucleus
+Ribosomes"></textarea>
+
+  <label for="must_count">Must-know count</label>
+  <input id="must_count" name="must_count" type="number" min="0" max="50" value="3">
+
+  <label for="should_count">Should-know count</label>
+  <input id="should_count" name="should_count" type="number" min="0" max="50" value="3">
+
+  <button type="submit">Build ladder</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Memory Ladder</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Prioritize what to learn first.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from modules.sparky_content_publish.core.brief import build_publish_brief
 from universe.settings import shared_templates_dir
 
-app = FastAPI(title="Sparky Content Publish Room")
+app = FastAPI(title="Sparky Content Publish Planet")
 
 BASE_DIR = Path(__file__).parent
 ROOT_DIR = BASE_DIR.parents[2]

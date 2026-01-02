@@ -1,5 +1,5 @@
 name: sparky_data_intake
-title: Sparky Data Intake Room
+title: Sparky Data Intake Planet
 version: 0.0.1
 description: Turn an intake request into a handoff-ready data brief.
 public: true

@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from modules.sparky_campaign_brief.core.brief import build_campaign_brief
 from universe.settings import shared_templates_dir
 
-app = FastAPI(title="Sparky Campaign Brief Room")
+app = FastAPI(title="Sparky Campaign Brief Planet")
 
 BASE_DIR = Path(__file__).parent
 ROOT_DIR = BASE_DIR.parents[2]
