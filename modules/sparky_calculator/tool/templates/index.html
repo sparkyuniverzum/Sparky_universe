@@ -1,434 +1,278 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sparky Calculator</title>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap");
+{% extends "planet_base.html" %}
 
-      :root {
-        --bg: #f6f2ea;
-        --bg-accent: #e5f0f3;
-        --card: #ffffff;
-        --text: #1e1f23;
-        --muted: #6b6f76;
-        --accent: #1f8a70;
-        --accent-dark: #146654;
-        --border: rgba(30, 31, 35, 0.12);
-      }
+{% block title %}Sparky Calculator{% endblock %}
 
-      * {
-        box-sizing: border-box;
-      }
+{% block styles %}
+<style>
+  .intent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
 
-      body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: "Sora", sans-serif;
-        background: radial-gradient(circle at 20% 20%, #fdf8f0 0%, transparent 48%),
-          radial-gradient(circle at 80% 20%, var(--bg-accent) 0%, transparent 45%),
-          var(--bg);
-        color: var(--text);
-      }
+  .intent-card {
+    border: 1px solid var(--planet-border);
+    border-radius: 16px;
+    padding: 16px;
+    background: var(--planet-card);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+  }
 
-      .scene {
-        width: min(1040px, 100%);
-        margin: 0 auto;
-        padding: 48px 20px 72px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-        position: relative;
-      }
+  .intent-card.active {
+    border-color: var(--planet-accent);
+    box-shadow: 0 12px 28px rgba(31, 138, 112, 0.15);
+    transform: translateY(-2px);
+  }
 
-      .hero {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        position: relative;
-        animation: rise 0.6s ease both;
-      }
+  .intent-title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
 
-      .eyebrow {
-        text-transform: uppercase;
-        letter-spacing: 0.25em;
-        font-size: 0.7rem;
-        color: var(--muted);
-      }
+  .intent-desc {
+    font-size: 0.9rem;
+    color: var(--planet-muted);
+    line-height: 1.4;
+  }
 
-      h1 {
-        margin: 0;
-        font-size: clamp(2rem, 3vw, 3rem);
-      }
+  .sparky-status {
+    font-size: 0.9rem;
+    color: var(--planet-muted);
+    margin-bottom: 18px;
+  }
 
-      .hero p {
-        margin: 0;
-        color: var(--muted);
-        max-width: 620px;
-        line-height: 1.6;
-      }
+  form {
+    display: grid;
+    gap: 16px;
+  }
 
-      .intent-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 14px;
-      }
+  .intent-form {
+    display: none;
+  }
 
-      .intent-card {
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 16px;
-        background: var(--card);
-        text-align: left;
-        cursor: pointer;
-        transition: transform 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
-      }
+  .intent-form.active {
+    display: grid;
+    gap: 16px;
+  }
 
-      .intent-card.active {
-        border-color: var(--accent);
-        box-shadow: 0 12px 28px rgba(31, 138, 112, 0.15);
-        transform: translateY(-2px);
-      }
+  .result-primary {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
 
-      .intent-title {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 6px;
-      }
+  .result-value {
+    font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+    font-weight: 600;
+  }
 
-      .intent-desc {
-        font-size: 0.9rem;
-        color: var(--muted);
-        line-height: 1.4;
-      }
+  .secondary-list {
+    display: grid;
+    gap: 10px;
+  }
 
-      .panel {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 24px;
-        box-shadow: 0 24px 50px rgba(15, 20, 25, 0.08);
-        animation: rise 0.7s ease both;
-      }
+  .secondary-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    color: var(--planet-muted);
+  }
 
-      .sparky-status {
-        font-size: 0.9rem;
-        color: var(--muted);
-        margin-bottom: 18px;
-      }
+  .sparky-line {
+    font-size: 0.95rem;
+    color: var(--planet-text);
+  }
 
-      form {
-        display: grid;
-        gap: 16px;
-      }
+  .monetize-note {
+    font-size: 0.85rem;
+    color: var(--planet-muted);
+  }
+</style>
+{% endblock %}
 
-      .intent-form {
-        display: none;
-      }
+{% block body %}
+<main class="scene">
+  <header class="hero">
+    <div class="eyebrow">Sparky Planet</div>
+    <h1>Sparky Calculator</h1>
+    <p>Pick the situation you are in. Sparky handles the math and keeps the flow calm.</p>
+  </header>
 
-      .intent-form.active {
-        display: grid;
-        gap: 16px;
-      }
+  <section class="intent-grid" id="intent-grid">
+    <button class="intent-card active" type="button" data-intent="monthly_balance">
+      <span class="intent-title">Monthly balance</span>
+      <span class="intent-desc">I know my income and expenses and want to see what is left.</span>
+    </button>
+    <button class="intent-card" type="button" data-intent="margin">
+      <span class="intent-title">Margin check</span>
+      <span class="intent-desc">I have a price and a cost and need the margin.</span>
+    </button>
+    <button class="intent-card" type="button" data-intent="target_price">
+      <span class="intent-title">Target price</span>
+      <span class="intent-desc">I need a price that leaves me a specific profit after fees.</span>
+    </button>
+    <button class="intent-card" type="button" data-intent="split_amount">
+      <span class="intent-title">Split amount</span>
+      <span class="intent-desc">I want to split a total fairly between people.</span>
+    </button>
+  </section>
 
-      label {
-        font-weight: 600;
-        font-size: 0.95rem;
-      }
+  <section class="panel">
+    <div class="sparky-status" id="sparky-status">Sparky: Ready for monthly balance.</div>
+    <form id="calc-form">
+      <input type="hidden" id="intent" name="intent" value="monthly_balance">
 
-      input {
-        width: 100%;
-        padding: 12px 14px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        font-size: 1rem;
-      }
+      <div class="intent-form active" data-intent="monthly_balance">
+        <label for="income">Monthly income</label>
+        <input id="income" name="income" type="number" inputmode="decimal" step="0.01" placeholder="4200">
 
-      input:focus {
-        outline: 2px solid rgba(31, 138, 112, 0.3);
-        border-color: var(--accent);
-      }
+        <label for="expenses">Monthly expenses</label>
+        <input id="expenses" name="expenses" type="number" inputmode="decimal" step="0.01" placeholder="2800">
+      </div>
 
-      button[type="submit"] {
-        padding: 12px 16px;
-        border-radius: 14px;
-        border: none;
-        background: var(--accent);
-        color: #fff;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-      }
+      <div class="intent-form" data-intent="margin">
+        <label for="price">Sale price</label>
+        <input id="price" name="price" type="number" inputmode="decimal" step="0.01" placeholder="79">
 
-      .result {
-        background: #fefcf8;
-        border: 1px solid rgba(31, 138, 112, 0.2);
-        border-radius: 20px;
-        padding: 20px;
-        display: none;
-        gap: 12px;
-        animation: fadeIn 0.5s ease both;
-      }
+        <label for="cost_margin">Unit cost</label>
+        <input id="cost_margin" name="cost_margin" type="number" inputmode="decimal" step="0.01" placeholder="34">
+      </div>
 
-      .result.visible {
-        display: grid;
-      }
+      <div class="intent-form" data-intent="target_price">
+        <label for="target_profit">Target profit per unit</label>
+        <input id="target_profit" name="target_profit" type="number" inputmode="decimal" step="0.01" placeholder="25">
 
-      .result-primary {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
+        <label for="cost_target">Unit cost</label>
+        <input id="cost_target" name="cost_target" type="number" inputmode="decimal" step="0.01" placeholder="40">
 
-      .result-label {
-        text-transform: uppercase;
-        letter-spacing: 0.2em;
-        font-size: 0.7rem;
-        color: var(--muted);
-      }
+        <label for="fee_percent">Fee percent</label>
+        <input id="fee_percent" name="fee_percent" type="number" inputmode="decimal" step="0.1" placeholder="3.5">
+      </div>
 
-      .result-value {
-        font-size: clamp(1.6rem, 2.6vw, 2.4rem);
-        font-weight: 600;
-      }
+      <div class="intent-form" data-intent="split_amount">
+        <label for="total_amount">Total amount</label>
+        <input id="total_amount" name="total_amount" type="number" inputmode="decimal" step="0.01" placeholder="125">
 
-      .secondary-list {
-        display: grid;
-        gap: 10px;
-      }
+        <label for="people">People</label>
+        <input id="people" name="people" type="number" inputmode="numeric" step="1" placeholder="4">
+      </div>
 
-      .secondary-item {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.95rem;
-        color: var(--muted);
-      }
+      <button type="submit">Calculate</button>
+    </form>
+  </section>
 
-      .sparky-line {
-        font-size: 0.95rem;
-        color: var(--text);
-      }
+  <section class="result" id="result">
+    <div class="result-primary">
+      <div class="result-label" id="result-label">Result</div>
+      <div class="result-value" id="result-value">-</div>
+    </div>
+    <div class="secondary-list" id="secondary-list"></div>
+    <div class="sparky-line" id="sparky-line"></div>
+    <div class="monetize-note">Optional: Scenario packs and export options are available in Pro.</div>
+  </section>
+</main>
+{% endblock %}
 
-      .monetize-note {
-        font-size: 0.85rem;
-        color: var(--muted);
-      }
+{% block scripts %}
+<script>
+  const intentButtons = Array.from(document.querySelectorAll(".intent-card"));
+  const intentForms = Array.from(document.querySelectorAll(".intent-form"));
+  const intentField = document.getElementById("intent");
+  const sparkyStatus = document.getElementById("sparky-status");
+  const form = document.getElementById("calc-form");
+  const result = document.getElementById("result");
+  const resultLabel = document.getElementById("result-label");
+  const resultValue = document.getElementById("result-value");
+  const secondaryList = document.getElementById("secondary-list");
+  const sparkyLine = document.getElementById("sparky-line");
+  const monetizeNote = document.querySelector(".monetize-note");
 
-      .error {
-        color: #b42318;
-        font-weight: 600;
-      }
+  const intentCopy = {
+    monthly_balance: "Sparky: Ready for monthly balance.",
+    margin: "Sparky: Ready for margin check.",
+    target_price: "Sparky: Ready to find your target price.",
+    split_amount: "Sparky: Ready to split the amount.",
+  };
 
-      @keyframes rise {
-        from {
-          opacity: 0;
-          transform: translateY(12px);
+  const basePath = "{{ base_path }}";
+
+  const formatValue = (value, unit) => {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+      return "-";
+    }
+    const options = unit === "%" ? { maximumFractionDigits: 1 } : { maximumFractionDigits: 2 };
+    const formatted = value.toLocaleString(undefined, options);
+    return unit ? `${formatted}${unit}` : formatted;
+  };
+
+  const setIntent = (intent) => {
+    intentField.value = intent;
+    intentButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.intent === intent);
+    });
+    intentForms.forEach((formSection) => {
+      formSection.classList.toggle("active", formSection.dataset.intent === intent);
+    });
+    sparkyStatus.textContent = intentCopy[intent] || "Sparky is ready.";
+  };
+
+  intentButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setIntent(button.dataset.intent);
+    });
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/calculate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      secondaryList.innerHTML = "";
+
+      if (!response.ok || data.error) {
+        resultLabel.textContent = "Error";
+        resultValue.textContent = data.error || "Something went wrong.";
+        resultValue.classList.add("error");
+        sparkyLine.textContent = "";
+        if (monetizeNote) {
+          monetizeNote.style.display = "none";
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        return;
       }
 
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
+      resultValue.classList.remove("error");
+      resultLabel.textContent = data.primary.label;
+      resultValue.textContent = formatValue(data.primary.value, data.primary.unit);
 
-      @media (max-width: 720px) {
-        .scene {
-          padding: 32px 16px 60px;
-        }
-        .intent-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <main class="scene">
-      <header class="hero">
-        <div class="eyebrow">Sparky Planet</div>
-        <h1>Sparky Calculator</h1>
-        <p>Pick the situation you are in. Sparky handles the math and keeps the flow calm.</p>
-      </header>
-
-      <section class="intent-grid" id="intent-grid">
-        <button class="intent-card active" type="button" data-intent="monthly_balance">
-          <span class="intent-title">Monthly balance</span>
-          <span class="intent-desc">I know my income and expenses and want to see what is left.</span>
-        </button>
-        <button class="intent-card" type="button" data-intent="margin">
-          <span class="intent-title">Margin check</span>
-          <span class="intent-desc">I have a price and a cost and need the margin.</span>
-        </button>
-        <button class="intent-card" type="button" data-intent="target_price">
-          <span class="intent-title">Target price</span>
-          <span class="intent-desc">I need a price that leaves me a specific profit after fees.</span>
-        </button>
-        <button class="intent-card" type="button" data-intent="split_amount">
-          <span class="intent-title">Split amount</span>
-          <span class="intent-desc">I want to split a total fairly between people.</span>
-        </button>
-      </section>
-
-      <section class="panel">
-        <div class="sparky-status" id="sparky-status">Sparky: Ready for monthly balance.</div>
-        <form id="calc-form">
-          <input type="hidden" id="intent" name="intent" value="monthly_balance">
-
-          <div class="intent-form active" data-intent="monthly_balance">
-            <label for="income">Monthly income</label>
-            <input id="income" name="income" type="number" inputmode="decimal" step="0.01" placeholder="4200">
-
-            <label for="expenses">Monthly expenses</label>
-            <input id="expenses" name="expenses" type="number" inputmode="decimal" step="0.01" placeholder="2800">
-          </div>
-
-          <div class="intent-form" data-intent="margin">
-            <label for="price">Sale price</label>
-            <input id="price" name="price" type="number" inputmode="decimal" step="0.01" placeholder="79">
-
-            <label for="cost_margin">Unit cost</label>
-            <input id="cost_margin" name="cost_margin" type="number" inputmode="decimal" step="0.01" placeholder="34">
-          </div>
-
-          <div class="intent-form" data-intent="target_price">
-            <label for="target_profit">Target profit per unit</label>
-            <input id="target_profit" name="target_profit" type="number" inputmode="decimal" step="0.01" placeholder="25">
-
-            <label for="cost_target">Unit cost</label>
-            <input id="cost_target" name="cost_target" type="number" inputmode="decimal" step="0.01" placeholder="40">
-
-            <label for="fee_percent">Fee percent</label>
-            <input id="fee_percent" name="fee_percent" type="number" inputmode="decimal" step="0.1" placeholder="3.5">
-          </div>
-
-          <div class="intent-form" data-intent="split_amount">
-            <label for="total_amount">Total amount</label>
-            <input id="total_amount" name="total_amount" type="number" inputmode="decimal" step="0.01" placeholder="125">
-
-            <label for="people">People</label>
-            <input id="people" name="people" type="number" inputmode="numeric" step="1" placeholder="4">
-          </div>
-
-          <button type="submit">Calculate</button>
-        </form>
-      </section>
-
-      <section class="result" id="result">
-        <div class="result-primary">
-          <div class="result-label" id="result-label">Result</div>
-          <div class="result-value" id="result-value">-</div>
-        </div>
-        <div class="secondary-list" id="secondary-list"></div>
-        <div class="sparky-line" id="sparky-line"></div>
-        <div class="monetize-note">Optional: Scenario packs and export options are available in Pro.</div>
-      </section>
-    </main>
-
-    <script>
-      const intentButtons = Array.from(document.querySelectorAll(".intent-card"));
-      const intentForms = Array.from(document.querySelectorAll(".intent-form"));
-      const intentField = document.getElementById("intent");
-      const sparkyStatus = document.getElementById("sparky-status");
-      const form = document.getElementById("calc-form");
-      const result = document.getElementById("result");
-      const resultLabel = document.getElementById("result-label");
-      const resultValue = document.getElementById("result-value");
-      const secondaryList = document.getElementById("secondary-list");
-      const sparkyLine = document.getElementById("sparky-line");
-      const monetizeNote = document.querySelector(".monetize-note");
-
-      const intentCopy = {
-        monthly_balance: "Sparky: Ready for monthly balance.",
-        margin: "Sparky: Ready for margin check.",
-        target_price: "Sparky: Ready to find your target price.",
-        split_amount: "Sparky: Ready to split the amount.",
-      };
-
-      const basePath = "{{ base_path }}";
-
-      const formatValue = (value, unit) => {
-        if (typeof value !== "number" || Number.isNaN(value)) {
-          return "-";
-        }
-        const options = unit === "%" ? { maximumFractionDigits: 1 } : { maximumFractionDigits: 2 };
-        const formatted = value.toLocaleString(undefined, options);
-        return unit ? `${formatted}${unit}` : formatted;
-      };
-
-      const setIntent = (intent) => {
-        intentField.value = intent;
-        intentButtons.forEach((button) => {
-          button.classList.toggle("active", button.dataset.intent === intent);
-        });
-        intentForms.forEach((formSection) => {
-          formSection.classList.toggle("active", formSection.dataset.intent === intent);
-        });
-        sparkyStatus.textContent = intentCopy[intent] || "Sparky is ready.";
-      };
-
-      intentButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          setIntent(button.dataset.intent);
-        });
+      data.secondary.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "secondary-item";
+        row.innerHTML = `<span>${item.label}</span><span>${formatValue(item.value, item.unit)}</span>`;
+        secondaryList.appendChild(row);
       });
 
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const formData = new FormData(form);
+      sparkyLine.textContent = data.sparky || "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "block";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      resultLabel.textContent = "Error";
+      resultValue.textContent = "Request failed.";
+      resultValue.classList.add("error");
+      sparkyLine.textContent = "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "none";
+      }
+    }
+  });
 
-        try {
-          const response = await fetch(`${basePath}/calculate`, { method: "POST", body: formData });
-          const data = await response.json();
-          result.classList.add("visible");
-          secondaryList.innerHTML = "";
-
-          if (!response.ok || data.error) {
-            resultLabel.textContent = "Error";
-            resultValue.textContent = data.error || "Something went wrong.";
-            resultValue.classList.add("error");
-            sparkyLine.textContent = "";
-            if (monetizeNote) {
-              monetizeNote.style.display = "none";
-            }
-            return;
-          }
-
-          resultValue.classList.remove("error");
-          resultLabel.textContent = data.primary.label;
-          resultValue.textContent = formatValue(data.primary.value, data.primary.unit);
-
-          data.secondary.forEach((item) => {
-            const row = document.createElement("div");
-            row.className = "secondary-item";
-            row.innerHTML = `<span>${item.label}</span><span>${formatValue(item.value, item.unit)}</span>`;
-            secondaryList.appendChild(row);
-          });
-
-          sparkyLine.textContent = data.sparky || "";
-          if (monetizeNote) {
-            monetizeNote.style.display = "block";
-          }
-        } catch (error) {
-          result.classList.add("visible");
-          resultLabel.textContent = "Error";
-          resultValue.textContent = "Request failed.";
-          resultValue.classList.add("error");
-          sparkyLine.textContent = "";
-          if (monetizeNote) {
-            monetizeNote.style.display = "none";
-          }
-        }
-      });
-
-      setIntent("monthly_balance");
-    </script>
-  </body>
-</html>
+  setIntent("monthly_balance");
+</script>
+{% endblock %}

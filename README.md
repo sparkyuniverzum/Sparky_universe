@@ -20,6 +20,14 @@ Expanded standard: `docs/module_standard.md`.
 Module standard is versioned; current is v1.0 (frozen). Any changes require a new
 standard version (v1.1, v2.0, etc.).
 
+## Planet standard
+Planets are standalone, situation-first tools that live alongside zrnka, not above them.
+They do not orchestrate other modules, and they never show ads.
+
+Expanded standard: `docs/planet_standard.md`.
+Planet standard is versioned; current is v1.0 (frozen). Any changes require a new
+standard version (v1.1, v2.0, etc.).
+
 Internal shared modules (like `sparky_ui`) are `public: false` and can omit entrypoints and runtime code.
 
 ## Optional fields in module.yaml
@@ -82,8 +90,10 @@ Reusable UI lives in the internal module `modules/sparky_ui` (public: false):
 - `modules/sparky_ui/tool/templates/partials/ads.html`
 - `modules/sparky_ui/tool/templates/partials/flow.html`
 - `modules/sparky_ui/tool/templates/module_base.html`
+- `modules/sparky_ui/tool/templates/planet_base.html`
 
 Module pages should extend `{% extends "module_base.html" %}`.
+Planet pages should extend `{% extends "planet_base.html" %}`.
 
 Module templates can import them with:
 ```html
