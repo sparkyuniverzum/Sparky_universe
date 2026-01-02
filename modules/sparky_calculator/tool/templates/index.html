@@ -4,6 +4,36 @@
 
 {% block styles %}
 <style>
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .hero-media {
+    width: min(220px, 40vw);
+    aspect-ratio: 1;
+    border-radius: 18px;
+    border: 1px solid var(--planet-border);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 18px 32px rgba(15, 20, 25, 0.12);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+
+  .hero-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
   .intent-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -90,16 +120,34 @@
     font-size: 0.85rem;
     color: var(--planet-muted);
   }
+
+  @media (max-width: 720px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-media {
+      width: min(180px, 60vw);
+      margin-top: 6px;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block body %}
 <main class="scene">
-  <header class="hero">
+<header class="hero hero-grid">
+  <div class="hero-copy">
     <div class="eyebrow">Sparky Planet</div>
     <h1>Sparky Calculator</h1>
     <p>Pick the situation you are in. Sparky handles the math and keeps the flow calm.</p>
-  </header>
+  </div>
+  <div class="hero-media" aria-hidden="true">
+    <video autoplay muted loop playsinline>
+      <source src="/brand/logo/sparky_cute_anime_avatar_of_a_female_Bender-style_robot_cylin_ed8fd6c8-e4b4-4302-b1dd-029c70b6d13b_2.mp4" type="video/mp4">
+    </video>
+  </div>
+</header>
 
   <section class="intent-grid" id="intent-grid">
     <button class="intent-card active" type="button" data-intent="monthly_balance">
