@@ -4,17 +4,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sparky Universe · Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
       :root {
-        --bg: #0f1116;
-        --card: #171b22;
-        --text: #f5f7fb;
-        --muted: #9aa6bf;
+        --bg: #0b0d12;
+        --panel: rgba(17, 20, 28, 0.92);
+        --panel-solid: #151924;
+        --text: #f3f6ff;
+        --muted: #9aa6c2;
         --border: rgba(255, 255, 255, 0.08);
-        --accent: #5ac8fa;
+        --accent: #6fb7ff;
         --ok: #53d38f;
         --bad: #ff7b7b;
         --warn: #f6c356;
+        --shadow: 0 24px 60px rgba(4, 6, 10, 0.5);
       }
 
       * {
@@ -24,51 +29,102 @@
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: var(--bg);
+        font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(74, 126, 255, 0.16), transparent 55%),
+          radial-gradient(circle at 85% 0%, rgba(92, 222, 200, 0.15), transparent 55%),
+          var(--bg);
         color: var(--text);
-        padding: 32px 20px;
+        padding: 32px 20px 48px;
       }
 
-      .panel {
-        max-width: 1200px;
+      .shell {
+        max-width: 1250px;
         margin: 0 auto;
-        background: var(--card);
+        background: var(--panel);
         border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 28px;
+        border-radius: 24px;
+        padding: 28px 28px 32px;
+        backdrop-filter: blur(14px);
+        box-shadow: var(--shadow);
       }
 
       h1 {
-        margin: 0 0 6px;
-        font-size: 1.9rem;
+        margin: 0 0 8px;
+        font-size: 2.1rem;
+        letter-spacing: -0.02em;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        letter-spacing: -0.01em;
       }
 
       p {
-        margin: 0 0 18px;
+        margin: 0 0 16px;
         color: var(--muted);
+      }
+
+      .eyebrow {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(155, 186, 255, 0.8);
+        margin-bottom: 8px;
       }
 
       .note {
         font-size: 0.85rem;
         color: var(--warn);
-        margin-bottom: 16px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(246, 195, 86, 0.3);
+        background: rgba(246, 195, 86, 0.08);
+        margin: 0 0 18px;
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
       }
 
-      .toolbar {
+      .header {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 18px;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .header-info {
+        display: grid;
+        gap: 6px;
+      }
+
+      .header-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
         align-items: center;
-        margin-bottom: 18px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
       }
 
       .status {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         color: var(--muted);
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(17, 20, 28, 0.7);
+        border: 1px solid var(--border);
       }
 
       .status-dot {
@@ -90,6 +146,62 @@
         background: var(--warn);
       }
 
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .stat-strip {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin: 0 0 22px;
+      }
+
+      .stat-card {
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: var(--panel-solid);
+        display: grid;
+        gap: 6px;
+      }
+
+      .stat-label {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--muted);
+      }
+
+      .stat-value {
+        font-size: 1.55rem;
+        font-weight: 600;
+      }
+
+      .table-card {
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: rgba(12, 14, 20, 0.65);
+        overflow: hidden;
+      }
+
+      .table-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(10, 12, 18, 0.7);
+      }
+
+      .table-header p {
+        margin: 0;
+        font-size: 0.86rem;
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
@@ -98,7 +210,7 @@
 
       th,
       td {
-        padding: 10px 12px;
+        padding: 12px 14px;
         border-bottom: 1px solid var(--border);
         vertical-align: top;
       }
@@ -107,14 +219,10 @@
         text-align: left;
         color: var(--muted);
         font-weight: 600;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-
-      a {
-        color: var(--accent);
-        text-decoration: none;
+        letter-spacing: 0.12em;
+        background: rgba(14, 16, 22, 0.7);
       }
 
       .category-row td {
@@ -199,13 +307,18 @@
         color: var(--bad);
       }
 
+      .row-alert {
+        background: rgba(255, 123, 123, 0.05);
+      }
+
       button {
-        padding: 6px 12px;
+        padding: 7px 12px;
         border-radius: 10px;
         border: 1px solid var(--border);
         background: rgba(18, 24, 34, 0.9);
         color: var(--text);
         cursor: pointer;
+        font-family: inherit;
       }
 
       button.enable {
@@ -219,7 +332,7 @@
       }
 
       .link-button {
-        padding: 6px 12px;
+        padding: 7px 12px;
         border-radius: 10px;
         border: 1px solid var(--border);
         background: rgba(18, 24, 34, 0.9);
@@ -228,106 +341,155 @@
         display: inline-flex;
         align-items: center;
       }
+
+      @media (max-width: 900px) {
+        .shell {
+          padding: 24px 18px;
+        }
+
+        th,
+        td {
+          padding: 10px 10px;
+        }
+      }
     </style>
   </head>
   <body>
-    <main class="panel">
-      <h1>Universe Admin</h1>
-      <p>Overrides source: {{ overrides_source }}</p>
+    <main class="shell">
+      {% set total = modules | length %}
+      {% set enabled_count = modules | selectattr('enabled') | list | length %}
+      {% set public_count = modules | selectattr('public') | list | length %}
+      {% set issue_count = modules | selectattr('lint_issues') | list | length %}
+      <div class="header">
+        <div class="header-info">
+          <div class="eyebrow">Control Panel</div>
+          <h1>Universe Admin</h1>
+          <div class="header-meta">
+            <span class="status">
+              <span class="status-dot {% if overrides_source == 'db' %}ok{% else %}warn{% endif %}"></span>
+              <span>Overrides: {{ overrides_source }}</span>
+            </span>
+            {% if db_check.ok is not none %}
+            <span class="status">
+              {% if db_check.ok %}
+              <span class="status-dot ok"></span>
+              <span>DB ok · {{ db_check.detail }}</span>
+              {% else %}
+              <span class="status-dot error"></span>
+              <span>DB error · {{ db_check.detail }}</span>
+              {% endif %}
+            </span>
+            {% endif %}
+            {% if db_check.tables %}
+            <span class="status">
+              <span class="status-dot {% if db_check.tables.sparky_module_overrides %}ok{% else %}warn{% endif %}"></span>
+              <span>overrides: {{ "ok" if db_check.tables.sparky_module_overrides else "missing" }}</span>
+            </span>
+            <span class="status">
+              <span class="status-dot {% if db_check.tables.telemetry_events %}ok{% else %}warn{% endif %}"></span>
+              <span>telemetry: {{ "ok" if db_check.tables.telemetry_events else "missing" }}</span>
+            </span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="actions">
+          <form method="post" action="{{ admin_base }}/test-db">
+            <button type="submit">Test DB</button>
+          </form>
+          <a class="link-button" href="{{ admin_base }}/metrics">View metrics</a>
+        </div>
+      </div>
       {% if overrides_source != "db" %}
       <div class="note">Warning: overrides are in memory only until Postgres is configured.</div>
       {% endif %}
-      <div class="toolbar">
-        <form method="post" action="{{ admin_base }}/test-db">
-          <button type="submit">Test DB</button>
-        </form>
-        <a class="link-button" href="{{ admin_base }}/metrics">View metrics</a>
-        {% if db_check.ok is not none %}
-        <div class="status">
-          {% if db_check.ok %}
-          <span class="status-dot ok"></span>
-          <span>DB ok · {{ db_check.detail }}</span>
-          {% else %}
-          <span class="status-dot error"></span>
-          <span>DB error · {{ db_check.detail }}</span>
-          {% endif %}
+      <section class="stat-strip">
+        <div class="stat-card">
+          <div class="stat-label">Total stars</div>
+          <div class="stat-value">{{ total }}</div>
         </div>
-        {% endif %}
-        {% if db_check.tables %}
-        <div class="status">
-          <span class="status-dot {% if db_check.tables.sparky_module_overrides %}ok{% else %}warn{% endif %}"></span>
-          <span>overrides: {{ "ok" if db_check.tables.sparky_module_overrides else "missing" }}</span>
+        <div class="stat-card">
+          <div class="stat-label">Public stars</div>
+          <div class="stat-value">{{ public_count }}</div>
         </div>
-        <div class="status">
-          <span class="status-dot {% if db_check.tables.telemetry_events %}ok{% else %}warn{% endif %}"></span>
-          <span>telemetry: {{ "ok" if db_check.tables.telemetry_events else "missing" }}</span>
+        <div class="stat-card">
+          <div class="stat-label">Enabled stars</div>
+          <div class="stat-value">{{ enabled_count }}</div>
         </div>
-        {% endif %}
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Module</th>
-            <th>Status</th>
-            <th>Mount</th>
-            <th>Public</th>
-            <th>Source</th>
-            <th>Checks</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% set ns = namespace(category="") %}
-          {% for module in modules %}
-          {% if module.category != ns.category %}
-          {% set ns.category = module.category %}
-          <tr class="category-row">
-            <td colspan="7">{{ module.category }}</td>
-          </tr>
-          {% endif %}
-          <tr>
-            <td>
-              {{ module.title }}
-              <div class="muted">{{ module.name }}</div>
-            </td>
-            <td>
-              <span class="badge {{ module.status }}">{{ module.status }}</span>
-            </td>
-            <td><a href="{{ module.mount }}" target="_blank" rel="noreferrer">{{ module.mount }}</a></td>
-            <td>{{ "yes" if module.public else "no" }}</td>
-            <td>{{ module.source }}</td>
-            <td>
-              <div class="checks">
-                <span class="check {{ 'ok' if module.has_app else 'bad' }}">app.py</span>
-                <span class="check {{ 'ok' if module.has_template else 'bad' }}">template</span>
-                <span class="check {{ 'ok' if module.has_core else 'bad' }}">core</span>
-                <span class="check {{ 'ok' if module.entrypoint_ok else 'bad' }}">entrypoint</span>
-              </div>
-              {% if module.entrypoint %}
-              <div class="entrypoint">{{ module.entrypoint }}</div>
-              {% endif %}
-              {% if module.entrypoint_error %}
-              <div class="error">{{ module.entrypoint_error }}</div>
-              {% endif %}
-              {% if module.lint_issues %}
-              <div class="error">{{ module.lint_issues | join(", ") }}</div>
-              {% endif %}
-            </td>
-            <td>
-              <form method="post" action="{{ admin_base }}/toggle">
-                <input type="hidden" name="name" value="{{ module.name }}">
-                <input type="hidden" name="enabled" value="{{ '0' if module.enabled else '1' }}">
-                {% if module.enabled %}
-                <button class="disable" type="submit">Disable</button>
-                {% else %}
-                <button class="enable" type="submit">Enable</button>
+        <div class="stat-card">
+          <div class="stat-label">Lint flags</div>
+          <div class="stat-value">{{ issue_count }}</div>
+        </div>
+      </section>
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Stars</h2>
+          <p>{{ total }} total · {{ enabled_count }} enabled · {{ public_count }} public</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Star</th>
+              <th>Status</th>
+              <th>Mount</th>
+              <th>Public</th>
+              <th>Source</th>
+              <th>Checks</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set ns = namespace(category="") %}
+            {% for module in modules %}
+            {% if module.category != ns.category %}
+            {% set ns.category = module.category %}
+            <tr class="category-row">
+              <td colspan="7">{{ module.category }}</td>
+            </tr>
+            {% endif %}
+            <tr class="{{ 'row-alert' if module.status != 'ok' else '' }}">
+              <td>
+                {{ module.title }}
+                <div class="muted">{{ module.name }}</div>
+              </td>
+              <td>
+                <span class="badge {{ module.status }}">{{ module.status }}</span>
+              </td>
+              <td><a href="{{ module.mount }}" target="_blank" rel="noreferrer">{{ module.mount }}</a></td>
+              <td>{{ "yes" if module.public else "no" }}</td>
+              <td>{{ module.source }}</td>
+              <td>
+                <div class="checks">
+                  <span class="check {{ 'ok' if module.has_app else 'bad' }}">app.py</span>
+                  <span class="check {{ 'ok' if module.has_template else 'bad' }}">template</span>
+                  <span class="check {{ 'ok' if module.has_core else 'bad' }}">core</span>
+                  <span class="check {{ 'ok' if module.entrypoint_ok else 'bad' }}">entrypoint</span>
+                </div>
+                {% if module.entrypoint %}
+                <div class="entrypoint">{{ module.entrypoint }}</div>
                 {% endif %}
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+                {% if module.entrypoint_error %}
+                <div class="error">{{ module.entrypoint_error }}</div>
+                {% endif %}
+                {% if module.lint_issues %}
+                <div class="error">{{ module.lint_issues | join(", ") }}</div>
+                {% endif %}
+              </td>
+              <td>
+                <form method="post" action="{{ admin_base }}/toggle">
+                  <input type="hidden" name="name" value="{{ module.name }}">
+                  <input type="hidden" name="enabled" value="{{ '0' if module.enabled else '1' }}">
+                  {% if module.enabled %}
+                  <button class="disable" type="submit">Disable</button>
+                  {% else %}
+                  <button class="enable" type="submit">Enable</button>
+                  {% endif %}
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
     </main>
   </body>
 </html>

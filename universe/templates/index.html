@@ -271,6 +271,36 @@
         font-weight: 600;
       }
 
+      .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin: 22px 0 28px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .stat-card {
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: rgba(14, 18, 24, 0.7);
+        display: grid;
+        gap: 6px;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+      }
+
+      .stat-value {
+        font-size: 1.4rem;
+        font-weight: 600;
+      }
+
       @media (max-width: 860px) {
         .hero {
           grid-template-columns: 1fr;
@@ -303,6 +333,24 @@
       </section>
       {% set planets = categories | selectattr("name", "equalto", "Planets") | list %}
       {% set other_categories = categories | rejectattr("name", "equalto", "Planets") | list %}
+      {% set ns = namespace(stars=0) %}
+      {% for category in other_categories %}
+      {% set ns.stars = ns.stars + (category.modules | length) %}
+      {% endfor %}
+      <section class="stats-strip">
+        <div class="stat-card">
+          <div class="stat-label">Stars</div>
+          <div class="stat-value">{{ ns.stars }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Planets</div>
+          <div class="stat-value">{{ planets[0].modules | length if planets else 0 }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Categories</div>
+          <div class="stat-value">{{ other_categories | length }}</div>
+        </div>
+      </section>
       {% if planets %}
       <section id="planets" class="planet-section">
         <div class="planet-header">
