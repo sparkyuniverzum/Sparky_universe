@@ -1,0 +1,69 @@
+{% extends "module_base.html" %}
+
+{% block title %}Concept Map Outline{% endblock %}
+{% block heading %}Concept Map Outline{% endblock %}
+{% block description %}List key concepts and their supporting details.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/generate" method="post" enctype="multipart/form-data">
+  <label for="file">Upload text file (max 4 MB)</label>
+  <input id="file" name="file" type="file">
+
+  <label for="text">Or paste text</label>
+  <textarea id="text" name="text" placeholder="Paste content here"></textarea>
+
+  <label for="limit">Concepts (max 12)</label>
+  <input id="limit" name="limit" type="number" value="6" min="1" max="12">
+
+  <button type="submit">Build outline</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Outline</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>See how concepts connect at a glance.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/generate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Request failed";
+      } else {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+name: lengthconvert
+title: Length Converter
+version: 0.0.1
+description: Convert between metric and imperial length units.
+public: true
+category: Conversion
+entrypoints:
+  api: modules.lengthconvert.tool.app:app
+mount: /convert/length
+flows:
+  after_success:
+  - target: colorconvert
+  - target: datasizeconvert
+  - target: speedconvert
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

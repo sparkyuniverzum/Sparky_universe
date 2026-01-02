@@ -1,0 +1,30 @@
+name: explain_like_im_five
+title: Explain Like I'm Five
+version: 0.0.1
+description: Rewrite text into a simple, kid-friendly explanation.
+public: true
+category: Learning Shortcuts
+entrypoints:
+  api: modules.explain_like_im_five.tool.app:app
+mount: /learning/explain-like-im-five
+flows:
+  after_success:
+  - target: definition_snap
+    label: Extract definitions
+  - target: key_terms_map
+    label: Build key terms map
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

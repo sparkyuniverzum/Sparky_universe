@@ -1,0 +1,30 @@
+name: concept_map_outline
+title: Concept Map Outline
+version: 0.0.1
+description: List key concepts and their supporting details.
+public: true
+category: Learning Shortcuts
+entrypoints:
+  api: modules.concept_map_outline.tool.app:app
+mount: /learning/concept-map-outline
+flows:
+  after_success:
+  - target: definition_snap
+    label: Extract definitions
+  - target: key_terms_map
+    label: Build key terms map
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

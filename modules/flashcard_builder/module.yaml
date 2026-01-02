@@ -1,0 +1,30 @@
+name: flashcard_builder
+title: Flashcard Builder
+version: 0.0.1
+description: Turn text into quick question-and-answer flashcards.
+public: true
+category: Learning Shortcuts
+entrypoints:
+  api: modules.flashcard_builder.tool.app:app
+mount: /learning/flashcard-builder
+flows:
+  after_success:
+  - target: definition_snap
+    label: Extract definitions
+  - target: key_terms_map
+    label: Build key terms map
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

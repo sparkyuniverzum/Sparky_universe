@@ -1,0 +1,66 @@
+{% extends "module_base.html" %}
+
+{% block title %}Cash Runway Calculator{% endblock %}
+{% block heading %}Cash Runway Calculator{% endblock %}
+{% block description %}Calculate how many months your cash will last.{% endblock %}
+
+{% block form %}
+<form id="calc-form" action="{{ base_path }}/calc" method="post">
+  <label for="cash">Cash on hand</label>
+  <input id="cash" name="cash" placeholder="50000">
+
+  <label for="monthly_burn">Monthly burn</label>
+  <input id="monthly_burn" name="monthly_burn" placeholder="8000">
+
+  <button type="submit">Calculate runway</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Outputs runway months and buffer guidance.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("calc-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/calc`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Calculation failed";
+      } else {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "module_base.html" %}
+
+{% block title %}Volume Converter{% endblock %}
+{% block heading %}Volume Converter{% endblock %}
+{% block description %}Convert volume units like liters and gallons.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="convert-form" action="{{ base_path }}/convert" method="post">
+  <label for="value">Value</label>
+  <input id="value" name="value" placeholder="2">
+
+  <div class="field-row">
+    <div>
+      <label for="from_unit">From</label>
+      <select id="from_unit" name="from_unit"></select>
+    </div>
+    <div>
+      <label for="to_unit">To</label>
+      <select id="to_unit" name="to_unit"></select>
+    </div>
+    <div>
+      <label for="decimals">Decimals</label>
+      <input id="decimals" name="decimals" value="4">
+    </div>
+  </div>
+
+  <button type="submit">Convert volume</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Result</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Includes liters, milliliters, and gallons.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("convert-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const fromSelect = document.getElementById("from_unit");
+  const toSelect = document.getElementById("to_unit");
+  const basePath = "{{ base_path }}";
+
+  const units = { units | tojson };
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const buildOptions = (select, selected) => {
+    select.innerHTML = "";
+    Object.entries(units).forEach(([key, meta]) => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = `${meta.label} (${key})`;
+      if (key === selected) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+  };
+
+  buildOptions(fromSelect, "l");
+  buildOptions(toSelect, "gal");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/convert`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Conversion failed";
+      } else {
+        output.textContent = `${data.value} ${data.from_unit} = ${data.result} ${data.to_unit}`;
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

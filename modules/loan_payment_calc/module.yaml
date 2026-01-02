@@ -1,0 +1,29 @@
+name: loan_payment_calc
+title: Loan Payment Calculator
+version: 0.0.1
+description: Estimate monthly loan payments with interest.
+public: true
+category: Finance
+entrypoints:
+  api: modules.loan_payment_calc.tool.app:app
+mount: /loan/payment
+flows:
+  after_success:
+  - target: margincalc
+  - target: vatcalc
+  - target: percentcalc
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true
