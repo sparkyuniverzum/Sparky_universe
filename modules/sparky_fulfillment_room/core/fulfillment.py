@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any, Dict, List, Tuple
 
@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Tuple
 @dataclass
 class ResultBlock:
     label: str
-    value: float | str
+    value: float | int | str
     unit: str | None = None
 
 
@@ -74,106 +74,120 @@ def _make_payload(
     }
 
 
-def calculate_labels(
+def calculate_packer_need(
     orders_raw: str | None,
+    minutes_per_order_raw: str | None,
+    hours_available_raw: str | None,
 ) -> Tuple[Dict[str, Any] | None, str | None]:
     orders, error = _parse_int(orders_raw, "Orders", 1)
     if error:
         return None, error
-
-    primary = ResultBlock("Labels to print", float(orders))
-    sparky_line = f"Labels needed: {orders}."
-    return _make_payload(
-        intent="labels",
-        primary=primary,
-        secondary=[],
-        sparky_line=sparky_line,
-    ), None
-
-
-def calculate_slots(
-    orders_raw: str | None,
-    slots_raw: str | None,
-) -> Tuple[Dict[str, Any] | None, str | None]:
-    orders, error = _parse_int(orders_raw, "Orders", 1)
+    minutes, error = _parse_decimal(minutes_per_order_raw, "Minutes per order", Decimal("0.1"))
     if error:
         return None, error
-    slots, error = _parse_int(slots_raw, "Slots", 1)
+    hours, error = _parse_decimal(hours_available_raw, "Hours available", Decimal("0.1"))
     if error:
         return None, error
 
-    per_slot = orders // slots
-    remainder = orders % slots
+    total_minutes = Decimal(orders) * minutes
+    capacity_minutes = hours * Decimal("60")
+    packers_needed = math.ceil(float(total_minutes / capacity_minutes))
+    orders_per_packer = Decimal(orders) / Decimal(packers_needed)
 
-    primary = ResultBlock("Orders per slot", float(per_slot))
-    secondary = [ResultBlock("Remainder", float(remainder))]
-    sparky_line = f"Plan for {per_slot} orders per slot."
+    primary = ResultBlock("Packers needed", packers_needed)
+    secondary = [ResultBlock("Orders per packer", _as_float(orders_per_packer, 1))]
+    sparky_line = f"Packers needed: {packers_needed}."
     return _make_payload(
-        intent="slot_split",
+        intent="packer_need",
         primary=primary,
         secondary=secondary,
         sparky_line=sparky_line,
     ), None
 
 
-def _clean_token(value: str) -> str:
-    cleaned = "".join(ch for ch in value.strip() if ch.isalnum() or ch in {"-", "_"})
-    cleaned = cleaned.replace(" ", "-").replace("--", "-")
-    return cleaned.strip("-_")
-
-
-def _default_date() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%d")
-
-
-def calculate_batch_id(
-    name_raw: str | None,
-    date_raw: str | None,
+def calculate_cutoff(
+    orders_left_raw: str | None,
+    minutes_per_order_raw: str | None,
+    packers_available_raw: str | None,
+    hours_left_raw: str | None,
 ) -> Tuple[Dict[str, Any] | None, str | None]:
-    name = (name_raw or "").strip()
-    if not name:
-        return None, "Batch name is required."
+    orders_left, error = _parse_int(orders_left_raw, "Orders left", 1)
+    if error:
+        return None, error
+    minutes, error = _parse_decimal(minutes_per_order_raw, "Minutes per order", Decimal("0.1"))
+    if error:
+        return None, error
+    packers, error = _parse_int(packers_available_raw, "Packers available", 1)
+    if error:
+        return None, error
+    hours_left, error = _parse_decimal(hours_left_raw, "Hours left", Decimal("0.1"))
+    if error:
+        return None, error
 
-    name_token = _clean_token(name).upper() or "BATCH"
-    date_token = _clean_token(date_raw or "")
-    if date_raw and not date_token:
-        return None, "Date must include letters or digits, or leave it blank."
+    total_minutes = Decimal(orders_left) * minutes
+    capacity_minutes = Decimal(packers) * Decimal("60")
+    hours_needed = total_minutes / capacity_minutes
+    slack = hours_left - hours_needed
 
-    date_value = date_token.upper() if date_token else _default_date()
-    batch_id = f"{name_token}-{date_value}"
-
-    primary = ResultBlock("Batch ID", batch_id)
-    sparky_line = f"Batch ID ready: {batch_id}."
+    primary = ResultBlock("Hours needed", _as_float(hours_needed, 2), "h")
+    secondary = [ResultBlock("Slack hours", _as_float(slack, 2), "h")]
+    sparky_line = f"Hours needed: {_as_text(hours_needed, 2)}."
     return _make_payload(
-        intent="batch_id",
+        intent="cutoff_check",
         primary=primary,
-        secondary=[],
+        secondary=secondary,
         sparky_line=sparky_line,
     ), None
 
 
-def calculate_missing(
-    planned_raw: str | None,
-    current_raw: str | None,
+def calculate_pick_list(
+    orders_raw: str | None,
+    items_per_order_raw: str | None,
 ) -> Tuple[Dict[str, Any] | None, str | None]:
-    planned, error = _parse_decimal(planned_raw, "Planned items", Decimal("1"))
+    orders, error = _parse_int(orders_raw, "Orders", 1)
     if error:
         return None, error
-    current, error = _parse_decimal(current_raw, "Current items", Decimal("0"))
+    items_per_order, error = _parse_decimal(
+        items_per_order_raw, "Items per order", Decimal("0.1")
+    )
     if error:
         return None, error
 
-    missing = planned - current
-    if missing < 0:
-        missing = Decimal("0")
+    total_items = Decimal(orders) * items_per_order
 
-    completion = (current / planned) * Decimal("100")
-
-    primary = ResultBlock("Missing items", _as_float(missing))
-    secondary = [ResultBlock("Completion", _as_float(completion, 1), "%")]
-    sparky_line = f"Missing items: {_as_text(missing)}."
+    primary = ResultBlock("Items to pick", _as_float(total_items, 1))
+    secondary = [ResultBlock("Items per order", _as_float(items_per_order, 1))]
+    sparky_line = f"Items to pick: {_as_text(total_items, 1)}."
     return _make_payload(
-        intent="missing_check",
+        intent="pick_list",
+        primary=primary,
+        secondary=secondary,
+        sparky_line=sparky_line,
+    ), None
+
+
+def calculate_packaging_buffer(
+    orders_raw: str | None,
+    buffer_percent_raw: str | None,
+) -> Tuple[Dict[str, Any] | None, str | None]:
+    orders, error = _parse_int(orders_raw, "Orders", 1)
+    if error:
+        return None, error
+    buffer_percent, error = _parse_decimal(
+        buffer_percent_raw, "Buffer percent", Decimal("0")
+    )
+    if error:
+        return None, error
+
+    buffer = (Decimal(orders) * buffer_percent) / Decimal("100")
+    buffer_count = int(math.ceil(float(buffer)))
+    total = orders + buffer_count
+
+    primary = ResultBlock("Packages to prep", total)
+    secondary = [ResultBlock("Buffer count", buffer_count)]
+    sparky_line = f"Packages to prep: {total}."
+    return _make_payload(
+        intent="packaging",
         primary=primary,
         secondary=secondary,
         sparky_line=sparky_line,

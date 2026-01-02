@@ -98,60 +98,72 @@
   <header class="hero">
     <div class="eyebrow">Sparky Planet</div>
     <h1>Sparky Fulfillment Room</h1>
-    <p>Describe what is happening in fulfillment today and get the numbers you need to act.</p>
+    <p>Describe today’s fulfillment situation and get the numbers you need to act.</p>
   </header>
 
   <section class="intent-grid" id="intent-grid">
-    <button class="intent-card active" type="button" data-intent="labels">
-      <span class="intent-title">Print labels</span>
-      <span class="intent-desc">I have a batch of orders and need to know how many labels to print.</span>
+    <button class="intent-card active" type="button" data-intent="packer_need">
+      <span class="intent-title">Staffing check</span>
+      <span class="intent-desc">I need to know how many packers are required today.</span>
     </button>
-    <button class="intent-card" type="button" data-intent="slot_split">
-      <span class="intent-title">Packing slots</span>
-      <span class="intent-desc">I need to split orders across packing slots today.</span>
+    <button class="intent-card" type="button" data-intent="cutoff_check">
+      <span class="intent-title">Cutoff check</span>
+      <span class="intent-desc">I need to know if we can finish before cutoff.</span>
     </button>
-    <button class="intent-card" type="button" data-intent="batch_id">
-      <span class="intent-title">Batch ID</span>
-      <span class="intent-desc">I want a simple batch ID for packaging and handoff.</span>
+    <button class="intent-card" type="button" data-intent="pick_list">
+      <span class="intent-title">Pick list volume</span>
+      <span class="intent-desc">I want to estimate how many items to pick.</span>
     </button>
-    <button class="intent-card" type="button" data-intent="missing_check">
-      <span class="intent-title">Missing items</span>
-      <span class="intent-desc">I want to check what is missing vs today’s plan.</span>
+    <button class="intent-card" type="button" data-intent="packaging">
+      <span class="intent-title">Packaging buffer</span>
+      <span class="intent-desc">I need to prep packaging with a safety buffer.</span>
     </button>
   </section>
 
   <section class="panel">
-    <div class="sparky-status" id="sparky-status">Sparky: Ready to count labels.</div>
+    <div class="sparky-status" id="sparky-status">Sparky: Ready to size the team.</div>
     <form id="fulfillment-form">
-      <input type="hidden" id="intent" name="intent" value="labels">
+      <input type="hidden" id="intent" name="intent" value="packer_need">
 
-      <div class="intent-form active" data-intent="labels">
-        <label for="orders">Orders in batch</label>
-        <input id="orders" name="orders_labels" type="number" inputmode="numeric" step="1" placeholder="240">
+      <div class="intent-form active" data-intent="packer_need">
+        <label for="orders_packers">Orders to pack</label>
+        <input id="orders_packers" name="orders_packers" type="number" inputmode="numeric" step="1" placeholder="240">
+
+        <label for="minutes_per_order">Minutes per order</label>
+        <input id="minutes_per_order" name="minutes_per_order" type="number" inputmode="decimal" step="0.1" placeholder="3.5">
+
+        <label for="hours_available">Hours available</label>
+        <input id="hours_available" name="hours_available" type="number" inputmode="decimal" step="0.1" placeholder="6">
       </div>
 
-      <div class="intent-form" data-intent="slot_split">
-        <label for="orders_slots">Orders to pack</label>
-        <input id="orders_slots" name="orders_slots" type="number" inputmode="numeric" step="1" placeholder="120">
+      <div class="intent-form" data-intent="cutoff_check">
+        <label for="orders_left">Orders left</label>
+        <input id="orders_left" name="orders_left" type="number" inputmode="numeric" step="1" placeholder="180">
 
-        <label for="slots">Packing slots (or hours)</label>
-        <input id="slots" name="slots" type="number" inputmode="numeric" step="1" placeholder="4">
+        <label for="minutes_per_order_cutoff">Minutes per order</label>
+        <input id="minutes_per_order_cutoff" name="minutes_per_order_cutoff" type="number" inputmode="decimal" step="0.1" placeholder="3.5">
+
+        <label for="packers_available">Packers available</label>
+        <input id="packers_available" name="packers_available" type="number" inputmode="numeric" step="1" placeholder="4">
+
+        <label for="hours_left">Hours left</label>
+        <input id="hours_left" name="hours_left" type="number" inputmode="decimal" step="0.1" placeholder="4">
       </div>
 
-      <div class="intent-form" data-intent="batch_id">
-        <label for="batch_name">Batch name</label>
-        <input id="batch_name" name="batch_name" placeholder="Morning Run">
+      <div class="intent-form" data-intent="pick_list">
+        <label for="orders_pick">Orders to pick</label>
+        <input id="orders_pick" name="orders_pick" type="number" inputmode="numeric" step="1" placeholder="140">
 
-        <label for="batch_date">Date (optional)</label>
-        <input id="batch_date" name="batch_date" placeholder="20250214">
+        <label for="items_per_order">Items per order (average)</label>
+        <input id="items_per_order" name="items_per_order" type="number" inputmode="decimal" step="0.1" placeholder="2.4">
       </div>
 
-      <div class="intent-form" data-intent="missing_check">
-        <label for="planned_items">Planned items</label>
-        <input id="planned_items" name="planned_items" type="number" inputmode="numeric" step="1" placeholder="480">
+      <div class="intent-form" data-intent="packaging">
+        <label for="orders_packaging">Orders to ship</label>
+        <input id="orders_packaging" name="orders_packaging" type="number" inputmode="numeric" step="1" placeholder="300">
 
-        <label for="current_items">Current items</label>
-        <input id="current_items" name="current_items" type="number" inputmode="numeric" step="1" placeholder="452">
+        <label for="buffer_percent">Buffer percent</label>
+        <input id="buffer_percent" name="buffer_percent" type="number" inputmode="decimal" step="0.1" placeholder="5">
       </div>
 
       <button type="submit">Calculate</button>
@@ -185,10 +197,10 @@
   const monetizeNote = document.querySelector(".monetize-note");
 
   const intentCopy = {
-    labels: "Sparky: Ready to count labels.",
-    slot_split: "Sparky: Ready to split packing slots.",
-    batch_id: "Sparky: Ready to create a batch ID.",
-    missing_check: "Sparky: Ready to check missing items.",
+    packer_need: "Sparky: Ready to size the team.",
+    cutoff_check: "Sparky: Ready to check the cutoff.",
+    pick_list: "Sparky: Ready to estimate pick volume.",
+    packaging: "Sparky: Ready to size packaging.",
   };
 
   const basePath = "{{ base_path }}";
@@ -267,6 +279,6 @@
     }
   });
 
-  setIntent("labels");
+  setIntent("packer_need");
 </script>
 {% endblock %}
