@@ -335,6 +335,30 @@
         </tbody>
       </table>
 
+      <h2>Top 404 paths (7d)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Path</th>
+            <th>Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if metrics.top_not_found %}
+          {% for path, count in metrics.top_not_found %}
+          <tr>
+            <td>{{ path }}</td>
+            <td>{{ count }}</td>
+          </tr>
+          {% endfor %}
+          {% else %}
+          <tr>
+            <td colspan="2">No 404s recorded.</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+
       <h2>Event types (7d)</h2>
       <table>
         <thead>

@@ -210,6 +210,7 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
         "by_module_usage": [],
         "by_outcome": [],
         "by_event_type": [],
+        "top_not_found": [],
         "top_referrers": [],
         "top_campaigns": [],
         "usage": {
@@ -329,6 +330,18 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
                 ORDER BY count DESC
                 """
             ).fetchall()
+            top_not_found = conn.execute(
+                """
+                SELECT path, COUNT(*) AS count
+                FROM telemetry_events
+                WHERE ts >= now() - interval '7 days'
+                  AND outcome = 'not_found'
+                GROUP BY path
+                ORDER BY count DESC
+                LIMIT %s
+                """,
+                (limit,),
+            ).fetchall()
             by_event_type = conn.execute(
                 """
                 SELECT event_type, COUNT(*) AS count
@@ -401,6 +414,7 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
                     ],
                     "by_outcome": [(row[0], int(row[1])) for row in by_outcome],
                     "by_event_type": [(row[0], int(row[1])) for row in by_event_type],
+                    "top_not_found": [(row[0], int(row[1])) for row in top_not_found],
                     "top_referrers": [(row[0], int(row[1])) for row in top_referrers],
                     "top_campaigns": [
                         {

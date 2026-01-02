@@ -1,0 +1,24 @@
+name: sparky_campaign_brief
+title: Sparky Campaign Brief Room
+version: 0.0.1
+description: Turn a campaign situation into a clean one-page brief.
+public: true
+category: Planets
+entrypoints:
+  api: modules.sparky_campaign_brief.tool.app:app
+mount: /planet/campaign-brief
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P1
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true
