@@ -207,8 +207,21 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
         "detail": "",
         "summary": {},
         "by_module": [],
+        "by_module_usage": [],
         "by_outcome": [],
         "by_event_type": [],
+        "top_referrers": [],
+        "top_campaigns": [],
+        "usage": {
+            "page_views_7d": 0,
+            "action_submits_7d": 0,
+            "conversion_rate_7d": 0.0,
+            "unique_sessions_24h": 0,
+            "unique_sessions_7d": 0,
+            "unique_visitors_24h": 0,
+            "unique_visitors_7d": 0,
+            "avg_action_duration_ms_7d": 0,
+        },
         "lint": {
             "total": lint_total,
             "ok": lint_ok,
@@ -248,6 +261,38 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
                   AND ts >= now() - interval '7 days'
                 """
             ).fetchone()[0]
+            avg_action_duration = conn.execute(
+                """
+                SELECT COALESCE(ROUND(AVG(duration_ms))::int, 0)
+                FROM telemetry_events
+                WHERE duration_ms IS NOT NULL
+                  AND event_type = 'action_submit'
+                  AND ts >= now() - interval '7 days'
+                """
+            ).fetchone()[0]
+
+            usage_24h = conn.execute(
+                """
+                SELECT
+                    COUNT(*) FILTER (WHERE event_type = 'page_view') AS page_views,
+                    COUNT(*) FILTER (WHERE event_type = 'action_submit') AS actions,
+                    COUNT(DISTINCT session_id) AS sessions,
+                    COUNT(DISTINCT ip_hash) AS visitors
+                FROM telemetry_events
+                WHERE ts >= now() - interval '24 hours'
+                """
+            ).fetchone()
+            usage_7d = conn.execute(
+                """
+                SELECT
+                    COUNT(*) FILTER (WHERE event_type = 'page_view') AS page_views,
+                    COUNT(*) FILTER (WHERE event_type = 'action_submit') AS actions,
+                    COUNT(DISTINCT session_id) AS sessions,
+                    COUNT(DISTINCT ip_hash) AS visitors
+                FROM telemetry_events
+                WHERE ts >= now() - interval '7 days'
+                """
+            ).fetchone()
 
             by_module = conn.execute(
                 """
@@ -256,6 +301,21 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
                 WHERE ts >= now() - interval '7 days'
                 GROUP BY module
                 ORDER BY count DESC
+                LIMIT %s
+                """,
+                (limit,),
+            ).fetchall()
+            by_module_usage = conn.execute(
+                """
+                SELECT
+                    module,
+                    COUNT(*) FILTER (WHERE event_type = 'page_view') AS page_views,
+                    COUNT(*) FILTER (WHERE event_type = 'action_submit') AS actions,
+                    COUNT(DISTINCT session_id) AS sessions
+                FROM telemetry_events
+                WHERE ts >= now() - interval '7 days'
+                GROUP BY module
+                ORDER BY actions DESC, page_views DESC
                 LIMIT %s
                 """,
                 (limit,),
@@ -278,6 +338,40 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
                 ORDER BY count DESC
                 """
             ).fetchall()
+            top_referrers = conn.execute(
+                """
+                SELECT COALESCE(payload->>'referrer_host', referrer) AS ref, COUNT(*) AS count
+                FROM telemetry_events
+                WHERE ts >= now() - interval '7 days'
+                  AND COALESCE(payload->>'referrer_host', referrer) IS NOT NULL
+                  AND COALESCE(payload->>'referrer_host', referrer) <> ''
+                GROUP BY ref
+                ORDER BY count DESC
+                LIMIT %s
+                """,
+                (limit,),
+            ).fetchall()
+            top_campaigns = conn.execute(
+                """
+                SELECT
+                    payload->>'utm_source' AS source,
+                    payload->>'utm_medium' AS medium,
+                    payload->>'utm_campaign' AS campaign,
+                    COUNT(*) FILTER (WHERE event_type = 'page_view') AS page_views,
+                    COUNT(*) FILTER (WHERE event_type = 'action_submit') AS actions
+                FROM telemetry_events
+                WHERE ts >= now() - interval '7 days'
+                  AND (
+                    payload ? 'utm_source'
+                    OR payload ? 'utm_medium'
+                    OR payload ? 'utm_campaign'
+                  )
+                GROUP BY source, medium, campaign
+                ORDER BY actions DESC, page_views DESC
+                LIMIT %s
+                """,
+                (limit,),
+            ).fetchall()
 
             result.update(
                 {
@@ -291,8 +385,52 @@ def fetch_metrics(limit: int = 20) -> Dict[str, Any]:
                         "avg_duration_ms_7d": int(avg_duration),
                     },
                     "by_module": [(row[0], int(row[1])) for row in by_module],
+                    "by_module_usage": [
+                        {
+                            "module": row[0],
+                            "page_views": int(row[1]),
+                            "actions": int(row[2]),
+                            "sessions": int(row[3]),
+                            "conversion_rate": (
+                                round((int(row[2]) / int(row[1])) * 100, 1)
+                                if int(row[1])
+                                else 0.0
+                            ),
+                        }
+                        for row in by_module_usage
+                    ],
                     "by_outcome": [(row[0], int(row[1])) for row in by_outcome],
                     "by_event_type": [(row[0], int(row[1])) for row in by_event_type],
+                    "top_referrers": [(row[0], int(row[1])) for row in top_referrers],
+                    "top_campaigns": [
+                        {
+                            "source": row[0] or "(direct)",
+                            "medium": row[1] or "",
+                            "campaign": row[2] or "",
+                            "page_views": int(row[3]),
+                            "actions": int(row[4]),
+                            "conversion_rate": (
+                                round((int(row[4]) / int(row[3])) * 100, 1)
+                                if int(row[3])
+                                else 0.0
+                            ),
+                        }
+                        for row in top_campaigns
+                    ],
+                    "usage": {
+                        "page_views_7d": int(usage_7d[0]),
+                        "action_submits_7d": int(usage_7d[1]),
+                        "conversion_rate_7d": (
+                            round((int(usage_7d[1]) / int(usage_7d[0])) * 100, 1)
+                            if int(usage_7d[0])
+                            else 0.0
+                        ),
+                        "unique_sessions_24h": int(usage_24h[2]),
+                        "unique_sessions_7d": int(usage_7d[2]),
+                        "unique_visitors_24h": int(usage_24h[3]),
+                        "unique_visitors_7d": int(usage_7d[3]),
+                        "avg_action_duration_ms_7d": int(avg_action_duration),
+                    },
                 }
             )
     except Exception as exc:

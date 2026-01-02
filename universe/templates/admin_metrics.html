@@ -174,7 +174,110 @@
           <div class="summary-label">Avg duration (7d)</div>
           <div class="summary-value">{{ metrics.summary.avg_duration_ms_7d }} ms</div>
         </div>
+        <div class="summary-card">
+          <div class="summary-label">Avg action duration (7d)</div>
+          <div class="summary-value">{{ metrics.usage.avg_action_duration_ms_7d }} ms</div>
+        </div>
       </section>
+
+      <section class="summary">
+        <div class="summary-card">
+          <div class="summary-label">Page views (7d)</div>
+          <div class="summary-value">{{ metrics.usage.page_views_7d }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Actions (7d)</div>
+          <div class="summary-value">{{ metrics.usage.action_submits_7d }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Conversion (7d)</div>
+          <div class="summary-value">{{ metrics.usage.conversion_rate_7d }}%</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Unique sessions (24h)</div>
+          <div class="summary-value">{{ metrics.usage.unique_sessions_24h }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Unique sessions (7d)</div>
+          <div class="summary-value">{{ metrics.usage.unique_sessions_7d }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Unique visitors (24h)</div>
+          <div class="summary-value">{{ metrics.usage.unique_visitors_24h }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Unique visitors (7d)</div>
+          <div class="summary-value">{{ metrics.usage.unique_visitors_7d }}</div>
+        </div>
+      </section>
+
+      <h2>Module usage (7d)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>Views</th>
+            <th>Actions</th>
+            <th>Conversion</th>
+            <th>Sessions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in metrics.by_module_usage %}
+          <tr>
+            <td>{{ row.module }}</td>
+            <td>{{ row.page_views }}</td>
+            <td>{{ row.actions }}</td>
+            <td>{{ row.conversion_rate }}%</td>
+            <td>{{ row.sessions }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h2>Top referrers (7d)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Referrer</th>
+            <th>Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, count in metrics.top_referrers %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h2>Top campaigns (7d)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Medium</th>
+            <th>Campaign</th>
+            <th>Views</th>
+            <th>Actions</th>
+            <th>Conversion</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in metrics.top_campaigns %}
+          <tr>
+            <td>{{ row.source }}</td>
+            <td>{{ row.medium }}</td>
+            <td>{{ row.campaign }}</td>
+            <td>{{ row.page_views }}</td>
+            <td>{{ row.actions }}</td>
+            <td>{{ row.conversion_rate }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
       <h2>Top modules (7d)</h2>
       <table>

@@ -9,6 +9,7 @@ import time
 import uuid
 from http.cookies import SimpleCookie
 from typing import Any, Dict, Iterable, List, Tuple
+from urllib.parse import parse_qs, urlparse
 
 from universe.registry import load_modules
 
@@ -127,6 +128,39 @@ def _client_ip(headers: Iterable[Tuple[bytes, bytes]], client: Any) -> str | Non
     return None
 
 
+def _extract_utm(query_string: bytes) -> Dict[str, str]:
+    if not query_string:
+        return {}
+    try:
+        parsed = parse_qs(query_string.decode("utf-8", errors="ignore"))
+    except Exception:
+        return {}
+    keys = {
+        "utm_source": "utm_source",
+        "utm_medium": "utm_medium",
+        "utm_campaign": "utm_campaign",
+        "utm_term": "utm_term",
+        "utm_content": "utm_content",
+    }
+    result: Dict[str, str] = {}
+    for key, out_key in keys.items():
+        values = parsed.get(key)
+        if values:
+            value = values[0].strip()
+            if value:
+                result[out_key] = value
+    return result
+
+
+def _referrer_host(referrer: str | None) -> str | None:
+    if not referrer:
+        return None
+    try:
+        return urlparse(referrer).netloc or None
+    except Exception:
+        return None
+
+
 class TelemetryClient:
     def __init__(self, dsn: str, *, auto_migrate: bool = True) -> None:
         try:
@@ -224,9 +258,20 @@ class TelemetryMiddleware:
 
         status_code = 500
         response_headers: List[Tuple[bytes, bytes]] = []
+        request_body_bytes = 0
+        response_body_bytes = 0
+
+        async def receive_wrapper() -> Dict[str, Any]:
+            nonlocal request_body_bytes
+            message = await receive()
+            if message["type"] == "http.request":
+                body = message.get("body", b"")
+                if body:
+                    request_body_bytes += len(body)
+            return message
 
         async def send_wrapper(message: Dict[str, Any]) -> None:
-            nonlocal status_code, response_headers
+            nonlocal status_code, response_headers, response_body_bytes
             if message["type"] == "http.response.start":
                 status_code = message.get("status", 500)
                 response_headers = list(message.get("headers", []))
@@ -238,9 +283,13 @@ class TelemetryMiddleware:
                 if not _header_value(response_headers, b"x-request-id"):
                     response_headers.append((b"x-request-id", request_id.encode("latin-1")))
                 message["headers"] = response_headers
+            if message["type"] == "http.response.body":
+                body = message.get("body", b"")
+                if body:
+                    response_body_bytes += len(body)
             await send(message)
 
-        await self.app(scope, receive, send_wrapper)
+        await self.app(scope, receive_wrapper, send_wrapper)
 
         duration_ms = int((time.perf_counter() - start) * 1000)
         root_path = scope.get("root_path", "")
@@ -249,6 +298,9 @@ class TelemetryMiddleware:
         referrer = _header_value(headers, b"referer")
         ua_hash = _hash_value(_header_value(headers, b"user-agent"))
         ip_hash = _hash_value(_client_ip(headers, scope.get("client")))
+        query_bytes = scope.get("query_string") or b""
+        utm = _extract_utm(query_bytes)
+        referrer_host = _referrer_host(referrer)
 
         event_type = "page_view" if method == "GET" else "action_submit"
         outcome = "success" if status_code < 400 else "error"
@@ -260,9 +312,16 @@ class TelemetryMiddleware:
             outcome = "client_error"
 
         content_length = _header_value(headers, b"content-length")
+        request_bytes = request_body_bytes
+        if not request_bytes and content_length and content_length.isdigit():
+            request_bytes = int(content_length)
         payload = {
             "content_length": int(content_length) if content_length and content_length.isdigit() else None,
-            "query_length": len(scope.get("query_string") or b""),
+            "query_length": len(query_bytes),
+            "request_bytes": request_bytes or None,
+            "response_bytes": response_body_bytes or None,
+            "referrer_host": referrer_host,
+            **utm,
         }
 
         event = {
