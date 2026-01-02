@@ -73,7 +73,7 @@
   <header class="hero">
     <div class="eyebrow">Sparky Planet</div>
     <h1>Sparky Study Sprint Planet</h1>
-    <p>Turn a study goal into a day-by-day sprint plan with clear sessions.</p>
+    <p>Build a detailed sprint plan with learning blocks, review cycles, and buffer days.</p>
   </header>
 
   <section class="panel brief-grid">
@@ -87,25 +87,36 @@
       <div class="field-row two">
         <div>
           <label for="days">Days available</label>
-          <input id="days" name="days" type="number" min="1" value="7">
+          <input id="days" name="days" type="number" min="2" value="10">
         </div>
         <div>
+          <label for="buffer_days">Buffer days</label>
+          <input id="buffer_days" name="buffer_days" type="number" min="0" value="2">
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
           <label for="minutes_per_day">Minutes per day</label>
-          <input id="minutes_per_day" name="minutes_per_day" type="number" min="10" value="90">
+          <input id="minutes_per_day" name="minutes_per_day" type="number" min="20" value="90">
+        </div>
+        <div>
+          <label for="session_length">Session length (minutes)</label>
+          <input id="session_length" name="session_length" type="number" min="15" value="25">
         </div>
       </div>
 
       <div>
-        <label for="session_length">Session length (minutes, optional)</label>
-        <input id="session_length" name="session_length" type="number" min="10" placeholder="25">
+        <label for="review_blocks_per_day">Review blocks per day</label>
+        <input id="review_blocks_per_day" name="review_blocks_per_day" type="number" min="0" value="1">
       </div>
 
       <div>
-        <label for="topics">Topics (one per line)</label>
-        <textarea id="topics" name="topics" placeholder="Cell structure
-Genetics
-Evolution
-Ecology"></textarea>
+        <label for="topics">Topics (one per line, optional: | priority 1-3 | difficulty 1-3)</label>
+        <textarea id="topics" name="topics" placeholder="Cell structure | 3 | 2
+Genetics | 2 | 3
+Evolution | 2 | 2
+Ecology | 1 | 1"></textarea>
       </div>
 
       <button type="submit">Build sprint plan</button>

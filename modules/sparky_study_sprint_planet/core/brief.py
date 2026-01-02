@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
@@ -35,65 +36,186 @@ def _split_lines(value: str | None) -> List[str]:
     return [line.strip() for line in cleaned.split("\n") if line.strip()]
 
 
+def _parse_topics(text: str | None) -> List[Dict[str, Any]]:
+    topics: List[Dict[str, Any]] = []
+    for line in _split_lines(text):
+        parts = [part.strip() for part in line.split("|")]
+        name = parts[0] if parts else ""
+        if not name:
+            continue
+        priority = 2
+        difficulty = 2
+        if len(parts) > 1 and parts[1].isdigit():
+            priority = max(1, min(int(parts[1]), 3))
+        if len(parts) > 2 and parts[2].isdigit():
+            difficulty = max(1, min(int(parts[2]), 3))
+        weight = priority * difficulty
+        topics.append(
+            {
+                "name": name,
+                "priority": priority,
+                "difficulty": difficulty,
+                "weight": weight,
+            }
+        )
+    return topics
+
+
+def _allocate_sessions(topics: List[Dict[str, Any]], total_sessions: int) -> Dict[str, int]:
+    if not topics:
+        return {}
+    total_weight = sum(topic["weight"] for topic in topics) or 1
+    allocations: List[Tuple[str, int, float]] = []
+    base_total = 0
+    for topic in topics:
+        raw = (total_sessions * topic["weight"]) / total_weight
+        base = int(math.floor(raw))
+        base_total += base
+        allocations.append((topic["name"], base, raw - base))
+
+    remaining = total_sessions - base_total
+    allocations.sort(key=lambda item: item[2], reverse=True)
+    counts: Dict[str, int] = {name: base for name, base, _ in allocations}
+    idx = 0
+    while remaining > 0 and allocations:
+        name, base, _ = allocations[idx % len(allocations)]
+        counts[name] += 1
+        remaining -= 1
+        idx += 1
+    return counts
+
+
+def _build_learn_queue(counts: Dict[str, int]) -> List[str]:
+    queue: List[str] = []
+    pool = sorted(counts.items(), key=lambda item: item[1], reverse=True)
+    remaining = {name: count for name, count in pool}
+    while any(count > 0 for count in remaining.values()):
+        for name, _ in pool:
+            if remaining[name] > 0:
+                queue.append(name)
+                remaining[name] -= 1
+    return queue
+
+
 def build_sprint_plan(
     *,
     goal: str | None,
     days: str | None,
     minutes_per_day: str | None,
     session_length: str | None,
+    buffer_days: str | None,
+    review_blocks_per_day: str | None,
     topics: str | None,
 ) -> Tuple[Dict[str, Any] | None, str | None]:
     goal_value, error = _require(goal, "Goal")
     if error:
         return None, error
-    days_value, error = _parse_int(days, "Days", 1)
+    days_value, error = _parse_int(days, "Days", 2)
     if error:
         return None, error
-    minutes_value, error = _parse_int(minutes_per_day, "Minutes per day", 10)
+    minutes_value, error = _parse_int(minutes_per_day, "Minutes per day", 20)
     if error:
         return None, error
 
     session_value = 25
     if session_length and str(session_length).strip():
-        session_value, error = _parse_int(session_length, "Session length", 10)
+        session_value, error = _parse_int(session_length, "Session length", 15)
         if error:
             return None, error
 
-    topic_list = _split_lines(topics)
-    if not topic_list:
+    buffer_value = 0
+    if buffer_days and str(buffer_days).strip():
+        buffer_value, error = _parse_int(buffer_days, "Buffer days", 0)
+        if error:
+            return None, error
+
+    review_value = 1
+    if review_blocks_per_day and str(review_blocks_per_day).strip():
+        review_value, error = _parse_int(
+            review_blocks_per_day, "Review blocks per day", 0
+        )
+        if error:
+            return None, error
+
+    topics_value = _parse_topics(topics)
+    if not topics_value:
         return None, "Topics are required."
 
     sessions_per_day = max(1, minutes_value // session_value)
-    total_sessions = sessions_per_day * days_value
+    buffer_value = min(buffer_value, max(days_value - 1, 0))
+    active_days = max(days_value - buffer_value, 1)
 
+    review_per_day = min(review_value, max(sessions_per_day - 1, 0))
+    review_sessions = review_per_day * max(active_days - 1, 0)
+    total_sessions = sessions_per_day * active_days
+    learn_sessions = max(total_sessions - review_sessions, 0)
+
+    counts = _allocate_sessions(topics_value, learn_sessions)
+    learn_queue = _build_learn_queue(counts)
+
+    learned_topics: List[str] = []
     schedule: List[str] = []
-    topic_counts = {topic: 0 for topic in topic_list}
-    topic_index = 0
+    review_index = 0
+    learn_index = 0
 
-    for day in range(1, days_value + 1):
+    for day in range(1, active_days + 1):
         day_items: List[str] = []
-        for _ in range(sessions_per_day):
-            topic = topic_list[topic_index]
-            topic_counts[topic] += 1
-            day_items.append(topic)
-            topic_index = (topic_index + 1) % len(topic_list)
-        day_summary = ", ".join(day_items)
-        schedule.append(f"Day {day}: {day_summary}")
+        review_slots = review_per_day if day > 1 else 0
+        learn_slots = sessions_per_day - review_slots
+
+        for _ in range(learn_slots):
+            if learn_index < len(learn_queue):
+                topic = learn_queue[learn_index]
+                learn_index += 1
+            else:
+                topic = learned_topics[review_index % len(learned_topics)] if learned_topics else "Review"
+            day_items.append(f"Learn — {topic}")
+            if topic not in learned_topics:
+                learned_topics.append(topic)
+
+        for _ in range(review_slots):
+            if learned_topics:
+                topic = learned_topics[review_index % len(learned_topics)]
+                review_index += 1
+                day_items.append(f"Review — {topic}")
+            else:
+                day_items.append("Review — (first learn)")
+
+        schedule.append(f"Day {day}: " + " | ".join(day_items))
+
+    for day in range(active_days + 1, days_value + 1):
+        schedule.append(f"Day {day}: Buffer / catch-up / rest")
+
+    milestone_day = max(1, active_days // 2)
+    milestones = [
+        f"Checkpoint day: {milestone_day}",
+        f"Final review day: {active_days}",
+    ]
 
     overview_lines = [
         f"Goal: {goal_value}",
-        f"Days: {days_value}",
+        f"Total days: {days_value}",
+        f"Active days: {active_days}",
+        f"Buffer days: {buffer_value}",
         f"Minutes per day: {minutes_value}",
         f"Session length: {session_value}",
         f"Sessions per day: {sessions_per_day}",
-        f"Total sessions: {total_sessions}",
+        f"Learning sessions: {learn_sessions}",
+        f"Review sessions: {review_sessions}",
     ]
 
-    topic_lines = [f"{topic}: {count} sessions" for topic, count in topic_counts.items()]
+    topic_lines = [
+        f"{topic['name']} (priority {topic['priority']}, difficulty {topic['difficulty']})"
+        for topic in topics_value
+    ]
+
+    allocation_lines = [f"{name}: {count} sessions" for name, count in counts.items()]
 
     sections = [
         BriefSection(title="Overview", lines=overview_lines),
         BriefSection(title="Topics", lines=topic_lines),
+        BriefSection(title="Session allocation", lines=allocation_lines),
+        BriefSection(title="Milestones", lines=milestones),
         BriefSection(title="Schedule", lines=schedule),
     ]
 

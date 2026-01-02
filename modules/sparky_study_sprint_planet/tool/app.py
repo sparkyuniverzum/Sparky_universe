@@ -42,6 +42,8 @@ def build(
     days: str | None = Form(None),
     minutes_per_day: str | None = Form(None),
     session_length: str | None = Form(None),
+    buffer_days: str | None = Form(None),
+    review_blocks_per_day: str | None = Form(None),
     topics: str | None = Form(None),
 ):
     payload, error = build_sprint_plan(
@@ -49,6 +51,8 @@ def build(
         days=days,
         minutes_per_day=minutes_per_day,
         session_length=session_length,
+        buffer_days=buffer_days,
+        review_blocks_per_day=review_blocks_per_day,
         topics=topics,
     )
     if error:
