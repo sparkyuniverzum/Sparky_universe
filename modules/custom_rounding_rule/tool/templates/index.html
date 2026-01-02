@@ -1,0 +1,70 @@
+{% extends "module_base.html" %}
+
+{% block title %}Custom Rounding Rule{% endblock %}
+{% block heading %}Custom Rounding Rule{% endblock %}
+{% block description %}Round amounts to a custom step with nearest/up/down rules.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/round" method="post">
+  <label for="amount">Amount</label>
+  <input id="amount" name="amount" placeholder="12.37" required>
+
+  <label for="step">Step (e.g. 0.05, 0.10, 1.00)</label>
+  <input id="step" name="step" placeholder="0.05" required>
+
+  <label for="mode">Mode</label>
+  <select id="mode" name="mode">
+    <option value="nearest">Nearest</option>
+    <option value="up">Up</option>
+    <option value="down">Down</option>
+  </select>
+
+  <button type="submit">Round</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Rounded amount</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Use custom cash rules.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/round`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

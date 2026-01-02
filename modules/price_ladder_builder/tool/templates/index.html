@@ -1,0 +1,69 @@
+{% extends "module_base.html" %}
+
+{% block title %}Price Ladder Builder{% endblock %}
+{% block heading %}Price Ladder Builder{% endblock %}
+{% block description %}Generate evenly spaced price points between min and max.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/build" method="post">
+  <label for="min_price">Minimum price</label>
+  <input id="min_price" name="min_price" placeholder="10" required>
+
+  <label for="max_price">Maximum price</label>
+  <input id="max_price" name="max_price" placeholder="100" required>
+
+  <label for="steps">Steps (optional)</label>
+  <input id="steps" name="steps" type="number" min="2" placeholder="5">
+
+  <label for="increment">Increment (optional)</label>
+  <input id="increment" name="increment" placeholder="2.5">
+
+  <button type="submit">Build ladder</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Price ladder</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Pick a price range fast.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/build`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

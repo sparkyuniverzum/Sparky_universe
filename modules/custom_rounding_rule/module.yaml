@@ -1,0 +1,30 @@
+name: custom_rounding_rule
+title: Custom Rounding Rule
+version: 0.0.1
+description: Round amounts to a custom step with nearest/up/down rules.
+public: true
+category: Money
+entrypoints:
+  api: modules.custom_rounding_rule.tool.app:app
+mount: /money/custom-rounding
+flows:
+  after_success:
+  - target: cashround
+    label: Cash rounding
+  - target: moneyformat
+    label: Format amounts
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

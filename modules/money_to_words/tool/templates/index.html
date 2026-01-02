@@ -1,0 +1,72 @@
+{% extends "module_base.html" %}
+
+{% block title %}Money to Words{% endblock %}
+{% block heading %}Money to Words{% endblock %}
+{% block description %}Convert an amount into words for invoices and checks.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/convert" method="post">
+  <label for="amount">Amount</label>
+  <input id="amount" name="amount" placeholder="1234.56" required>
+
+  <label for="language">Language</label>
+  <select id="language" name="language">
+    <option value="en">English</option>
+    <option value="cs">Czech</option>
+  </select>
+
+  <label for="major_label">Major unit label (optional)</label>
+  <input id="major_label" name="major_label" placeholder="dollars / korun">
+
+  <label for="minor_label">Minor unit label (optional)</label>
+  <input id="minor_label" name="minor_label" placeholder="cents / haléřů">
+
+  <button type="submit">Convert</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Amount in words</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Useful for invoices and receipts.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/convert`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

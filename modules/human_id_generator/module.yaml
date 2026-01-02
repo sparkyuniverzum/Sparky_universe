@@ -1,0 +1,30 @@
+name: human_id_generator
+title: Human-Friendly ID
+version: 0.0.1
+description: Generate readable IDs like INV-2025-000123.
+public: true
+category: Generators
+entrypoints:
+  api: modules.human_id_generator.tool.app:app
+mount: /generate/human-id
+flows:
+  after_success:
+  - target: sluggen
+    label: Generate slug
+  - target: uuid7gen
+    label: Generate UUID7
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

@@ -1,0 +1,30 @@
+name: money_to_words
+title: Money to Words
+version: 0.0.1
+description: Convert an amount into words for invoices and checks.
+public: true
+category: Money
+entrypoints:
+  api: modules.money_to_words.tool.app:app
+mount: /money/money-to-words
+flows:
+  after_success:
+  - target: moneyformat
+    label: Format amount
+  - target: currencyconvert
+    label: Convert currency
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

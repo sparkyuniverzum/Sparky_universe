@@ -1,0 +1,30 @@
+name: filename_generator
+title: Filename Generator
+version: 0.0.1
+description: Generate consistent file names with date and counters.
+public: true
+category: Generators
+entrypoints:
+  api: modules.filename_generator.tool.app:app
+mount: /generate/filename
+flows:
+  after_success:
+  - target: string_cleaner
+    label: Clean up list
+  - target: slug_tuner
+    label: Tune slugs
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

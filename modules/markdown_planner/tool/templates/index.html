@@ -1,0 +1,72 @@
+{% extends "module_base.html" %}
+
+{% block title %}Markdown Planner{% endblock %}
+{% block heading %}Markdown Planner{% endblock %}
+{% block description %}Plan discount levels from a base price.{% endblock %}
+
+{% block form %}
+<form id="module-form" action="{{ base_path }}/plan" method="post">
+  <label for="base_price">Base price</label>
+  <input id="base_price" name="base_price" placeholder="100" required>
+
+  <label for="discounts">Discounts (comma separated, optional)</label>
+  <input id="discounts" name="discounts" placeholder="10,20,30">
+
+  <label for="start">Start percent (optional)</label>
+  <input id="start" name="start" type="number" placeholder="10">
+
+  <label for="step">Step percent (optional)</label>
+  <input id="step" name="step" type="number" placeholder="10">
+
+  <label for="count">Count (optional)</label>
+  <input id="count" name="count" type="number" placeholder="3">
+
+  <button type="submit">Build plan</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Markdown plan</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Preview common discount ladders.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("module-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/plan`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      output.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
