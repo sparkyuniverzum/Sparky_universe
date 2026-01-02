@@ -1,0 +1,272 @@
+{% extends "planet_base.html" %}
+
+{% block title %}Sparky Fulfillment Room{% endblock %}
+
+{% block styles %}
+<style>
+  .intent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .intent-card {
+    border: 1px solid var(--planet-border);
+    border-radius: 16px;
+    padding: 16px;
+    background: var(--planet-card);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .intent-card.active {
+    border-color: var(--planet-accent);
+    box-shadow: 0 12px 28px rgba(31, 138, 112, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .intent-title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .intent-desc {
+    font-size: 0.9rem;
+    color: var(--planet-muted);
+    line-height: 1.4;
+  }
+
+  .sparky-status {
+    font-size: 0.9rem;
+    color: var(--planet-muted);
+    margin-bottom: 18px;
+  }
+
+  form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .intent-form {
+    display: none;
+  }
+
+  .intent-form.active {
+    display: grid;
+    gap: 16px;
+  }
+
+  .result-primary {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .result-value {
+    font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+    font-weight: 600;
+  }
+
+  .secondary-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .secondary-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    color: var(--planet-muted);
+  }
+
+  .sparky-line {
+    font-size: 0.95rem;
+    color: var(--planet-text);
+  }
+
+  .monetize-note {
+    font-size: 0.85rem;
+    color: var(--planet-muted);
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="scene">
+  <header class="hero">
+    <div class="eyebrow">Sparky Planet</div>
+    <h1>Sparky Fulfillment Room</h1>
+    <p>Describe what is happening in fulfillment today and get the numbers you need to act.</p>
+  </header>
+
+  <section class="intent-grid" id="intent-grid">
+    <button class="intent-card active" type="button" data-intent="labels">
+      <span class="intent-title">Print labels</span>
+      <span class="intent-desc">I have a batch of orders and need to know how many labels to print.</span>
+    </button>
+    <button class="intent-card" type="button" data-intent="slot_split">
+      <span class="intent-title">Packing slots</span>
+      <span class="intent-desc">I need to split orders across packing slots today.</span>
+    </button>
+    <button class="intent-card" type="button" data-intent="batch_id">
+      <span class="intent-title">Batch ID</span>
+      <span class="intent-desc">I want a simple batch ID for packaging and handoff.</span>
+    </button>
+    <button class="intent-card" type="button" data-intent="missing_check">
+      <span class="intent-title">Missing items</span>
+      <span class="intent-desc">I want to check what is missing vs today’s plan.</span>
+    </button>
+  </section>
+
+  <section class="panel">
+    <div class="sparky-status" id="sparky-status">Sparky: Ready to count labels.</div>
+    <form id="fulfillment-form">
+      <input type="hidden" id="intent" name="intent" value="labels">
+
+      <div class="intent-form active" data-intent="labels">
+        <label for="orders">Orders in batch</label>
+        <input id="orders" name="orders_labels" type="number" inputmode="numeric" step="1" placeholder="240">
+      </div>
+
+      <div class="intent-form" data-intent="slot_split">
+        <label for="orders_slots">Orders to pack</label>
+        <input id="orders_slots" name="orders_slots" type="number" inputmode="numeric" step="1" placeholder="120">
+
+        <label for="slots">Packing slots (or hours)</label>
+        <input id="slots" name="slots" type="number" inputmode="numeric" step="1" placeholder="4">
+      </div>
+
+      <div class="intent-form" data-intent="batch_id">
+        <label for="batch_name">Batch name</label>
+        <input id="batch_name" name="batch_name" placeholder="Morning Run">
+
+        <label for="batch_date">Date (optional)</label>
+        <input id="batch_date" name="batch_date" placeholder="20250214">
+      </div>
+
+      <div class="intent-form" data-intent="missing_check">
+        <label for="planned_items">Planned items</label>
+        <input id="planned_items" name="planned_items" type="number" inputmode="numeric" step="1" placeholder="480">
+
+        <label for="current_items">Current items</label>
+        <input id="current_items" name="current_items" type="number" inputmode="numeric" step="1" placeholder="452">
+      </div>
+
+      <button type="submit">Calculate</button>
+    </form>
+  </section>
+
+  <section class="result" id="result">
+    <div class="result-primary">
+      <div class="result-label" id="result-label">Result</div>
+      <div class="result-value" id="result-value">-</div>
+    </div>
+    <div class="secondary-list" id="secondary-list"></div>
+    <div class="sparky-line" id="sparky-line"></div>
+    <div class="monetize-note">Optional: advanced fulfillment scenarios are available in Pro.</div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const intentButtons = Array.from(document.querySelectorAll(".intent-card"));
+  const intentForms = Array.from(document.querySelectorAll(".intent-form"));
+  const intentField = document.getElementById("intent");
+  const sparkyStatus = document.getElementById("sparky-status");
+  const form = document.getElementById("fulfillment-form");
+  const result = document.getElementById("result");
+  const resultLabel = document.getElementById("result-label");
+  const resultValue = document.getElementById("result-value");
+  const secondaryList = document.getElementById("secondary-list");
+  const sparkyLine = document.getElementById("sparky-line");
+  const monetizeNote = document.querySelector(".monetize-note");
+
+  const intentCopy = {
+    labels: "Sparky: Ready to count labels.",
+    slot_split: "Sparky: Ready to split packing slots.",
+    batch_id: "Sparky: Ready to create a batch ID.",
+    missing_check: "Sparky: Ready to check missing items.",
+  };
+
+  const basePath = "{{ base_path }}";
+
+  const formatValue = (value, unit) => {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+      return value || "-";
+    }
+    const options = unit === "%" ? { maximumFractionDigits: 1 } : { maximumFractionDigits: 2 };
+    const formatted = value.toLocaleString(undefined, options);
+    return unit ? `${formatted}${unit}` : formatted;
+  };
+
+  const setIntent = (intent) => {
+    intentField.value = intent;
+    intentButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.intent === intent);
+    });
+    intentForms.forEach((formSection) => {
+      formSection.classList.toggle("active", formSection.dataset.intent === intent);
+    });
+    sparkyStatus.textContent = intentCopy[intent] || "Sparky is ready.";
+  };
+
+  intentButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setIntent(button.dataset.intent);
+    });
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/calculate`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      secondaryList.innerHTML = "";
+
+      if (!response.ok || data.error) {
+        resultLabel.textContent = "Error";
+        resultValue.textContent = data.error || "Something went wrong.";
+        resultValue.classList.add("error");
+        sparkyLine.textContent = "";
+        if (monetizeNote) {
+          monetizeNote.style.display = "none";
+        }
+        return;
+      }
+
+      resultValue.classList.remove("error");
+      resultLabel.textContent = data.primary.label;
+      resultValue.textContent = formatValue(data.primary.value, data.primary.unit);
+
+      data.secondary.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "secondary-item";
+        row.innerHTML = `<span>${item.label}</span><span>${formatValue(item.value, item.unit)}</span>`;
+        secondaryList.appendChild(row);
+      });
+
+      sparkyLine.textContent = data.sparky || "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "block";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      resultLabel.textContent = "Error";
+      resultValue.textContent = "Request failed.";
+      resultValue.classList.add("error");
+      sparkyLine.textContent = "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "none";
+      }
+    }
+  });
+
+  setIntent("labels");
+</script>
+{% endblock %}
