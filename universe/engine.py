@@ -57,6 +57,7 @@ CATEGORY_DESCRIPTIONS = {
     "Content QA": "Tone, readability, and copy consistency checks.",
     "Text/String": "Text utilities for cleaning, parsing, and transforming strings.",
     "Utilities": "Small, practical tools for quick one-off tasks.",
+    "Planets": "Larger tools for full situations, not single steps.",
     "Other": "Useful modules that do not fit a core category.",
 }
 DEFAULT_CATEGORY_DESCRIPTION = "Practical utilities for quick tasks."
