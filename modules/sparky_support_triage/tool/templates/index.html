@@ -1,0 +1,240 @@
+{% extends "planet_base.html" %}
+
+{% block title %}Sparky Support Triage Room{% endblock %}
+
+{% block styles %}
+<style>
+  .brief-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .section-title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    color: var(--planet-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .field-row {
+    display: grid;
+    gap: 12px;
+  }
+
+  .field-row.two {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  textarea {
+    min-height: 90px;
+    resize: vertical;
+  }
+
+  .result-primary {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .result-value {
+    font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+    font-weight: 600;
+  }
+
+  .sparky-line {
+    font-size: 0.95rem;
+    color: var(--planet-text);
+  }
+
+  .monetize-note {
+    font-size: 0.85rem;
+    color: var(--planet-muted);
+  }
+
+  .brief-output {
+    margin: 0;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(31, 138, 112, 0.2);
+    background: #fefcf8;
+    white-space: pre-wrap;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="scene">
+  <header class="hero">
+    <div class="eyebrow">Sparky Planet</div>
+    <h1>Sparky Support Triage Room</h1>
+    <p>Turn incoming issues into a crisp triage brief for fast response.</p>
+  </header>
+
+  <section class="panel brief-grid">
+    <h2 class="section-title">Inputs</h2>
+    <form id="triage-form">
+      <div class="field-row two">
+        <div>
+          <label for="issue_title">Issue title</label>
+          <input id="issue_title" name="issue_title" placeholder="Login outage in EU">
+        </div>
+        <div>
+          <label for="report_time">Report time</label>
+          <input id="report_time" name="report_time" placeholder="2025-03-01 09:20 UTC">
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="reported_by">Reported by</label>
+          <input id="reported_by" name="reported_by" placeholder="Support lead">
+        </div>
+        <div>
+          <label for="severity">Severity</label>
+          <input id="severity" name="severity" placeholder="High">
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="impact_scope">Impact scope</label>
+          <input id="impact_scope" name="impact_scope" placeholder="EU region">
+        </div>
+        <div>
+          <label for="user_impact">User impact</label>
+          <input id="user_impact" name="user_impact" placeholder="Users cannot log in">
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="affected_product">Affected product</label>
+          <input id="affected_product" name="affected_product" placeholder="Web app">
+        </div>
+        <div>
+          <label for="environment">Environment</label>
+          <input id="environment" name="environment" placeholder="Production">
+        </div>
+      </div>
+
+      <div>
+        <label for="symptoms">Symptoms (one per line)</label>
+        <textarea id="symptoms" name="symptoms" placeholder="Login returns 500\nSessions not created"></textarea>
+      </div>
+
+      <div>
+        <label for="reproduction">Reproduction steps (optional)</label>
+        <textarea id="reproduction" name="reproduction" placeholder="Open /login, enter valid credentials, see error."></textarea>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="recent_changes">Recent changes (optional, one per line)</label>
+          <textarea id="recent_changes" name="recent_changes" placeholder="Auth service deploy 08:55\nNew CDN rules"></textarea>
+        </div>
+        <div>
+          <label for="logs">Logs & evidence (optional, one per line)</label>
+          <textarea id="logs" name="logs" placeholder="Sentry event #1234\nCloudWatch alarm 09:10"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <label for="workarounds">Workarounds (optional, one per line)</label>
+        <textarea id="workarounds" name="workarounds" placeholder="Use mobile app\nRetry after 5 minutes"></textarea>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="owner">Owner (optional)</label>
+          <input id="owner" name="owner" placeholder="On-call engineer">
+        </div>
+        <div>
+          <label for="next_action">Next action</label>
+          <input id="next_action" name="next_action" placeholder="Roll back auth deploy and monitor">
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="comms_plan">Comms plan (optional)</label>
+          <input id="comms_plan" name="comms_plan" placeholder="Status page update every 30 minutes">
+        </div>
+        <div>
+          <label for="constraints">Constraints (optional, one per line)</label>
+          <textarea id="constraints" name="constraints" placeholder="Cannot disable SSO\nNo DB restarts"></textarea>
+        </div>
+      </div>
+
+      <button type="submit">Build triage brief</button>
+    </form>
+  </section>
+
+  <section class="result" id="result">
+    <div class="result-primary">
+      <div class="result-label" id="result-label">Brief</div>
+      <div class="result-value" id="result-value">-</div>
+    </div>
+    <pre class="brief-output" id="brief-output">-</pre>
+    <div class="sparky-line" id="sparky-line"></div>
+    <div class="monetize-note">Optional: pro incident templates and export options are available in Pro.</div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("triage-form");
+  const result = document.getElementById("result");
+  const resultValue = document.getElementById("result-value");
+  const briefOutput = document.getElementById("brief-output");
+  const sparkyLine = document.getElementById("sparky-line");
+  const monetizeNote = document.querySelector(".monetize-note");
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/build`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        resultValue.textContent = data.error || "Something went wrong.";
+        resultValue.classList.add("error");
+        briefOutput.textContent = "-";
+        sparkyLine.textContent = "";
+        if (monetizeNote) {
+          monetizeNote.style.display = "none";
+        }
+        return;
+      }
+
+      resultValue.classList.remove("error");
+      resultValue.textContent = data.title || "Triage Brief";
+      briefOutput.textContent = data.brief_text || "-";
+      sparkyLine.textContent = data.sparky || "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "block";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      resultValue.textContent = "Request failed.";
+      resultValue.classList.add("error");
+      briefOutput.textContent = "-";
+      sparkyLine.textContent = "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "none";
+      }
+    }
+  });
+</script>
+{% endblock %}

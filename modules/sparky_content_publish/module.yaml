@@ -1,0 +1,24 @@
+name: sparky_content_publish
+title: Sparky Content Publish Room
+version: 0.0.1
+description: Turn a draft into a ready-to-publish brief.
+public: true
+category: Planets
+entrypoints:
+  api: modules.sparky_content_publish.tool.app:app
+mount: /planet/content-publish
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P1
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

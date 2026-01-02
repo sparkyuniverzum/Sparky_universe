@@ -1,0 +1,265 @@
+{% extends "planet_base.html" %}
+
+{% block title %}Sparky Data Intake Room{% endblock %}
+
+{% block styles %}
+<style>
+  .brief-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .section-title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    color: var(--planet-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .field-row {
+    display: grid;
+    gap: 12px;
+  }
+
+  .field-row.two {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  textarea {
+    min-height: 90px;
+    resize: vertical;
+  }
+
+  .result-primary {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .result-value {
+    font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+    font-weight: 600;
+  }
+
+  .sparky-line {
+    font-size: 0.95rem;
+    color: var(--planet-text);
+  }
+
+  .monetize-note {
+    font-size: 0.85rem;
+    color: var(--planet-muted);
+  }
+
+  .brief-output {
+    margin: 0;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(31, 138, 112, 0.2);
+    background: #fefcf8;
+    white-space: pre-wrap;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="scene">
+  <header class="hero">
+    <div class="eyebrow">Sparky Planet</div>
+    <h1>Sparky Data Intake Room</h1>
+    <p>Turn an intake request into a crisp, handoff-ready data brief.</p>
+  </header>
+
+  <section class="panel brief-grid">
+    <h2 class="section-title">Inputs</h2>
+    <form id="intake-form">
+      <div class="field-row two">
+        <div>
+          <label for="dataset_name">Dataset name (optional)</label>
+          <input id="dataset_name" name="dataset_name" placeholder="Customer Orders v2">
+        </div>
+        <div>
+          <label for="deadline">Deadline (optional)</label>
+          <input id="deadline" name="deadline" placeholder="2025-03-30">
+        </div>
+      </div>
+
+      <div>
+        <label for="purpose">Purpose</label>
+        <textarea id="purpose" name="purpose" placeholder="Support weekly revenue reporting for leadership."></textarea>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="source_system">Source system</label>
+          <input id="source_system" name="source_system" placeholder="Shopify">
+        </div>
+        <div>
+          <label for="data_format">Data format</label>
+          <input id="data_format" name="data_format" placeholder="CSV export">
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="refresh_cadence">Refresh cadence</label>
+          <input id="refresh_cadence" name="refresh_cadence" placeholder="Daily">
+        </div>
+        <div>
+          <label for="delivery_method">Delivery method</label>
+          <input id="delivery_method" name="delivery_method" placeholder="S3 drop">
+        </div>
+      </div>
+
+      <div>
+        <label for="volume_estimate">Volume estimate (optional)</label>
+        <input id="volume_estimate" name="volume_estimate" placeholder="~120k rows per month">
+      </div>
+
+      <div>
+        <label for="included_entities">Included entities (one per line)</label>
+        <textarea id="included_entities" name="included_entities" placeholder="Orders\nCustomers\nLine items"></textarea>
+      </div>
+
+      <div>
+        <label for="exclusions">Exclusions (optional, one per line)</label>
+        <textarea id="exclusions" name="exclusions" placeholder="Refunds\nTest orders"></textarea>
+      </div>
+
+      <div>
+        <label for="key_fields">Key fields (one per line)</label>
+        <textarea id="key_fields" name="key_fields" placeholder="order_id\norder_date\nnet_revenue\ncustomer_id"></textarea>
+      </div>
+
+      <div>
+        <label for="identifiers">Identifiers (one per line)</label>
+        <textarea id="identifiers" name="identifiers" placeholder="order_id\ncustomer_id"></textarea>
+      </div>
+
+      <div>
+        <label for="time_fields">Time fields (optional, one per line)</label>
+        <textarea id="time_fields" name="time_fields" placeholder="order_date\nfulfilled_at"></textarea>
+      </div>
+
+      <div>
+        <label for="transformations">Required transformations (one per line)</label>
+        <textarea id="transformations" name="transformations" placeholder="Normalize currencies to USD\nTrim whitespace in customer_email"></textarea>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="quality_risks">Known quality risks (optional)</label>
+          <textarea id="quality_risks" name="quality_risks" placeholder="Missing customer_email on 12% of records"></textarea>
+        </div>
+        <div>
+          <label for="missing_rules">Missing data rules (optional)</label>
+          <textarea id="missing_rules" name="missing_rules" placeholder="If net_revenue missing, drop row"></textarea>
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="access_constraints">Access constraints (optional)</label>
+          <textarea id="access_constraints" name="access_constraints" placeholder="Read-only access\nNo PII export"></textarea>
+        </div>
+        <div>
+          <label for="privacy_notes">Privacy notes (optional)</label>
+          <textarea id="privacy_notes" name="privacy_notes" placeholder="PII must be hashed before sharing"></textarea>
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="next_action">Next action</label>
+          <input id="next_action" name="next_action" placeholder="Confirm field list with data owner">
+        </div>
+        <div>
+          <label for="owner">Owner (optional)</label>
+          <input id="owner" name="owner" placeholder="Data Ops">
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div>
+          <label for="contact">Contact (optional)</label>
+          <input id="contact" name="contact" placeholder="data-team@company.com">
+        </div>
+        <div>
+          <label for="notes">Notes (optional)</label>
+          <input id="notes" name="notes" placeholder="Use the new sales_region mapping">
+        </div>
+      </div>
+
+      <button type="submit">Build intake brief</button>
+    </form>
+  </section>
+
+  <section class="result" id="result">
+    <div class="result-primary">
+      <div class="result-label" id="result-label">Brief</div>
+      <div class="result-value" id="result-value">-</div>
+    </div>
+    <pre class="brief-output" id="brief-output">-</pre>
+    <div class="sparky-line" id="sparky-line"></div>
+    <div class="monetize-note">Optional: pro templates and export options are available in Pro.</div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("intake-form");
+  const result = document.getElementById("result");
+  const resultValue = document.getElementById("result-value");
+  const briefOutput = document.getElementById("brief-output");
+  const sparkyLine = document.getElementById("sparky-line");
+  const monetizeNote = document.querySelector(".monetize-note");
+
+  const basePath = "{{ base_path }}";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/build`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        resultValue.textContent = data.error || "Something went wrong.";
+        resultValue.classList.add("error");
+        briefOutput.textContent = "-";
+        sparkyLine.textContent = "";
+        if (monetizeNote) {
+          monetizeNote.style.display = "none";
+        }
+        return;
+      }
+
+      resultValue.classList.remove("error");
+      resultValue.textContent = data.title || "Data Intake Brief";
+      briefOutput.textContent = data.brief_text || "-";
+      sparkyLine.textContent = data.sparky || "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "block";
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      resultValue.textContent = "Request failed.";
+      resultValue.classList.add("error");
+      briefOutput.textContent = "-";
+      sparkyLine.textContent = "";
+      if (monetizeNote) {
+        monetizeNote.style.display = "none";
+      }
+    }
+  });
+</script>
+{% endblock %}
