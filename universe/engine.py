@@ -281,6 +281,7 @@ def build_app() -> FastAPI:
             {
                 "request": request,
                 "modules": items,
+                "satellites": list_satellites(),
                 "overrides_source": overrides_source(),
                 "db_check": db_check,
                 "admin_base": admin_prefix,

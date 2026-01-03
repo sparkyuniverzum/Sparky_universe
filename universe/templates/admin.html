@@ -356,10 +356,11 @@
   </head>
   <body>
     <main class="shell">
-      {% set total = modules | length %}
-      {% set enabled_count = modules | selectattr('enabled') | list | length %}
-      {% set public_count = modules | selectattr('public') | list | length %}
+      {% set planets = modules | selectattr('category', 'equalto', 'Planets') | list %}
+      {% set stars = modules | rejectattr('category', 'equalto', 'Planets') | list %}
+      {% set enabled_count = stars | selectattr('enabled') | list | length %}
       {% set issue_count = modules | selectattr('lint_issues') | list | length %}
+      {% set satellite_count = satellites | length if satellites is defined else 0 %}
       <div class="header">
         <div class="header-info">
           <div class="eyebrow">Control Panel</div>
@@ -404,12 +405,16 @@
       {% endif %}
       <section class="stat-strip">
         <div class="stat-card">
-          <div class="stat-label">Total stars</div>
-          <div class="stat-value">{{ total }}</div>
+          <div class="stat-label">Stars</div>
+          <div class="stat-value">{{ stars | length }}</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Public stars</div>
-          <div class="stat-value">{{ public_count }}</div>
+          <div class="stat-label">Planets</div>
+          <div class="stat-value">{{ planets | length }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Satellites</div>
+          <div class="stat-value">{{ satellite_count }}</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Enabled stars</div>
@@ -422,8 +427,8 @@
       </section>
       <section class="table-card">
         <div class="table-header">
-          <h2>Stars</h2>
-          <p>{{ total }} total · {{ enabled_count }} enabled · {{ public_count }} public</p>
+          <h2>Stars & Planets</h2>
+          <p>{{ stars | length }} stars · {{ planets | length }} planets · {{ enabled_count }} stars enabled</p>
         </div>
         <table>
           <thead>
