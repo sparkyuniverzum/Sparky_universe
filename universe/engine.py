@@ -293,7 +293,126 @@ def build_app() -> FastAPI:
         metrics = fetch_metrics()
         return templates.TemplateResponse(
             "admin_metrics.html",
-            {"request": request, "metrics": metrics, "admin_base": admin_prefix},
+            {
+                "request": request,
+                "metrics": metrics,
+                "admin_base": admin_prefix,
+                "group_links": [
+                    {"label": "Stars", "href": f"{admin_prefix}/metrics/stars"},
+                    {"label": "Planets", "href": f"{admin_prefix}/metrics/planets"},
+                    {"label": "Satellites", "href": f"{admin_prefix}/metrics/satellites"},
+                ],
+            },
+        )
+
+    def _group_metrics(metrics: dict[str, Any], names: set[str]) -> dict[str, Any]:
+        if not metrics.get("ok"):
+            return {
+                "ok": False,
+                "detail": metrics.get("detail", ""),
+                "summary": {},
+                "by_module_usage": [],
+                "by_module": [],
+            }
+        by_module_usage = [
+            row for row in metrics.get("by_module_usage", []) if row.get("module") in names
+        ]
+        by_module = [
+            (name, count)
+            for name, count in metrics.get("by_module", [])
+            if name in names
+        ]
+        total_views = sum(row.get("page_views", 0) for row in by_module_usage)
+        total_actions = sum(row.get("actions", 0) for row in by_module_usage)
+        total_sessions = sum(row.get("sessions", 0) for row in by_module_usage)
+        conversion = round((total_actions / total_views) * 100, 1) if total_views else 0.0
+        return {
+            "ok": True,
+            "detail": metrics.get("detail", ""),
+            "summary": {
+                "items": len(by_module_usage),
+                "page_views_7d": total_views,
+                "actions_7d": total_actions,
+                "sessions_7d": total_sessions,
+                "conversion_rate_7d": conversion,
+            },
+            "by_module_usage": by_module_usage,
+            "by_module": by_module,
+        }
+
+    def _planet_names() -> set[str]:
+        return {
+            meta.get("name", "")
+            for meta in load_modules().values()
+            if meta.get("category") == "Planets"
+        }
+
+    def _star_names() -> set[str]:
+        return {
+            meta.get("name", "")
+            for meta in load_modules().values()
+            if meta.get("category") != "Planets"
+        }
+
+    def _satellite_names() -> set[str]:
+        names = set()
+        for satellite in list_satellites():
+            slug = satellite.get("slug") or satellite.get("id") or ""
+            if slug:
+                names.add(f"satellite:{slug}")
+        return names
+
+    def _group_links() -> list[dict[str, str]]:
+        return [
+            {"label": "All metrics", "href": f"{admin_prefix}/metrics"},
+            {"label": "Stars", "href": f"{admin_prefix}/metrics/stars"},
+            {"label": "Planets", "href": f"{admin_prefix}/metrics/planets"},
+            {"label": "Satellites", "href": f"{admin_prefix}/metrics/satellites"},
+        ]
+
+    @app.get(f"{admin_prefix}/metrics/stars", response_class=HTMLResponse)
+    def admin_metrics_stars(request: Request, _: None = Depends(require_admin)):
+        metrics = fetch_metrics()
+        group_metrics = _group_metrics(metrics, _star_names())
+        return templates.TemplateResponse(
+            "admin_metrics_group.html",
+            {
+                "request": request,
+                "metrics": group_metrics,
+                "group_name": "Stars",
+                "admin_base": admin_prefix,
+                "group_links": _group_links(),
+            },
+        )
+
+    @app.get(f"{admin_prefix}/metrics/planets", response_class=HTMLResponse)
+    def admin_metrics_planets(request: Request, _: None = Depends(require_admin)):
+        metrics = fetch_metrics()
+        group_metrics = _group_metrics(metrics, _planet_names())
+        return templates.TemplateResponse(
+            "admin_metrics_group.html",
+            {
+                "request": request,
+                "metrics": group_metrics,
+                "group_name": "Planets",
+                "admin_base": admin_prefix,
+                "group_links": _group_links(),
+            },
+        )
+
+    @app.get(f"{admin_prefix}/metrics/satellites", response_class=HTMLResponse)
+    def admin_metrics_satellites(request: Request, _: None = Depends(require_admin)):
+        metrics = fetch_metrics()
+        group_metrics = _group_metrics(metrics, _satellite_names())
+        return templates.TemplateResponse(
+            "admin_metrics_group.html",
+            {
+                "request": request,
+                "metrics": group_metrics,
+                "group_name": "Satellites",
+                "admin_base": admin_prefix,
+                "group_links": _group_links(),
+            },
         )
 
     @app.get("/satellites/finance-orbit", response_class=HTMLResponse)

@@ -13,6 +13,7 @@ from typing import Any, Dict, Iterable, List, Tuple
 from urllib.parse import parse_qs, urlparse
 
 from universe.registry import load_modules
+from universe.satellites import list_satellites
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +89,18 @@ def _build_module_map() -> Dict[str, str]:
         if not mount.startswith("/"):
             mount = "/" + mount
         mount_map[mount.rstrip("/")] = meta["name"]
+    try:
+        satellites = list_satellites()
+    except Exception:
+        satellites = []
+    for satellite in satellites:
+        mount = satellite.get("mount") or ""
+        if not mount:
+            continue
+        if not mount.startswith("/"):
+            mount = "/" + mount
+        slug = satellite.get("slug") or satellite.get("id") or mount.strip("/")
+        mount_map[mount.rstrip("/")] = f"satellite:{slug}"
     return mount_map
 
 

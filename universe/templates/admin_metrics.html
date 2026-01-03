@@ -248,6 +248,11 @@
         </div>
         <div class="header-actions">
           <a class="link-button" href="{{ admin_base }}">Back to admin</a>
+          {% if group_links %}
+          {% for link in group_links %}
+          <a class="link-button" href="{{ link.href }}">{{ link.label }}</a>
+          {% endfor %}
+          {% endif %}
         </div>
       </div>
 
@@ -292,7 +297,7 @@
             <div class="stat-value">{{ metrics.summary.last_7d }}</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Distinct stars</div>
+            <div class="stat-label">Distinct items</div>
             <div class="stat-value">{{ metrics.summary.distinct_modules }}</div>
           </div>
           <div class="stat-card">
@@ -345,13 +350,13 @@
 
       <section class="table-card">
         <div class="table-header">
-          <h2>Star usage (7d)</h2>
+          <h2>Item usage (7d)</h2>
           <p class="muted">Views, actions, and conversion.</p>
         </div>
         <table>
           <thead>
             <tr>
-              <th>Star</th>
+              <th>Item</th>
               <th>Views</th>
               <th>Actions</th>
               <th>Conversion</th>
@@ -428,13 +433,13 @@
 
       <section class="table-card">
         <div class="table-header">
-          <h2>Top stars (7d)</h2>
-          <p class="muted">Most active stars by events.</p>
+          <h2>Top items (7d)</h2>
+          <p class="muted">Most active items by events.</p>
         </div>
         <table>
           <thead>
             <tr>
-              <th>Star</th>
+              <th>Item</th>
               <th>Events</th>
             </tr>
           </thead>
