@@ -9,15 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
       :root {
-        --bg: #f6f2ea;
-        --panel: #ffffff;
-        --panel-solid: #fffdf9;
-        --text: #1a1b1f;
-        --muted: #6b6f76;
-        --border: rgba(24, 28, 36, 0.12);
-        --accent: #1b7f7a;
-        --accent-2: #e07a5f;
-        --shadow: 0 24px 50px rgba(20, 20, 20, 0.12);
+        --bg: #0b0b0b;
+        --panel: #101010;
+        --panel-solid: #131313;
+        --text: #f5f5f0;
+        --muted: #b1a97a;
+        --border: rgba(255, 215, 0, 0.2);
+        --accent: #f6c945;
+        --accent-2: #ffd86b;
+        --shadow: 0 24px 50px rgba(0, 0, 0, 0.55);
       }
 
       * {
@@ -28,8 +28,8 @@
         margin: 0;
         min-height: 100vh;
         font-family: "Manrope", system-ui, -apple-system, sans-serif;
-        background: linear-gradient(135deg, rgba(27, 127, 122, 0.08), transparent 60%),
-          linear-gradient(315deg, rgba(224, 122, 95, 0.12), transparent 60%),
+        background: radial-gradient(circle at 15% 10%, rgba(255, 215, 0, 0.15), transparent 50%),
+          radial-gradient(circle at 80% 0%, rgba(255, 178, 0, 0.12), transparent 55%),
           var(--bg);
         color: var(--text);
         padding: 32px 20px 48px;
@@ -54,7 +54,7 @@
         left: 0;
         right: 0;
         height: 8px;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        background: linear-gradient(90deg, var(--accent), #ffb800);
       }
 
       h1 {
@@ -83,7 +83,7 @@
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.2em;
-        color: rgba(27, 127, 122, 0.8);
+        color: rgba(255, 215, 0, 0.75);
         margin-bottom: 8px;
       }
 
@@ -91,7 +91,7 @@
         padding: 7px 12px;
         border-radius: 10px;
         border: 1px solid var(--border);
-        background: rgba(248, 244, 238, 0.9);
+        background: rgba(20, 20, 20, 0.9);
         color: var(--text);
         text-decoration: none;
         display: inline-flex;
@@ -105,10 +105,10 @@
       }
 
       .card {
-        border: 1px solid rgba(236, 180, 88, 0.35);
+        border: 1px solid rgba(255, 215, 0, 0.35);
         border-radius: 18px;
         padding: 18px 20px;
-        background: linear-gradient(160deg, rgba(34, 28, 20, 0.92), rgba(16, 14, 12, 0.92));
+        background: linear-gradient(160deg, rgba(24, 24, 24, 0.96), rgba(10, 10, 10, 0.96));
         display: grid;
         gap: 10px;
         box-shadow: 0 18px 36px rgba(12, 9, 6, 0.45);
@@ -121,18 +121,18 @@
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.18em;
-        color: rgba(236, 180, 88, 0.85);
+        color: rgba(255, 215, 0, 0.85);
       }
 
       .card h2 {
         margin: 0;
         font-size: 1.15rem;
-        color: #f5e4c8;
+        color: #ffe08a;
       }
 
       .card p {
         margin: 0;
-        color: rgba(243, 231, 215, 0.75);
+        color: rgba(255, 232, 170, 0.65);
       }
 
       .card-actions {
@@ -142,7 +142,7 @@
       }
 
       .card-actions a {
-        color: #f2c46d;
+        color: #ffd86b;
         text-decoration: none;
         font-weight: 600;
         font-size: 0.9rem;
@@ -151,7 +151,7 @@
       .mono {
         font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-size: 0.78rem;
-        color: rgba(243, 231, 215, 0.65);
+        color: rgba(255, 223, 140, 0.6);
       }
     </style>
   </head>
