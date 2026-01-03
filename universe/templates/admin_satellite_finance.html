@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sparky Universe · Finance Orbit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg: #0b0d12;
+        --panel: rgba(17, 20, 28, 0.92);
+        --panel-solid: #151924;
+        --text: #f3f6ff;
+        --muted: #9aa6c2;
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #6fb7ff;
+        --ok: #53d38f;
+        --bad: #ff7b7b;
+        --warn: #f6c356;
+        --shadow: 0 24px 60px rgba(4, 6, 10, 0.5);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(74, 126, 255, 0.16), transparent 55%),
+          radial-gradient(circle at 85% 0%, rgba(92, 222, 200, 0.15), transparent 55%),
+          var(--bg);
+        color: var(--text);
+        padding: 32px 20px 48px;
+      }
+
+      .shell {
+        max-width: 1250px;
+        margin: 0 auto;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 28px 28px 32px;
+        backdrop-filter: blur(14px);
+        box-shadow: var(--shadow);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 2.1rem;
+        letter-spacing: -0.02em;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        letter-spacing: -0.01em;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .eyebrow {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(155, 186, 255, 0.8);
+        margin-bottom: 8px;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .header-info {
+        display: grid;
+        gap: 6px;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .link-button {
+        padding: 7px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(18, 24, 34, 0.9);
+        color: var(--text);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.9rem;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.82rem;
+        color: var(--muted);
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(17, 20, 28, 0.7);
+        border: 1px solid var(--border);
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--muted);
+      }
+
+      .status-dot.ok {
+        background: var(--ok);
+      }
+
+      .status-dot.error {
+        background: var(--bad);
+      }
+
+      .status-dot.warn {
+        background: var(--warn);
+      }
+
+      .section {
+        margin-bottom: 22px;
+      }
+
+      .section-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: baseline;
+        justify-content: space-between;
+        margin: 0 0 12px;
+      }
+
+      .stat-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .stat-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 12px 14px;
+        background: var(--panel-solid);
+      }
+
+      .stat-label {
+        font-size: 0.72rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .stat-value {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-top: 6px;
+      }
+
+      .table-card {
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: rgba(12, 14, 20, 0.65);
+        overflow: hidden;
+        margin-bottom: 22px;
+      }
+
+      .table-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(10, 12, 18, 0.7);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        background: rgba(14, 16, 22, 0.7);
+      }
+
+      .note {
+        font-size: 0.85rem;
+        color: var(--warn);
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(246, 195, 86, 0.3);
+        background: rgba(246, 195, 86, 0.08);
+        margin-bottom: 18px;
+      }
+
+      pre {
+        margin: 0;
+        padding: 16px 18px;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+      }
+
+      button {
+        padding: 7px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(18, 24, 34, 0.9);
+        color: var(--text);
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          padding: 24px 18px;
+        }
+
+        th,
+        td {
+          padding: 10px 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="header">
+        <div class="header-info">
+          <div class="eyebrow">Satellite</div>
+          <h1>Sparky Finance Orbit · CZ Core</h1>
+          <span class="status">
+            {% if run_status.ok is none %}
+            <span class="status-dot warn"></span>
+            <span>No runs yet</span>
+            {% elif run_status.ok %}
+            <span class="status-dot ok"></span>
+            <span>Last run ok · {{ run_time or "unknown" }}</span>
+            {% else %}
+            <span class="status-dot error"></span>
+            <span>Last run failed · {{ run_time or "unknown" }}</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="header-actions">
+          <a class="link-button" href="{{ admin_base }}">Back to admin</a>
+          <a class="link-button" href="{{ api_path }}">API (latest)</a>
+          <form method="post" action="{{ admin_base }}/satellites/finance-orbit/run">
+            <button type="submit">Run fetch</button>
+          </form>
+        </div>
+      </div>
+
+      {% if snapshot_error %}
+      <div class="note">{{ snapshot_error }}</div>
+      {% endif %}
+
+      <section class="section">
+        <div class="section-header">
+          <h2>Snapshot</h2>
+          <p>Latest stored data from CNB.</p>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Collected at</div>
+            <div class="stat-value">{{ snapshot.collected_at if snapshot else "-" }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Data points</div>
+            <div class="stat-value">{{ data_entries | length }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Repo rate</div>
+            <div class="stat-value">
+              {% if repo_entry %}{{ repo_entry.value }} %{% else %}-{% endif %}
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Repo valid from</div>
+            <div class="stat-value">
+              {% if repo_entry and repo_entry.valid_from %}{{ repo_entry.valid_from }}{% else %}-{% endif %}
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Repo valid to</div>
+            <div class="stat-value">
+              {% if repo_entry and repo_entry.valid_to %}{{ repo_entry.valid_to }}{% else %}-{% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Latest data</h2>
+          <p>Structured payload entries.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Value</th>
+              <th>Unit</th>
+              <th>Type</th>
+              <th>Valid from</th>
+              <th>Valid to</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if data_entries %}
+            {% for entry in data_entries %}
+            <tr>
+              <td>{{ entry.key }}</td>
+              <td>{{ entry.value }}</td>
+              <td>{{ entry.unit }}</td>
+              <td>{{ entry.type }}</td>
+              <td>{{ entry.valid_from or "-" }}</td>
+              <td>{{ entry.valid_to or "-" }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="6">No data stored yet.</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Raw payload</h2>
+          <p>Exact JSON stored in Postgres.</p>
+        </div>
+        <pre>{{ snapshot_json or "{}" }}</pre>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,12 +1,20 @@
 from __future__ import annotations
 
 from importlib import import_module
+import json
 import logging
 from pathlib import Path
 from typing import Any
+from datetime import datetime
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -41,6 +49,11 @@ from universe.seo import (
     seo_module_json_ld,
     seo_site_json_ld,
     sitemap_xml,
+)
+from universe.satellite_finance_orbit import (
+    fetch_latest_snapshot,
+    last_finance_orbit_run,
+    run_finance_orbit,
 )
 from universe.telemetry import attach_telemetry
 
@@ -257,6 +270,53 @@ def build_app() -> FastAPI:
             "admin_metrics.html",
             {"request": request, "metrics": metrics, "admin_base": admin_prefix},
         )
+
+    @app.get(f"{admin_prefix}/satellites/finance-orbit", response_class=HTMLResponse)
+    def admin_finance_orbit(request: Request, _: None = Depends(require_admin)):
+        snapshot, snapshot_error = fetch_latest_snapshot()
+        run_status = last_finance_orbit_run()
+        run_time = None
+        if run_status.get("ts"):
+            run_time = datetime.utcfromtimestamp(run_status["ts"]).strftime(
+                "%Y-%m-%d %H:%M:%S UTC"
+            )
+        data_entries = snapshot.get("data", []) if snapshot else []
+        repo_entry = next(
+            (item for item in data_entries if item.get("key") == "REPO_RATE"),
+            None,
+        )
+        snapshot_json = (
+            json.dumps(snapshot, indent=2, ensure_ascii=True) if snapshot else ""
+        )
+        return templates.TemplateResponse(
+            "admin_satellite_finance.html",
+            {
+                "request": request,
+                "admin_base": admin_prefix,
+                "snapshot": snapshot,
+                "snapshot_error": snapshot_error,
+                "snapshot_json": snapshot_json,
+                "data_entries": data_entries,
+                "repo_entry": repo_entry,
+                "run_status": run_status,
+                "run_time": run_time,
+                "api_path": f"{admin_prefix}/satellites/finance-orbit/latest",
+            },
+        )
+
+    @app.post(f"{admin_prefix}/satellites/finance-orbit/run")
+    def admin_finance_orbit_run(_: None = Depends(require_admin)):
+        run_finance_orbit()
+        return RedirectResponse(
+            url=f"{admin_prefix}/satellites/finance-orbit", status_code=303
+        )
+
+    @app.get(f"{admin_prefix}/satellites/finance-orbit/latest")
+    def admin_finance_orbit_latest(_: None = Depends(require_admin)):
+        snapshot, snapshot_error = fetch_latest_snapshot()
+        if snapshot_error:
+            raise HTTPException(status_code=503, detail=snapshot_error)
+        return JSONResponse(snapshot or {})
 
     @app.post(f"{admin_prefix}/toggle")
     def admin_toggle(
