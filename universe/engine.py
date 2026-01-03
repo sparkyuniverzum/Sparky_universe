@@ -50,6 +50,11 @@ from universe.seo import (
     sitemap_xml,
 )
 from universe.satellite_finance_orbit import fetch_latest_snapshot
+from universe.satellite_crypto_orbit import (
+    ensure_latest_snapshot as ensure_crypto_snapshot,
+    refresh_token_valid as crypto_token_valid,
+    run_crypto_orbit,
+)
 from universe.satellites import list_satellites
 from universe.telemetry import attach_telemetry
 
@@ -322,6 +327,46 @@ def build_app() -> FastAPI:
         if snapshot_error:
             raise HTTPException(status_code=503, detail=snapshot_error)
         return JSONResponse(snapshot or {})
+
+    @app.get("/satellites/crypto-orbit", response_class=HTMLResponse)
+    def crypto_orbit_public(request: Request):
+        snapshot, snapshot_error = ensure_crypto_snapshot()
+        data_entries = snapshot.get("data", []) if snapshot else []
+        top_entry = data_entries[0] if data_entries else None
+        snapshot_json = (
+            json.dumps(snapshot, indent=2, ensure_ascii=True) if snapshot else ""
+        )
+        base_path = request.scope.get("root_path", "").rstrip("/")
+        return templates.TemplateResponse(
+            "satellite_crypto_orbit.html",
+            {
+                "request": request,
+                "snapshot": snapshot,
+                "snapshot_error": snapshot_error,
+                "snapshot_json": snapshot_json,
+                "data_entries": data_entries,
+                "top_entry": top_entry,
+                "api_path": f"{base_path}/satellites/crypto-orbit/latest",
+                "home_path": f"{base_path}/",
+            },
+        )
+
+    @app.get("/satellites/crypto-orbit/latest")
+    def crypto_orbit_latest():
+        snapshot, snapshot_error = ensure_crypto_snapshot()
+        if snapshot_error and not snapshot:
+            raise HTTPException(status_code=503, detail=snapshot_error)
+        return JSONResponse(snapshot or {})
+
+    @app.post("/satellites/crypto-orbit/refresh")
+    def crypto_orbit_refresh(request: Request):
+        token = request.headers.get("x-satellite-token", "")
+        if not crypto_token_valid(token):
+            raise HTTPException(status_code=403, detail="Forbidden")
+        snapshot, error = run_crypto_orbit()
+        if error:
+            raise HTTPException(status_code=503, detail=error)
+        return JSONResponse({"ok": True, "snapshot": snapshot})
 
     @app.post(f"{admin_prefix}/toggle")
     def admin_toggle(

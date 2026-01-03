@@ -12,7 +12,16 @@ _SATELLITES: List[Dict[str, str]] = [
         "mount": "/satellites/finance-orbit",
         "api": "/satellites/finance-orbit/latest",
         "status": "live",
-    }
+    },
+    {
+        "id": "sparky-crypto-orbit",
+        "slug": "crypto-orbit",
+        "title": "Sparky Crypto Orbit · Top 10",
+        "description": "Hourly crypto market snapshot for the top 10 coins in USD.",
+        "mount": "/satellites/crypto-orbit",
+        "api": "/satellites/crypto-orbit/latest",
+        "status": "live",
+    },
 ]
 
 
