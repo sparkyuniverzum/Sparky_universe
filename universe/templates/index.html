@@ -112,6 +112,74 @@
         margin: 24px 0 28px;
       }
 
+      .satellite-section {
+        display: grid;
+        gap: 14px;
+        margin: 24px 0 28px;
+      }
+
+      .satellite-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .satellite-title {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+
+      .satellite-desc {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .satellite-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .satellite-card {
+        border: 1px solid rgba(236, 180, 88, 0.35);
+        border-radius: 18px;
+        padding: 16px 18px;
+        background: linear-gradient(160deg, rgba(34, 28, 20, 0.92), rgba(16, 14, 12, 0.92));
+        display: grid;
+        gap: 8px;
+        box-shadow: 0 18px 36px rgba(12, 9, 6, 0.45);
+      }
+
+      .satellite-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: rgba(236, 180, 88, 0.85);
+      }
+
+      .satellite-card h3 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .satellite-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .satellite-link {
+        color: #f2c46d;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        align-self: start;
+      }
+
       .planet-header {
         display: flex;
         align-items: center;
@@ -317,10 +385,11 @@
       <section class="hero">
         <div>
           <span class="hero-badge">Sparky Universe</span>
-          <h1>Stars for speed. Planets for focus.</h1>
-          <p>Open a star when you need a fast answer. Open a planet when you need a full situation handled cleanly.</p>
+          <h1>Stars for speed. Planets for focus. Satellites for truth.</h1>
+          <p>Open a star when you need a fast answer. Open a planet when you need a full situation handled cleanly. Satellites deliver official data in a calm, structured snapshot.</p>
           <div class="cta-row">
             <a class="cta-pill" href="#planets">Explore planets</a>
+            <a class="cta-ghost" href="#satellites">View satellites</a>
             <a class="cta-ghost" href="#stars">Browse stars</a>
           </div>
           {% if admin_link_enabled %}
@@ -347,10 +416,34 @@
           <div class="stat-value">{{ planets[0].modules | length if planets else 0 }}</div>
         </div>
         <div class="stat-card">
+          <div class="stat-label">Satellites</div>
+          <div class="stat-value">{{ satellites | length }}</div>
+        </div>
+        <div class="stat-card">
           <div class="stat-label">Categories</div>
           <div class="stat-value">{{ other_categories | length }}</div>
         </div>
       </section>
+      {% if satellites %}
+      <section id="satellites" class="satellite-section">
+        <div class="satellite-header">
+          <h2 class="satellite-title">Satellites</h2>
+        </div>
+        <p class="satellite-desc">Official, structured data stations — separate from stars and planets.</p>
+        <div class="satellite-grid">
+          {% for satellite in satellites %}
+          <article class="satellite-card">
+            <span class="satellite-badge">Satellite</span>
+            <h3>{{ satellite.title }}</h3>
+            {% if satellite.description %}
+            <p>{{ satellite.description }}</p>
+            {% endif %}
+            <a class="satellite-link" href="{{ base_path }}{{ satellite.mount }}">Open satellite</a>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
       {% if planets %}
       <section id="planets" class="planet-section">
         <div class="planet-header">
@@ -370,7 +463,7 @@
         </div>
       </section>
       {% endif %}
-      <p id="stars" class="planet-desc">Everything below are Stars: single-step tools, not Planets.</p>
+      <p id="stars" class="planet-desc">Everything below are Stars: single-step tools, not Planets or Satellites.</p>
       <div class="categories">
         {% for category in other_categories %}
         <section class="category-card">

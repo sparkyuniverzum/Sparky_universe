@@ -6,20 +6,21 @@
     <title>Sparky Universe · Finance Orbit</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
       :root {
-        --bg: #0b0d12;
-        --panel: rgba(17, 20, 28, 0.92);
-        --panel-solid: #151924;
-        --text: #f3f6ff;
-        --muted: #9aa6c2;
-        --border: rgba(255, 255, 255, 0.08);
-        --accent: #6fb7ff;
-        --ok: #53d38f;
-        --bad: #ff7b7b;
-        --warn: #f6c356;
-        --shadow: 0 24px 60px rgba(4, 6, 10, 0.5);
+        --bg: #f6f2ea;
+        --panel: #ffffff;
+        --panel-solid: #fffdf9;
+        --text: #1a1b1f;
+        --muted: #6b6f76;
+        --border: rgba(24, 28, 36, 0.12);
+        --accent: #1b7f7a;
+        --accent-2: #e07a5f;
+        --ok: #2f9b5f;
+        --bad: #d94a4a;
+        --warn: #d8a428;
+        --shadow: 0 24px 50px rgba(20, 20, 20, 0.12);
       }
 
       * {
@@ -29,10 +30,9 @@
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
-        background:
-          radial-gradient(circle at 15% 20%, rgba(74, 126, 255, 0.16), transparent 55%),
-          radial-gradient(circle at 85% 0%, rgba(92, 222, 200, 0.15), transparent 55%),
+        font-family: "Manrope", system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, rgba(27, 127, 122, 0.08), transparent 60%),
+          linear-gradient(315deg, rgba(224, 122, 95, 0.12), transparent 60%),
           var(--bg);
         color: var(--text);
         padding: 32px 20px 48px;
@@ -43,22 +43,35 @@
         margin: 0 auto;
         background: var(--panel);
         border: 1px solid var(--border);
-        border-radius: 24px;
+        border-radius: 22px;
         padding: 28px 28px 32px;
-        backdrop-filter: blur(14px);
         box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .shell::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
       }
 
       h1 {
         margin: 0 0 8px;
-        font-size: 2.1rem;
-        letter-spacing: -0.02em;
+        font-family: "Fraunces", "Times New Roman", serif;
+        font-size: 2.3rem;
+        letter-spacing: -0.01em;
       }
 
       h2 {
         margin: 0;
         font-size: 1.1rem;
-        letter-spacing: -0.01em;
+        font-family: "Fraunces", "Times New Roman", serif;
+        letter-spacing: -0.005em;
       }
 
       p {
@@ -70,7 +83,7 @@
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.2em;
-        color: rgba(155, 186, 255, 0.8);
+        color: rgba(27, 127, 122, 0.8);
         margin-bottom: 8px;
       }
 
@@ -93,6 +106,42 @@
         gap: 6px;
       }
 
+      .title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .orbit-badge {
+        position: relative;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1.5px solid var(--accent);
+        background: radial-gradient(circle at 30% 30%, rgba(27, 127, 122, 0.18), transparent 55%);
+      }
+
+      .orbit-badge::before {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        border-radius: 50%;
+        border: 1px dashed rgba(224, 122, 95, 0.8);
+      }
+
+      .orbit-badge::after {
+        content: "";
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent-2);
+        top: 5px;
+        right: 8px;
+        box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.2);
+      }
+
       .header-actions {
         display: flex;
         gap: 10px;
@@ -104,7 +153,7 @@
         padding: 7px 12px;
         border-radius: 10px;
         border: 1px solid var(--border);
-        background: rgba(18, 24, 34, 0.9);
+        background: rgba(248, 244, 238, 0.9);
         color: var(--text);
         text-decoration: none;
         display: inline-flex;
@@ -120,7 +169,7 @@
         color: var(--muted);
         padding: 6px 10px;
         border-radius: 999px;
-        background: rgba(17, 20, 28, 0.7);
+        background: rgba(248, 244, 238, 0.9);
         border: 1px solid var(--border);
       }
 
@@ -139,8 +188,14 @@
         background: var(--bad);
       }
 
-      .status-dot.warn {
-        background: var(--warn);
+      .note {
+        font-size: 0.85rem;
+        color: var(--warn);
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(246, 195, 86, 0.3);
+        background: rgba(250, 232, 190, 0.35);
+        margin-bottom: 18px;
       }
 
       .section {
@@ -185,7 +240,7 @@
       .table-card {
         border-radius: 18px;
         border: 1px solid var(--border);
-        background: rgba(12, 14, 20, 0.65);
+        background: rgba(255, 253, 249, 0.9);
         overflow: hidden;
         margin-bottom: 22px;
       }
@@ -198,7 +253,7 @@
         justify-content: space-between;
         padding: 16px 18px;
         border-bottom: 1px solid var(--border);
-        background: rgba(10, 12, 18, 0.7);
+        background: rgba(250, 246, 238, 0.95);
       }
 
       table {
@@ -221,17 +276,7 @@
         font-size: 0.78rem;
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        background: rgba(14, 16, 22, 0.7);
-      }
-
-      .note {
-        font-size: 0.85rem;
-        color: var(--warn);
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(246, 195, 86, 0.3);
-        background: rgba(246, 195, 86, 0.08);
-        margin-bottom: 18px;
+        background: rgba(249, 245, 238, 0.95);
       }
 
       pre {
@@ -239,16 +284,7 @@
         padding: 16px 18px;
         font-size: 0.85rem;
         white-space: pre-wrap;
-      }
-
-      button {
-        padding: 7px 12px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: rgba(18, 24, 34, 0.9);
-        color: var(--text);
-        cursor: pointer;
-        font-family: inherit;
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       }
 
       @media (max-width: 900px) {
@@ -268,26 +304,23 @@
       <div class="header">
         <div class="header-info">
           <div class="eyebrow">Satellite</div>
-          <h1>Sparky Finance Orbit · CZ Core</h1>
+          <div class="title-row">
+            <span class="orbit-badge" aria-hidden="true"></span>
+            <h1>Sparky Finance Orbit · CZ Core</h1>
+          </div>
           <span class="status">
-            {% if run_status.ok is none %}
-            <span class="status-dot warn"></span>
-            <span>No runs yet</span>
-            {% elif run_status.ok %}
+            {% if snapshot %}
             <span class="status-dot ok"></span>
-            <span>Last run ok · {{ run_time or "unknown" }}</span>
+            <span>Live snapshot · {{ snapshot.collected_at }}</span>
             {% else %}
             <span class="status-dot error"></span>
-            <span>Last run failed · {{ run_time or "unknown" }}</span>
+            <span>No snapshot yet</span>
             {% endif %}
           </span>
         </div>
         <div class="header-actions">
-          <a class="link-button" href="{{ admin_base }}">Back to admin</a>
+          <a class="link-button" href="{{ home_path }}">Back to universe</a>
           <a class="link-button" href="{{ api_path }}">API (latest)</a>
-          <form method="post" action="{{ admin_base }}/satellites/finance-orbit/run">
-            <button type="submit">Run fetch</button>
-          </form>
         </div>
       </div>
 
@@ -298,12 +331,20 @@
       <section class="section">
         <div class="section-header">
           <h2>Snapshot</h2>
-          <p>Latest stored data from CNB.</p>
+          <p>Official CNB rates, normalized daily.</p>
         </div>
         <div class="stat-grid">
           <div class="stat-card">
             <div class="stat-label">Collected at</div>
             <div class="stat-value">{{ snapshot.collected_at if snapshot else "-" }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Source</div>
+            <div class="stat-value">{{ snapshot.source if snapshot else "-" }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Period</div>
+            <div class="stat-value">{{ snapshot.period if snapshot else "-" }}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Data points</div>
@@ -319,12 +360,6 @@
             <div class="stat-label">Repo valid from</div>
             <div class="stat-value">
               {% if repo_entry and repo_entry.valid_from %}{{ repo_entry.valid_from }}{% else %}-{% endif %}
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Repo valid to</div>
-            <div class="stat-value">
-              {% if repo_entry and repo_entry.valid_to %}{{ repo_entry.valid_to }}{% else %}-{% endif %}
             </div>
           </div>
         </div>

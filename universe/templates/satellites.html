@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sparky Universe · Satellites</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg: #f6f2ea;
+        --panel: #ffffff;
+        --panel-solid: #fffdf9;
+        --text: #1a1b1f;
+        --muted: #6b6f76;
+        --border: rgba(24, 28, 36, 0.12);
+        --accent: #1b7f7a;
+        --accent-2: #e07a5f;
+        --shadow: 0 24px 50px rgba(20, 20, 20, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Manrope", system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, rgba(27, 127, 122, 0.08), transparent 60%),
+          linear-gradient(315deg, rgba(224, 122, 95, 0.12), transparent 60%),
+          var(--bg);
+        color: var(--text);
+        padding: 32px 20px 48px;
+      }
+
+      .shell {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 28px 28px 32px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .shell::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-family: "Fraunces", "Times New Roman", serif;
+        font-size: 2.2rem;
+        letter-spacing: -0.01em;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+
+      .eyebrow {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(27, 127, 122, 0.8);
+        margin-bottom: 8px;
+      }
+
+      .link-button {
+        padding: 7px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(248, 244, 238, 0.9);
+        color: var(--text);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.9rem;
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .card {
+        border: 1px solid rgba(236, 180, 88, 0.35);
+        border-radius: 18px;
+        padding: 18px 20px;
+        background: linear-gradient(160deg, rgba(34, 28, 20, 0.92), rgba(16, 14, 12, 0.92));
+        display: grid;
+        gap: 10px;
+        box-shadow: 0 18px 36px rgba(12, 9, 6, 0.45);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: rgba(236, 180, 88, 0.85);
+      }
+
+      .card h2 {
+        margin: 0;
+        font-size: 1.15rem;
+        color: #f5e4c8;
+      }
+
+      .card p {
+        margin: 0;
+        color: rgba(243, 231, 215, 0.75);
+      }
+
+      .card-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .card-actions a {
+        color: #f2c46d;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .mono {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.78rem;
+        color: rgba(243, 231, 215, 0.65);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="header">
+        <div>
+          <div class="eyebrow">Satellites</div>
+          <h1>Official Data Stations</h1>
+          <p>Satellites are standalone data stations that publish structured, verified snapshots.</p>
+        </div>
+        <a class="link-button" href="{{ base_path }}/">Back to universe</a>
+      </div>
+
+      <section class="grid">
+        {% for satellite in satellites %}
+        <article class="card">
+          <span class="badge">Satellite</span>
+          <h2>{{ satellite.title }}</h2>
+          <p>{{ satellite.description }}</p>
+          <div class="card-actions">
+            <a href="{{ base_path }}{{ satellite.mount }}">Open satellite</a>
+            <a href="{{ base_path }}{{ satellite.api }}">API latest</a>
+          </div>
+          <div class="mono">{{ base_path }}{{ satellite.mount }}</div>
+        </article>
+        {% endfor %}
+      </section>
+    </main>
+  </body>
+</html>

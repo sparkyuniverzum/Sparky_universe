@@ -5,7 +5,6 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
-from datetime import datetime
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import (
@@ -50,11 +49,8 @@ from universe.seo import (
     seo_site_json_ld,
     sitemap_xml,
 )
-from universe.satellite_finance_orbit import (
-    fetch_latest_snapshot,
-    last_finance_orbit_run,
-    run_finance_orbit,
-)
+from universe.satellite_finance_orbit import fetch_latest_snapshot
+from universe.satellites import list_satellites
 from universe.telemetry import attach_telemetry
 
 logger = logging.getLogger(__name__)
@@ -160,12 +156,14 @@ def build_app() -> FastAPI:
     @app.get("/", response_class=HTMLResponse)
     def universe_index(request: Request):
         categories = build_categories()
+        satellites = list_satellites()
         base_path = request.scope.get("root_path", "").rstrip("/")
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
                 "categories": categories,
+                "satellites": satellites,
                 "base_path": base_path,
                 "adsense_enabled": ads_enabled(),
                 "admin_link_enabled": admin_link_enabled(),
@@ -186,7 +184,14 @@ def build_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="SEO disabled")
         base_url = str(request.base_url).rstrip("/")
         categories = build_categories()
+        satellites = list_satellites()
         urls = [f"{base_url}/"]
+        if satellites:
+            urls.append(f"{base_url}/satellites")
+        for satellite in satellites:
+            mount = satellite.get("mount", "")
+            if mount:
+                urls.append(f"{base_url}{mount}")
         for category in categories:
             urls.append(f"{base_url}/category/{category['slug']}")
             for module in category.get("modules", []):
@@ -209,6 +214,20 @@ def build_app() -> FastAPI:
             {
                 "request": request,
                 "category": category,
+                "base_path": base_path,
+                "adsense_enabled": ads_enabled(),
+            },
+        )
+
+    @app.get("/satellites", response_class=HTMLResponse)
+    def satellites_index(request: Request):
+        satellites = list_satellites()
+        base_path = request.scope.get("root_path", "").rstrip("/")
+        return templates.TemplateResponse(
+            "satellites.html",
+            {
+                "request": request,
+                "satellites": satellites,
                 "base_path": base_path,
                 "adsense_enabled": ads_enabled(),
             },
@@ -271,15 +290,9 @@ def build_app() -> FastAPI:
             {"request": request, "metrics": metrics, "admin_base": admin_prefix},
         )
 
-    @app.get(f"{admin_prefix}/satellites/finance-orbit", response_class=HTMLResponse)
-    def admin_finance_orbit(request: Request, _: None = Depends(require_admin)):
+    @app.get("/satellites/finance-orbit", response_class=HTMLResponse)
+    def finance_orbit_public(request: Request):
         snapshot, snapshot_error = fetch_latest_snapshot()
-        run_status = last_finance_orbit_run()
-        run_time = None
-        if run_status.get("ts"):
-            run_time = datetime.utcfromtimestamp(run_status["ts"]).strftime(
-                "%Y-%m-%d %H:%M:%S UTC"
-            )
         data_entries = snapshot.get("data", []) if snapshot else []
         repo_entry = next(
             (item for item in data_entries if item.get("key") == "REPO_RATE"),
@@ -288,31 +301,23 @@ def build_app() -> FastAPI:
         snapshot_json = (
             json.dumps(snapshot, indent=2, ensure_ascii=True) if snapshot else ""
         )
+        base_path = request.scope.get("root_path", "").rstrip("/")
         return templates.TemplateResponse(
-            "admin_satellite_finance.html",
+            "satellite_finance_orbit.html",
             {
                 "request": request,
-                "admin_base": admin_prefix,
                 "snapshot": snapshot,
                 "snapshot_error": snapshot_error,
                 "snapshot_json": snapshot_json,
                 "data_entries": data_entries,
                 "repo_entry": repo_entry,
-                "run_status": run_status,
-                "run_time": run_time,
-                "api_path": f"{admin_prefix}/satellites/finance-orbit/latest",
+                "api_path": f"{base_path}/satellites/finance-orbit/latest",
+                "home_path": f"{base_path}/",
             },
         )
 
-    @app.post(f"{admin_prefix}/satellites/finance-orbit/run")
-    def admin_finance_orbit_run(_: None = Depends(require_admin)):
-        run_finance_orbit()
-        return RedirectResponse(
-            url=f"{admin_prefix}/satellites/finance-orbit", status_code=303
-        )
-
-    @app.get(f"{admin_prefix}/satellites/finance-orbit/latest")
-    def admin_finance_orbit_latest(_: None = Depends(require_admin)):
+    @app.get("/satellites/finance-orbit/latest")
+    def finance_orbit_latest():
         snapshot, snapshot_error = fetch_latest_snapshot()
         if snapshot_error:
             raise HTTPException(status_code=503, detail=snapshot_error)
