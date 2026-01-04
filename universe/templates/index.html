@@ -118,6 +118,74 @@
         margin: 24px 0 28px;
       }
 
+      .station-section {
+        display: grid;
+        gap: 14px;
+        margin: 24px 0 28px;
+      }
+
+      .station-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .station-title {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+
+      .station-desc {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .station-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .station-card {
+        border: 1px solid rgba(88, 227, 184, 0.35);
+        border-radius: 18px;
+        padding: 16px 18px;
+        background: linear-gradient(160deg, rgba(14, 28, 26, 0.92), rgba(10, 18, 18, 0.92));
+        display: grid;
+        gap: 8px;
+        box-shadow: 0 18px 36px rgba(6, 15, 13, 0.45);
+      }
+
+      .station-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: rgba(111, 233, 197, 0.85);
+      }
+
+      .station-card h3 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .station-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .station-link {
+        color: rgba(111, 233, 197, 0.95);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        align-self: start;
+      }
+
       .satellite-header {
         display: flex;
         align-items: center;
@@ -414,6 +482,7 @@
           <div class="cta-row">
             <a class="cta-pill" href="#planets">Explore planets</a>
             <a class="cta-ghost" href="#satellites">View satellites</a>
+            <a class="cta-ghost" href="#stations">View stations</a>
             <a class="cta-ghost" href="#stars">Browse stars</a>
           </div>
           <a class="story-link" href="{{ story_path }}"><span aria-hidden="true"></span>Recovered fragment: Axiom</a>
@@ -445,6 +514,10 @@
           <div class="stat-value">{{ satellites | length }}</div>
         </div>
         <div class="stat-card">
+          <div class="stat-label">Stations</div>
+          <div class="stat-value">{{ stations | length }}</div>
+        </div>
+        <div class="stat-card">
           <div class="stat-label">Categories</div>
           <div class="stat-value">{{ other_categories | length }}</div>
         </div>
@@ -464,6 +537,26 @@
             <p>{{ satellite.description }}</p>
             {% endif %}
             <a class="satellite-link" href="{{ base_path }}{{ satellite.mount }}">Open satellite</a>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+      {% if stations %}
+      <section id="stations" class="station-section">
+        <div class="station-header">
+          <h2 class="station-title">Stations</h2>
+        </div>
+        <p class="station-desc">Static, verified procedures that stay useful for years.</p>
+        <div class="station-grid">
+          {% for station in stations %}
+          <article class="station-card">
+            <span class="station-badge">Station</span>
+            <h3>{{ station.title }}</h3>
+            {% if station.summary %}
+            <p>{{ station.summary }}</p>
+            {% endif %}
+            <a class="station-link" href="{{ base_path }}{{ station.mount }}">Open station</a>
           </article>
           {% endfor %}
         </div>

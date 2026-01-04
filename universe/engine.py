@@ -89,6 +89,7 @@ from universe.monitoring import (
     verify_stripe_event,
 )
 from universe.satellites import list_satellites
+from universe.stations import get_station, list_stations
 from universe.telemetry import attach_telemetry
 
 logger = logging.getLogger(__name__)
@@ -175,6 +176,31 @@ def _parse_story_entry(raw: str) -> dict[str, Any]:
     if current:
         paragraphs.append(current)
     return {"title": title, "subtitle": subtitle, "paragraphs": paragraphs}
+
+
+def _station_language(request: Request) -> str:
+    raw = request.query_params.get("lang", "").strip().lower()
+    if raw in {"cs", "cz"}:
+        return "cs"
+    return "en"
+
+
+def _station_localized(station: Dict[str, Any], lang: str) -> Dict[str, Any]:
+    if lang == "en":
+        return station
+    translations = station.get("translations") or {}
+    localized = translations.get(lang)
+    if not isinstance(localized, dict):
+        return station
+    view = dict(station)
+    for key in ("title", "summary", "country", "region", "last_verified", "pro_title"):
+        if key in localized:
+            view[key] = localized[key]
+    if "sections" in localized:
+        view["sections"] = localized["sections"]
+    if "pro" in localized:
+        view["pro"] = localized["pro"]
+    return view
 
 
 def build_categories() -> list[dict[str, Any]]:
@@ -310,6 +336,7 @@ def build_app() -> FastAPI:
     def universe_index(request: Request):
         categories = build_categories()
         satellites = list_satellites()
+        stations = list_stations()
         base_path = request.scope.get("root_path", "").rstrip("/")
         return templates.TemplateResponse(
             "index.html",
@@ -317,6 +344,7 @@ def build_app() -> FastAPI:
                 "request": request,
                 "categories": categories,
                 "satellites": satellites,
+                "stations": stations,
                 "base_path": base_path,
                 "adsense_enabled": ads_enabled(),
                 "admin_link_enabled": admin_link_enabled(),
@@ -339,12 +367,19 @@ def build_app() -> FastAPI:
         base_url = str(request.base_url).rstrip("/")
         categories = build_categories()
         satellites = list_satellites()
+        stations = list_stations()
         urls = [f"{base_url}/"]
         urls.append(f"{base_url}/story/axiom")
         if satellites:
             urls.append(f"{base_url}/satellites")
         for satellite in satellites:
             mount = satellite.get("mount", "")
+            if mount:
+                urls.append(f"{base_url}{mount}")
+        if stations:
+            urls.append(f"{base_url}/stations")
+        for station in stations:
+            mount = station.get("mount") or ""
             if mount:
                 urls.append(f"{base_url}{mount}")
         for category in categories:
@@ -385,6 +420,47 @@ def build_app() -> FastAPI:
                 "satellites": satellites,
                 "base_path": base_path,
                 "adsense_enabled": ads_enabled(),
+            },
+        )
+
+    @app.get("/stations", response_class=HTMLResponse)
+    def stations_index(request: Request):
+        stations = list_stations()
+        base_path = request.scope.get("root_path", "").rstrip("/")
+        return templates.TemplateResponse(
+            "stations.html",
+            {
+                "request": request,
+                "stations": stations,
+                "base_path": base_path,
+            },
+        )
+
+    @app.get("/stations/{slug}", response_class=HTMLResponse)
+    def station_detail(request: Request, slug: str):
+        station = get_station(slug)
+        if not station:
+            raise HTTPException(status_code=404, detail="Station not found")
+        lang = _station_language(request)
+        station_view = _station_localized(station, lang)
+        base_path = request.scope.get("root_path", "").rstrip("/")
+        lang_links = {
+            "en": f"{base_path}/stations/{slug}?lang=en",
+            "cs": f"{base_path}/stations/{slug}?lang=cs",
+        }
+        language_label = "Language" if lang == "en" else "Jazyk"
+        last_verified_label = "Last verified" if lang == "en" else "Naposledy ověřeno"
+        return templates.TemplateResponse(
+            "station_detail.html",
+            {
+                "request": request,
+                "station": station_view,
+                "lang": lang,
+                "lang_links": lang_links,
+                "language_label": language_label,
+                "last_verified_label": last_verified_label,
+                "base_path": base_path,
+                "home_path": f"{base_path}/",
             },
         )
 

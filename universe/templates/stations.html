@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sparky Universe · Stations</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap");
+
+      :root {
+        --bg: #0b1013;
+        --panel: #10161a;
+        --card: #131b20;
+        --text: #eef5f4;
+        --muted: #9fb3b2;
+        --border: rgba(100, 163, 152, 0.2);
+        --accent: #5ee6c2;
+        --accent-strong: #7fe7d0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", sans-serif;
+        background: radial-gradient(circle at 20% 12%, rgba(94, 230, 194, 0.15), transparent 50%),
+          radial-gradient(circle at 70% 20%, rgba(100, 214, 255, 0.15), transparent 52%),
+          var(--bg);
+        color: var(--text);
+        padding: 40px 20px 60px;
+      }
+
+      .shell {
+        width: min(980px, 100%);
+        margin: 0 auto;
+        border-radius: 24px;
+        background: linear-gradient(160deg, rgba(19, 27, 32, 0.96), rgba(10, 16, 19, 0.98));
+        border: 1px solid var(--border);
+        padding: 32px;
+        box-shadow: 0 30px 70px rgba(2, 10, 12, 0.6);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          120deg,
+          rgba(94, 230, 194, 0.05),
+          rgba(94, 230, 194, 0.05) 1px,
+          transparent 1px,
+          transparent 12px
+        );
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
+      .header {
+        position: relative;
+        z-index: 1;
+      }
+
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.3em;
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 3vw, 2.8rem);
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .station-grid {
+        margin-top: 28px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .station-card {
+        border-radius: 18px;
+        border: 1px solid rgba(94, 230, 194, 0.25);
+        background: rgba(15, 23, 28, 0.92);
+        padding: 18px 20px;
+        display: grid;
+        gap: 8px;
+        position: relative;
+      }
+
+      .station-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        border: 1px solid rgba(94, 230, 194, 0.08);
+        pointer-events: none;
+      }
+
+      .station-badge {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+      }
+
+      .station-card h2 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .station-card p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .station-link {
+        color: var(--accent-strong);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="header">
+        <div class="eyebrow">Stations</div>
+        <h1>Sparky Stations</h1>
+        <p>Static, verified procedures. No story. No AI. Just clear steps.</p>
+      </header>
+
+      <section class="station-grid">
+        {% for station in stations %}
+        <article class="station-card">
+          <span class="station-badge">Station</span>
+          <h2>{{ station.title }}</h2>
+          <p>{{ station.summary }}</p>
+          <a class="station-link" href="{{ base_path }}{{ station.mount }}">Open station</a>
+        </article>
+        {% endfor %}
+      </section>
+    </main>
+  </body>
+</html>

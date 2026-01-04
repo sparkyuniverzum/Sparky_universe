@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlparse
 
 from universe.registry import load_modules
 from universe.satellites import list_satellites
+from universe.stations import list_stations
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,18 @@ def _build_module_map() -> Dict[str, str]:
             mount = "/" + mount
         slug = satellite.get("slug") or satellite.get("id") or mount.strip("/")
         mount_map[mount.rstrip("/")] = f"satellite:{slug}"
+    try:
+        stations = list_stations()
+    except Exception:
+        stations = []
+    for station in stations:
+        mount = station.get("mount") or f"/stations/{station.get('slug', '')}"
+        if not mount:
+            continue
+        if not mount.startswith("/"):
+            mount = "/" + mount
+        slug = station.get("slug") or station.get("id") or mount.strip("/")
+        mount_map[mount.rstrip("/")] = f"station:{slug}"
     return mount_map
 
 

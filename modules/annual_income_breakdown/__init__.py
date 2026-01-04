@@ -1,0 +1,1 @@
+"""Annual income breakdown module."""

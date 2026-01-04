@@ -1,0 +1,85 @@
+{% extends "module_base.html" %}
+
+{% block title %}Small Change Impact{% endblock %}
+{% block heading %}Small Change Impact{% endblock %}
+{% block description %}See how a small cost change hits profit over time.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="impact-form" action="{{ base_path }}/impact" method="post">
+  <label for="income">Income (monthly)</label>
+  <input id="income" name="income" placeholder="8000" required>
+
+  <label for="costs">Costs (monthly)</label>
+  <input id="costs" name="costs" placeholder="5200" required>
+
+  <label for="change_percent">Cost change (%)</label>
+  <input id="change_percent" name="change_percent" placeholder="5" required>
+
+  <button type="submit">Calculate impact</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Impact</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Assumes monthly income and costs.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("impact-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/impact`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Calculation failed";
+      } else {
+        const lines = [
+          `monthly impact: ${data.monthly_impact}`,
+          `year impact: ${data.yearly_impact}`,
+          `3-year impact: ${data.three_year_impact}`,
+          "",
+          `baseline profit: ${data.baseline_profit}`,
+          `new profit: ${data.new_profit}`,
+        ];
+        output.textContent = lines.join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}

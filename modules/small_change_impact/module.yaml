@@ -1,0 +1,29 @@
+name: small_change_impact
+title: Small Change Impact
+version: 0.0.1
+description: See how a small cost change affects profit over time.
+public: true
+category: Finance
+entrypoints:
+  api: modules.small_change_impact.tool.app:app
+mount: /cost/change-impact
+flows:
+  after_success:
+  - target: percentcalc
+  - target: margincalc
+  - target: cash_runway_calc
+standard_version: '1.0'
+tags: []
+status: beta
+priority: P2
+owner: ''
+seo_title: ''
+seo_description: ''
+canonical: ''
+og_image: ''
+input_spec: {}
+output_spec: {}
+sample_input: ''
+sample_output: ''
+privacy:
+  no_raw_inputs: true

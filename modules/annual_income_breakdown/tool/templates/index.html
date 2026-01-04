@@ -1,0 +1,95 @@
+{% extends "module_base.html" %}
+
+{% block title %}Annual Income Breakdown{% endblock %}
+{% block heading %}Annual Income Breakdown{% endblock %}
+{% block description %}Turn a yearly target into the monthly and daily pace you need.{% endblock %}
+
+{% block extra_styles %}
+      .field-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+{% endblock %}
+
+{% block form %}
+<form id="breakdown-form" action="{{ base_path }}/breakdown" method="post">
+  <label for="annual_income">Estimated annual income</label>
+  <input id="annual_income" name="annual_income" placeholder="120000" required>
+
+  <div class="field-row">
+    <div>
+      <label for="current_monthly">Current monthly income (optional)</label>
+      <input id="current_monthly" name="current_monthly" placeholder="8000">
+    </div>
+    <div>
+      <label for="average_monthly">Average monthly benchmark (optional)</label>
+      <input id="average_monthly" name="average_monthly" placeholder="6500">
+    </div>
+  </div>
+
+  <button type="submit">Break down target</button>
+</form>
+{% endblock %}
+
+{% block result %}
+<section id="result" class="result">
+  <div class="result-title">Breakdown</div>
+  <pre id="output">-</pre>
+</section>
+{% endblock %}
+
+{% block meta %}
+<span>Daily pace is based on 365 days.</span>
+<a href="/docs" target="_blank" rel="noreferrer">Open API docs</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("breakdown-form");
+  const result = document.getElementById("result");
+  const output = document.getElementById("output");
+  const flow = document.getElementById("sparky-flow");
+  const basePath = "{{ base_path }}";
+
+  const showFlow = () => {
+    if (flow && flow.dataset.hasLinks === "true") {
+      flow.classList.add("visible");
+    }
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/breakdown`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+      if (!response.ok || data.error) {
+        output.textContent = data.error || "Calculation failed";
+      } else {
+        const lines = [
+          `annual target: ${data.annual_target}`,
+          `monthly target: ${data.monthly_target}`,
+          `daily target: ${data.daily_target}`,
+        ];
+        if (data.comparison) {
+          lines.push("");
+          lines.push(`${data.comparison.label}: ${data.comparison.reference}`);
+          lines.push(`delta: ${data.comparison.delta}`);
+          if (data.comparison.delta_percent !== null) {
+            lines.push(`delta %: ${data.comparison.delta_percent}`);
+          }
+        }
+        output.textContent = lines.join("\n");
+      }
+    } catch (error) {
+      result.classList.add("visible");
+      output.textContent = "Request failed";
+    } finally {
+      showFlow();
+    }
+  });
+</script>
+{% endblock %}
