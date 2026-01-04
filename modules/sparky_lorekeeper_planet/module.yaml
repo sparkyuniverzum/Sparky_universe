@@ -1,7 +1,7 @@
 name: sparky_lorekeeper_planet
 title: Sparky Lorekeeper Planet
 version: 0.0.1
-description: Narrated fragments from the Axiom archive.
+description: Narrated fragments from the archive.
 public: true
 category: Planets
 entrypoints:

@@ -15,10 +15,6 @@ class Fragment:
 
 
 FRAGMENT_SOURCES = {
-    "axiom": {
-        "label": "Axiom",
-        "file": "ENTRY_001_AXIOM_EN.md",
-    },
     "collapse": {
         "label": "Collapse",
         "file": "ENTRY_002_COLLAPSE_EN.md",

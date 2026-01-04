@@ -1,3 +1,3 @@
 # Sparky Lorekeeper Planet
 
-A quiet narrator for the Axiom fragments.
+A quiet narrator for recovered fragments.
