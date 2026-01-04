@@ -43,6 +43,9 @@ def get_signatures_for_address(
 
 
 def get_transaction(signature: str) -> Optional[Dict[str, Any]]:
-    params = [signature, {"encoding": "json", "maxSupportedTransactionVersion": 0}]
+    params = [
+        signature,
+        {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0},
+    ]
     response = _rpc_request("getTransaction", params)
     return response.get("result")

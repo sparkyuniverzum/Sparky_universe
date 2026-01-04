@@ -97,13 +97,17 @@ def _detect_governance(
     *,
     program_ids: List[str],
     logs: List[str],
+    accounts: List[str],
     signature: str,
     block_time: Optional[int],
     governance_programs: List[str],
+    governance_realms: List[str],
 ) -> List[Dict[str, Any]]:
     if not governance_programs:
         return []
     if not any(pid in governance_programs for pid in program_ids):
+        return []
+    if governance_realms and not any(realm in accounts for realm in governance_realms):
         return []
 
     actions = [
@@ -170,17 +174,41 @@ def _detect_supply(
     program_ids: List[str],
     logs: List[str],
     accounts: List[str],
+    meta: Dict[str, Any],
+    message: Dict[str, Any],
     signature: str,
     block_time: Optional[int],
     tracked_mints: List[str],
+    unlock_threshold: float,
+    allow_mint: bool,
 ) -> List[Dict[str, Any]]:
     if TOKEN_PROGRAM_ID not in program_ids:
         return []
     if tracked_mints and not any(mint in accounts for mint in tracked_mints):
         return []
 
-    if _log_contains(logs, "instruction: mintto"):
-        return [
+    events: List[Dict[str, Any]] = []
+    events.extend(
+        _detect_supply_authority(
+            message=message,
+            tracked_mints=tracked_mints,
+            signature=signature,
+            block_time=block_time,
+        )
+    )
+    if not events and _log_contains(logs, "instruction: setauthority"):
+        events.append(
+            _base_event(
+                star="supply",
+                action="authority_changed",
+                impact_level=4,
+                source_signature=signature,
+                valid_from=_iso_time(block_time),
+                extra={"instruction": "setAuthority"},
+            )
+        )
+    if not events and allow_mint and _log_contains(logs, "instruction: mintto"):
+        events.append(
             _base_event(
                 star="supply",
                 action="minted",
@@ -188,18 +216,109 @@ def _detect_supply(
                 source_signature=signature,
                 valid_from=_iso_time(block_time),
             )
-        ]
-    if _log_contains(logs, "instruction: setauthority"):
-        return [
+        )
+    if unlock_threshold > 0:
+        unlock_event = _detect_supply_unlock(
+            meta=meta,
+            tracked_mints=tracked_mints,
+            threshold=unlock_threshold,
+            signature=signature,
+            block_time=block_time,
+        )
+        if unlock_event:
+            events.append(unlock_event)
+    return events
+
+
+def _authority_action(authority_type: str) -> str:
+    lowered = authority_type.lower()
+    if "mint" in lowered:
+        return "mint_authority_changed"
+    if "freeze" in lowered:
+        return "freeze_authority_changed"
+    return "authority_changed"
+
+
+def _detect_supply_authority(
+    *,
+    message: Dict[str, Any],
+    tracked_mints: List[str],
+    signature: str,
+    block_time: Optional[int],
+) -> List[Dict[str, Any]]:
+    events: List[Dict[str, Any]] = []
+    for instr in message.get("instructions") or []:
+        if not isinstance(instr, dict):
+            continue
+        program = instr.get("program") or ""
+        program_id = instr.get("programId") or ""
+        if program != "spl-token" and program_id != TOKEN_PROGRAM_ID:
+            continue
+        parsed = instr.get("parsed") or {}
+        if parsed.get("type") != "setAuthority":
+            continue
+        info = parsed.get("info") or {}
+        account = str(info.get("account") or info.get("mint") or "").strip()
+        if tracked_mints and account not in tracked_mints:
+            continue
+        action = _authority_action(str(info.get("authorityType") or ""))
+        events.append(
             _base_event(
                 star="supply",
-                action="authority_changed",
+                action=action,
                 impact_level=4,
                 source_signature=signature,
                 valid_from=_iso_time(block_time),
+                extra={
+                    "authority_type": info.get("authorityType"),
+                    "account": account,
+                },
             )
-        ]
-    return []
+        )
+    return events
+
+
+def _token_balance_total(entries: List[Dict[str, Any]]) -> Dict[str, float]:
+    totals: Dict[str, float] = {}
+    for item in entries:
+        mint = item.get("mint")
+        amount_info = item.get("uiTokenAmount") or {}
+        raw_amount = amount_info.get("amount")
+        decimals = amount_info.get("decimals", 0)
+        if mint is None or raw_amount is None:
+            continue
+        try:
+            amount = int(raw_amount) / (10 ** int(decimals))
+        except (ValueError, TypeError):
+            continue
+        totals[mint] = totals.get(mint, 0.0) + amount
+    return totals
+
+
+def _detect_supply_unlock(
+    *,
+    meta: Dict[str, Any],
+    tracked_mints: List[str],
+    threshold: float,
+    signature: str,
+    block_time: Optional[int],
+) -> Dict[str, Any] | None:
+    pre = meta.get("preTokenBalances") or []
+    post = meta.get("postTokenBalances") or []
+    pre_totals = _token_balance_total(pre)
+    post_totals = _token_balance_total(post)
+    for mint in tracked_mints:
+        delta = post_totals.get(mint, 0.0) - pre_totals.get(mint, 0.0)
+        if delta >= threshold:
+            return _base_event(
+                star="supply",
+                action="supply_unlocked",
+                impact_level=4,
+                source_signature=signature,
+                valid_from=_iso_time(block_time),
+                extra={"mint": mint, "delta": round(delta, 4)},
+            )
+    return None
 
 
 def _lamport_delta(
@@ -281,9 +400,11 @@ def _events_from_transaction(signature: str, entry: Dict[str, Any]) -> List[Dict
         _detect_governance(
             program_ids=program_ids,
             logs=logs,
+            accounts=accounts,
             signature=signature,
             block_time=entry.get("blockTime"),
             governance_programs=config.governance_programs,
+            governance_realms=config.governance_realms,
         )
     )
     events.extend(
@@ -300,9 +421,13 @@ def _events_from_transaction(signature: str, entry: Dict[str, Any]) -> List[Dict
             program_ids=program_ids,
             logs=logs,
             accounts=accounts,
+            meta=meta,
+            message=message,
             signature=signature,
             block_time=entry.get("blockTime"),
             tracked_mints=config.tracked_mints,
+            unlock_threshold=config.supply_unlock_threshold,
+            allow_mint=config.supply_allow_mint,
         )
     )
     events.extend(
@@ -324,8 +449,11 @@ def refresh_from_rpc(max_signatures: int = 20) -> Dict[str, Any]:
     if not config.rpc_url:
         raise SolanaRpcError("SOLANA_RPC_URL is not configured.")
 
+    governance_watch = (
+        config.governance_realms if config.governance_realms else config.governance_programs
+    )
     watch_addresses = set(
-        config.governance_programs
+        governance_watch
         + config.tracked_programs
         + config.tracked_mints
         + config.treasury_accounts
