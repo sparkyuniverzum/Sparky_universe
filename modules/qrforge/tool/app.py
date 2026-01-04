@@ -9,8 +9,9 @@ from modules.qrforge.core.ids import generate_public_id
 from modules.qrforge.core.payload import build_identity_payload
 from modules.qrforge.core.sign import sign_payload
 from modules.qrforge.core.render import render_qr_bytes
+from modules.sparky_core.core.secrets import require_secret
 from universe.flows import resolve_flow_links
-from universe.settings import shared_templates_dir
+from universe.settings import configure_templates, shared_templates_dir
 from universe.ads import attach_ads_globals
 
 app = FastAPI(title="QR Forge")
@@ -21,15 +22,14 @@ SHARED_TEMPLATES = shared_templates_dir(ROOT_DIR)
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
 )
-templates.env.auto_reload = True
-templates.env.cache = {}
+configure_templates(templates)
 attach_ads_globals(templates)
 BRAND_DIR = ROOT_DIR / "brand"
 
 if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")
 
-SECRET = os.getenv("QRFORGE_SECRET", "dev-secret")
+SECRET = require_secret("QRFORGE_SECRET")
 FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
 
 

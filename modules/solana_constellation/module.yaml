@@ -1,0 +1,13 @@
+name: solana_constellation
+title: Solana Constellation
+version: 0.1.0
+description: Quiet constellation map for meaningful Solana ecosystem shifts.
+public: true
+category: Planets
+standard_version: "1.0"
+status: alpha
+priority: P1
+owner: ""
+entrypoints:
+  api: modules.solana_constellation.tool.app:app
+mount: /planet/solana

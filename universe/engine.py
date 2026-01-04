@@ -5,6 +5,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import (
@@ -89,6 +90,7 @@ from universe.monitoring import (
     verify_stripe_event,
 )
 from universe.satellites import list_satellites
+from universe.settings import configure_templates
 from universe.stations import get_station, list_stations
 from universe.telemetry import attach_telemetry
 
@@ -106,6 +108,7 @@ CATEGORY_DESCRIPTIONS = {
     "Learning Shortcuts": "Fast learning aids for studying, recall, and practice.",
     "Text/String": "Text utilities for cleaning, parsing, and transforming strings.",
     "Utilities": "Small, practical tools for quick one-off tasks.",
+    "Generators": "Quick generators for IDs, passwords, and reusable content.",
     "Planets": "Larger tools for full situations, not single steps.",
     "Other": "Useful modules that do not fit a core category.",
 }
@@ -203,13 +206,17 @@ def _station_localized(station: Dict[str, Any], lang: str) -> Dict[str, Any]:
     return view
 
 
-def build_categories() -> list[dict[str, Any]]:
+def build_categories(allowed_modules: set[str] | None = None) -> list[dict[str, Any]]:
     overrides = get_module_overrides()
     modules = []
     for module in load_modules().values():
         if not module.get("public", True):
             continue
         name = module.get("name")
+        if not name:
+            continue
+        if allowed_modules is not None and name not in allowed_modules:
+            continue
         if name and not module_enabled(name, overrides):
             continue
         modules.append(module)
@@ -267,31 +274,41 @@ def _holiday_notice(request: Request) -> dict[str, str] | None:
     return {"level": level, "message": message}
 
 
-def _sanitize_return_path(value: str) -> str:
+def _parse_return_path(value: str) -> tuple[str, list[tuple[str, str]]]:
     if not value:
-        return "/"
-    if not value.startswith("/"):
-        return "/" + value
-    return value
+        return "/", []
+    raw = str(value).strip()
+    if not raw:
+        return "/", []
+    parsed = urlsplit(raw)
+    if parsed.scheme or parsed.netloc:
+        return "/", []
+    path = parsed.path or "/"
+    if not path.startswith("/"):
+        path = "/" + path
+    if path.startswith("//") or "\\" in path:
+        return "/", []
+    params = [(key, val) for key, val in parse_qsl(parsed.query, keep_blank_values=False)]
+    return path, params
 
 
 def _watch_redirect(return_path: str, status: str, reason: str | None = None) -> RedirectResponse:
-    safe_path = _sanitize_return_path(return_path)
-    params = {"watch": status}
+    safe_path, params = _parse_return_path(return_path)
+    params.append(("watch", status))
     if reason:
-        params["reason"] = reason
-    query = "&".join(f"{key}={value}" for key, value in params.items())
-    url = f"{safe_path}?{query}"
+        params.append(("reason", reason))
+    query = urlencode(params, doseq=True)
+    url = f"{safe_path}?{query}" if query else safe_path
     return RedirectResponse(url=url, status_code=303)
 
 
 def _holiday_redirect(return_path: str, status: str, reason: str | None = None) -> RedirectResponse:
-    safe_path = _sanitize_return_path(return_path)
-    params = {"subscribe": status}
+    safe_path, params = _parse_return_path(return_path)
+    params.append(("subscribe", status))
     if reason:
-        params["reason"] = reason
-    query = "&".join(f"{key}={value}" for key, value in params.items())
-    url = f"{safe_path}?{query}"
+        params.append(("reason", reason))
+    query = urlencode(params, doseq=True)
+    url = f"{safe_path}?{query}" if query else safe_path
     return RedirectResponse(url=url, status_code=303)
 
 
@@ -325,8 +342,7 @@ def build_app() -> FastAPI:
         app.mount("/brand", StaticFiles(directory=str(brand_dir)), name="brand")
 
     templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
-    templates.env.auto_reload = True
-    templates.env.cache = {}
+    configure_templates(templates)
     templates.env.globals.setdefault("seo_enabled", seo_enabled)
     templates.env.globals.setdefault("seo_site_json_ld", seo_site_json_ld)
     templates.env.globals.setdefault("seo_collection_json_ld", seo_collection_json_ld)
@@ -334,7 +350,8 @@ def build_app() -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     def universe_index(request: Request):
-        categories = build_categories()
+        allowed = getattr(request.app.state, "mounted_modules", None)
+        categories = build_categories(allowed)
         satellites = list_satellites()
         stations = list_stations()
         base_path = request.scope.get("root_path", "").rstrip("/")
@@ -365,7 +382,8 @@ def build_app() -> FastAPI:
         if not seo_enabled():
             raise HTTPException(status_code=404, detail="SEO disabled")
         base_url = str(request.base_url).rstrip("/")
-        categories = build_categories()
+        allowed = getattr(request.app.state, "mounted_modules", None)
+        categories = build_categories(allowed)
         satellites = list_satellites()
         stations = list_stations()
         urls = [f"{base_url}/"]
@@ -394,7 +412,8 @@ def build_app() -> FastAPI:
 
     @app.get("/category/{slug}", response_class=HTMLResponse)
     def category_index(request: Request, slug: str):
-        categories = build_categories()
+        allowed = getattr(request.app.state, "mounted_modules", None)
+        categories = build_categories(allowed)
         category = next((item for item in categories if item["slug"] == slug), None)
         if not category:
             raise HTTPException(status_code=404, detail="Category not found")
@@ -808,10 +827,12 @@ def build_app() -> FastAPI:
 
         base_url = public_base_url(str(request.base_url))
         success_url = f"{base_url}/satellites/bavaria-holiday-orbit/thanks"
-        cancel_url = (
-            f"{base_url}{_sanitize_return_path(return_path)}"
-            "?subscribe=error&reason=cancelled"
-        )
+        cancel_path, cancel_params = _parse_return_path(return_path)
+        cancel_params.extend([("subscribe", "error"), ("reason", "cancelled")])
+        cancel_query = urlencode(cancel_params, doseq=True)
+        cancel_url = f"{base_url}{cancel_path}"
+        if cancel_query:
+            cancel_url = f"{cancel_url}?{cancel_query}"
         checkout_url, error = holiday_create_checkout_session(
             email=email.strip(),
             success_url=success_url,
@@ -901,10 +922,12 @@ def build_app() -> FastAPI:
                 return _watch_redirect(return_path, "error", "stripe_not_configured")
             base_url = public_base_url(str(request.base_url))
             success_url = f"{base_url}/monitoring/thanks"
-            cancel_url = (
-                f"{base_url}{_sanitize_return_path(return_path)}"
-                "?watch=error&reason=invalid_request"
-            )
+            cancel_path, cancel_params = _parse_return_path(return_path)
+            cancel_params.extend([("watch", "error"), ("reason", "invalid_request")])
+            cancel_query = urlencode(cancel_params, doseq=True)
+            cancel_url = f"{base_url}{cancel_path}"
+            if cancel_query:
+                cancel_url = f"{cancel_url}?{cancel_query}"
             checkout_url, error = create_checkout_session(
                 email=email.strip(),
                 source_key=source_key.strip(),
@@ -976,6 +999,7 @@ def build_app() -> FastAPI:
         return RedirectResponse(url=admin_prefix, status_code=303)
 
     modules = load_modules()
+    mounted_modules: set[str] = set()
     for meta in modules.values():
         if not meta.get("public", True):
             continue
@@ -996,5 +1020,9 @@ def build_app() -> FastAPI:
 
         mount_path = meta.get("mount") or f"/{meta.get('slug', meta['name'])}"
         app.mount(mount_path, subapp)
+        if meta.get("name"):
+            mounted_modules.add(meta["name"])
+
+    app.state.mounted_modules = mounted_modules
 
     return app

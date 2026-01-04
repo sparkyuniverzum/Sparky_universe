@@ -17,7 +17,18 @@
     data-ad-slot="{{ slot }}"
     data-ad-position="{{ position }}"
     data-ad-size="{{ size }}">
-    <span class="ad-placeholder">Ad space</span>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ meta.client }}"
+         crossorigin="anonymous"></script>
+    <!-- stars -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="{{ meta.client }}"
+         data-ad-slot="{{ meta.unit_id }}"
+         data-ad-format="{{ meta.format }}"
+         data-full-width-responsive="{{ 'true' if meta.full_width else 'false' }}"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
   </div>
 </section>
 {%- endmacro %}

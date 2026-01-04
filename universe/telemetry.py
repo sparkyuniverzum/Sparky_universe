@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import random
+import secrets
 import time
 import uuid
 from http.cookies import SimpleCookie
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 SESSION_COOKIE = "sparky_session"
 SESSION_TTL_SECONDS = 60 * 60 * 24 * 365
+_TELEMETRY_SALT_CACHE: str | None = None
 
 SKIP_PATH_PARTS = {
     "docs",
@@ -47,7 +49,16 @@ def _dsn() -> str | None:
 
 
 def _telemetry_salt() -> str:
-    return os.getenv("SPARKY_TELEMETRY_SALT", "")
+    value = os.getenv("SPARKY_TELEMETRY_SALT", "").strip()
+    if value:
+        return value
+    global _TELEMETRY_SALT_CACHE
+    if _TELEMETRY_SALT_CACHE is None:
+        _TELEMETRY_SALT_CACHE = secrets.token_hex(16)
+        logger.warning(
+            "SPARKY_TELEMETRY_SALT is not set; using a per-process salt."
+        )
+    return _TELEMETRY_SALT_CACHE
 
 
 def _sample_rate(name: str, default: float) -> float:

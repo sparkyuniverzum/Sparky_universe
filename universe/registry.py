@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from importlib import metadata
 import logging
+import os
 from pathlib import Path
+import time
 from typing import Any, Dict
 
 import yaml
@@ -11,6 +13,20 @@ logger = logging.getLogger(__name__)
 
 MODULES_PATH = Path(__file__).parent.parent / "modules"
 ENTRYPOINT_GROUP = "sparky.modules"
+_MODULES_CACHE: Dict[str, Any] = {"ts": 0.0, "data": None}
+
+
+def _modules_cache_ttl() -> float:
+    raw = os.getenv("SPARKY_MODULE_CACHE_SECONDS", "5").strip()
+    if not raw:
+        return 0.0
+    try:
+        value = float(raw)
+    except ValueError:
+        return 0.0
+    if value <= 0:
+        return 0.0
+    return value
 
 
 def _normalize_module(
@@ -116,6 +132,13 @@ def load_entrypoint_modules(
 
 
 def load_modules() -> Dict[str, Dict[str, Any]]:
+    ttl = _modules_cache_ttl()
+    now = time.time()
+    if ttl > 0:
+        cached = _MODULES_CACHE.get("data")
+        if cached is not None and now - _MODULES_CACHE.get("ts", 0.0) < ttl:
+            return dict(cached)
+
     modules = load_filesystem_modules()
     entrypoint_modules = load_entrypoint_modules()
 
@@ -123,4 +146,6 @@ def load_modules() -> Dict[str, Dict[str, Any]]:
         if name not in modules:
             modules[name] = data
 
+    if ttl > 0:
+        _MODULES_CACHE.update({"ts": now, "data": dict(modules)})
     return modules

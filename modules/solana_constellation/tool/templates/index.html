@@ -1,0 +1,326 @@
+{% extends "planet_base.html" %}
+
+{% block title %}Solana Constellation{% endblock %}
+
+{% block styles %}
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Unbounded:wght@400;600&display=swap");
+
+  :root {
+    --sky: #080b12;
+    --sky-2: #0e141f;
+    --nebula: rgba(20, 90, 120, 0.35);
+    --glow: rgba(127, 220, 255, 0.6);
+    --accent: #7fdcff;
+    --accent-2: #ffd36e;
+    --muted: rgba(223, 231, 241, 0.6);
+    --panel: rgba(12, 16, 24, 0.7);
+    --border: rgba(127, 220, 255, 0.12);
+  }
+
+  body {
+    background: radial-gradient(circle at 20% 20%, rgba(40, 120, 140, 0.25), transparent 55%),
+      radial-gradient(circle at 80% 10%, rgba(255, 211, 110, 0.15), transparent 45%),
+      linear-gradient(160deg, var(--sky), var(--sky-2));
+    color: #f5f7fb;
+    font-family: "Manrope", sans-serif;
+  }
+
+  .constellation {
+    display: grid;
+    gap: 24px;
+  }
+
+  .hero {
+    display: grid;
+    gap: 12px;
+  }
+
+  .hero h1 {
+    font-family: "Unbounded", sans-serif;
+    font-size: clamp(2rem, 3vw, 3rem);
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .hero p {
+    margin: 0;
+    color: var(--muted);
+    max-width: 60ch;
+  }
+
+  .status-line {
+    font-size: 0.85rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sky {
+    position: relative;
+    min-height: 420px;
+    border-radius: 28px;
+    background: radial-gradient(circle at 30% 30%, rgba(90, 170, 210, 0.18), transparent 55%),
+      radial-gradient(circle at 70% 60%, rgba(255, 211, 110, 0.1), transparent 50%),
+      var(--panel);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    padding: 28px;
+  }
+
+  .sky::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255, 255, 255, 0.6), transparent 50%),
+      radial-gradient(1px 1px at 20% 80%, rgba(255, 255, 255, 0.5), transparent 50%),
+      radial-gradient(1px 1px at 35% 40%, rgba(255, 255, 255, 0.4), transparent 50%),
+      radial-gradient(2px 2px at 45% 25%, rgba(255, 255, 255, 0.5), transparent 50%),
+      radial-gradient(1px 1px at 60% 70%, rgba(255, 255, 255, 0.45), transparent 50%),
+      radial-gradient(2px 2px at 75% 40%, rgba(255, 255, 255, 0.4), transparent 50%),
+      radial-gradient(1px 1px at 85% 15%, rgba(255, 255, 255, 0.35), transparent 50%);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .star {
+    position: absolute;
+    display: grid;
+    gap: 6px;
+    text-align: center;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+  }
+
+  .star .dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(120, 140, 160, 0.7);
+    box-shadow: 0 0 10px rgba(120, 140, 160, 0.5);
+    margin: 0 auto;
+    transition: transform 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
+  }
+
+  .star .label {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .star.glowing .dot {
+    background: var(--accent);
+    box-shadow: 0 0 18px rgba(127, 220, 255, 0.6);
+  }
+
+  .star.pulsing .dot {
+    background: var(--accent-2);
+    box-shadow: 0 0 24px rgba(255, 211, 110, 0.6);
+    animation: pulse 2.2s infinite;
+  }
+
+  .star.critical .dot {
+    background: #ff6b6b;
+    box-shadow: 0 0 28px rgba(255, 107, 107, 0.7);
+    animation: pulse 1.4s infinite;
+  }
+
+  .star.quiet .dot {
+    transform: scale(0.9);
+  }
+
+  .star.active .dot {
+    transform: scale(1.4);
+  }
+
+  .detail {
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+    background: rgba(8, 12, 18, 0.82);
+    display: grid;
+    gap: 12px;
+  }
+
+  .detail h2 {
+    margin: 0;
+    font-family: "Unbounded", sans-serif;
+    font-size: 1.2rem;
+  }
+
+  .detail p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .history {
+    display: grid;
+    gap: 8px;
+    font-size: 0.9rem;
+  }
+
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(15, 20, 30, 0.6);
+  }
+
+  .history-item span {
+    color: var(--muted);
+  }
+
+  .impact {
+    font-size: 0.85rem;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+  @media (max-width: 900px) {
+    .constellation {
+      gap: 18px;
+    }
+    .sky {
+      min-height: 360px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="scene constellation">
+  <header class="hero">
+    <div class="status-line">Solana Constellation</div>
+    <h1>Solana Constellation</h1>
+    <p>A calm sky of meaningful shifts. No feed, no noise, just gravity changes.</p>
+  </header>
+
+  <section class="sky" id="sky">
+    <div class="star" data-star="governance" style="top: 30%; left: 25%;">
+      <div class="dot"></div>
+      <div class="label">Governance</div>
+    </div>
+    <div class="star" data-star="program" style="top: 18%; left: 70%;">
+      <div class="dot"></div>
+      <div class="label">Program</div>
+    </div>
+    <div class="star" data-star="supply" style="top: 65%; left: 65%;">
+      <div class="dot"></div>
+      <div class="label">Supply</div>
+    </div>
+    <div class="star" data-star="treasury" style="top: 70%; left: 30%;">
+      <div class="dot"></div>
+      <div class="label">Treasury</div>
+    </div>
+    <div class="star" data-star="risk" style="top: 45%; left: 50%;">
+      <div class="dot"></div>
+      <div class="label">Risk</div>
+    </div>
+  </section>
+
+  <section class="detail" id="detail">
+    <div class="impact" id="detail-impact">Quiet</div>
+    <h2 id="detail-title">Select a star</h2>
+    <p id="detail-question">This constellation only speaks when gravity shifts.</p>
+    <div class="history" id="detail-history"></div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const basePath = "{{ base_path }}";
+  const stars = Array.from(document.querySelectorAll(".star"));
+  const detailImpact = document.getElementById("detail-impact");
+  const detailTitle = document.getElementById("detail-title");
+  const detailQuestion = document.getElementById("detail-question");
+  const detailHistory = document.getElementById("detail-history");
+
+  let starMap = {};
+
+  const formatTime = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString();
+  };
+
+  const renderHistory = (items) => {
+    detailHistory.innerHTML = "";
+    if (!items || items.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "history-item";
+      empty.textContent = "Quiet. No recorded shifts yet.";
+      detailHistory.appendChild(empty);
+      return;
+    }
+    items.slice(0, 6).forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "history-item";
+      const action = document.createElement("div");
+      action.textContent = item.action.replace(/_/g, " ");
+      const time = document.createElement("span");
+      time.textContent = formatTime(item.valid_from || item.created_at);
+      row.appendChild(action);
+      row.appendChild(time);
+      detailHistory.appendChild(row);
+    });
+  };
+
+  const updateDetail = (starId) => {
+    const data = starMap[starId];
+    if (!data) return;
+    detailImpact.textContent = `${data.state} · impact ${data.impact_level}`;
+    detailTitle.textContent = data.name;
+    detailQuestion.textContent = data.question;
+    renderHistory(data.history || []);
+  };
+
+  const applyState = (starEl, data) => {
+    const state = data.state || "quiet";
+    starEl.classList.remove("quiet", "glowing", "pulsing", "critical", "active");
+    starEl.classList.add(state);
+  };
+
+  const fetchStars = async () => {
+    try {
+      const response = await fetch(`${basePath}/api/stars`);
+      const payload = await response.json();
+      starMap = {};
+      (payload.stars || []).forEach((star) => {
+        starMap[star.id] = star;
+      });
+      stars.forEach((starEl) => {
+        const data = starMap[starEl.dataset.star];
+        if (!data) return;
+        applyState(starEl, data);
+      });
+      updateDetail("risk");
+    } catch (error) {
+      detailImpact.textContent = "silent";
+      detailTitle.textContent = "Constellation offline";
+      detailQuestion.textContent = "Unable to reach the star map.";
+      renderHistory([]);
+    }
+  };
+
+  stars.forEach((starEl) => {
+    starEl.addEventListener("click", () => {
+      stars.forEach((item) => item.classList.remove("active"));
+      starEl.classList.add("active");
+      updateDetail(starEl.dataset.star);
+    });
+  });
+
+  fetchStars();
+</script>
+{% endblock %}

@@ -6,6 +6,8 @@ from typing import Dict, List, Tuple
 
 MAX_MATCHES = 200
 MAX_SAMPLES = 10
+MAX_TEXT_CHARS = 50000
+MAX_PATTERN_CHARS = 500
 
 
 def test_regex(
@@ -20,6 +22,12 @@ def test_regex(
         return None, "Text is required."
     if pattern is None or not str(pattern).strip():
         return None, "Pattern is required."
+    text_value = str(text)
+    pattern_value = str(pattern)
+    if len(text_value) > MAX_TEXT_CHARS:
+        return None, f"Text is too long (max {MAX_TEXT_CHARS} characters)."
+    if len(pattern_value) > MAX_PATTERN_CHARS:
+        return None, f"Pattern is too long (max {MAX_PATTERN_CHARS} characters)."
 
     flags = 0
     if ignore_case:
@@ -30,7 +38,7 @@ def test_regex(
         flags |= re.DOTALL
 
     try:
-        regex = re.compile(str(pattern), flags)
+        regex = re.compile(pattern_value, flags)
     except re.error as exc:
         return None, f"Regex error: {exc}"
 
@@ -38,7 +46,7 @@ def test_regex(
     total = 0
     truncated = False
 
-    for match in regex.finditer(text):
+    for match in regex.finditer(text_value):
         if total >= MAX_MATCHES:
             truncated = True
             break

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List
 
+from universe.admin import get_module_overrides, module_enabled
 from universe.registry import load_modules
 
 
@@ -39,6 +40,7 @@ def _build_link(meta: Dict[str, Any], base_url: str | None) -> Dict[str, str]:
 def _fallback_links(
     module_key: str,
     modules: Dict[str, Dict[str, Any]],
+    overrides: Dict[str, bool],
     *,
     base_url: str | None,
     limit: int,
@@ -53,7 +55,9 @@ def _fallback_links(
     candidates = [
         meta
         for name, meta in modules.items()
-        if name != module_key and meta.get("public", True)
+        if name != module_key
+        and meta.get("public", True)
+        and module_enabled(name, overrides)
     ]
     if not candidates:
         return []
@@ -77,6 +81,7 @@ def resolve_flow_links(
     base_url: str | None = None,
 ) -> List[Dict[str, str]]:
     modules = load_modules()
+    overrides = get_module_overrides()
     name_map = {_normalize_key(name): name for name in modules.keys()}
     module_key = name_map.get(_normalize_key(module_name))
     if not module_key:
@@ -102,6 +107,10 @@ def resolve_flow_links(
             continue
 
         target_meta = modules[target_key]
+        if not target_meta.get("public", True):
+            continue
+        if not module_enabled(target_key, overrides):
+            continue
         href = target_meta.get("mount") or f"/{target_meta.get('slug', target_key)}"
         if base_url:
             href = base_url.rstrip("/") + href
@@ -117,6 +126,7 @@ def resolve_flow_links(
     return _fallback_links(
         module_key,
         modules,
+        overrides,
         base_url=base_url,
         limit=_flow_fallback_limit(),
     )

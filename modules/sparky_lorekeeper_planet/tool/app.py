@@ -13,7 +13,7 @@ from modules.sparky_lorekeeper_planet.core.fragment import (
     resolve_tone,
     tone_options,
 )
-from universe.settings import shared_templates_dir
+from universe.settings import configure_templates, shared_templates_dir
 
 app = FastAPI(title="Sparky Lorekeeper Planet")
 
@@ -25,8 +25,7 @@ SHARED_TEMPLATES = shared_templates_dir(ROOT_DIR)
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
 )
-templates.env.auto_reload = True
-templates.env.cache = {}
+configure_templates(templates)
 
 if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")

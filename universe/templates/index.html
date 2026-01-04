@@ -4,10 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sparky Universe</title>
-    {% if adsense_enabled %}
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7363912383995147"
-      crossorigin="anonymous"></script>
-    {% endif %}
     {% if seo_enabled() %}
     <script type="application/ld+json">
       {{ seo_site_json_ld(request, "Sparky Universe", "Browse categories and open the stars you need.") | safe }}

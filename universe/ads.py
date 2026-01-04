@@ -12,16 +12,25 @@ from universe.seo import (
 )
 
 DEFAULT_SLOT_ORDER = ["inline", "footer"]
+AD_CLIENT_ID = os.getenv("SPARKY_ADS_CLIENT", "ca-pub-7363912383995147").strip()
+DEFAULT_SLOT_IDS = {
+    "inline": "6346276219",
+    "footer": "6346276219",
+}
 SLOT_DEFS: Dict[str, Dict[str, str]] = {
     "inline": {
         "label": "Sponsored",
         "position": "after_result",
         "size": "responsive",
+        "format": "auto",
+        "full_width": "true",
     },
     "footer": {
         "label": "Sponsored",
         "position": "footer",
         "size": "responsive",
+        "format": "rectangle",
+        "full_width": "false",
     },
 }
 
@@ -31,6 +40,30 @@ PAGE_TYPE_LIMITS = {
     "low_content": 1,
     "index": 0,
 }
+
+
+def _slot_id(slot: str) -> str:
+    env_name = f"SPARKY_ADS_SLOT_{slot.upper()}"
+    value = os.getenv(env_name, "").strip()
+    if value:
+        return value
+    return DEFAULT_SLOT_IDS.get(slot, "")
+
+
+def _slot_format(slot: str, fallback: str) -> str:
+    env_name = f"SPARKY_ADS_FORMAT_{slot.upper()}"
+    value = os.getenv(env_name, "").strip()
+    return value or fallback
+
+
+def _slot_full_width(slot: str, fallback: str) -> bool:
+    env_name = f"SPARKY_ADS_FULL_WIDTH_{slot.upper()}"
+    value = os.getenv(env_name, "").strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+    return fallback == "true"
 
 
 def _flag(name: str, default: str = "off") -> bool:
@@ -67,9 +100,13 @@ def get_ads_config(page_type: str = "tool") -> Dict[str, Any]:
         meta = SLOT_DEFS.get(slot, {})
         slots[slot] = {
             "slot": slot,
+            "client": AD_CLIENT_ID,
+            "unit_id": _slot_id(slot),
             "label": meta.get("label", "Sponsored"),
             "position": meta.get("position", ""),
             "size": meta.get("size", "responsive"),
+            "format": _slot_format(slot, meta.get("format", "auto")),
+            "full_width": _slot_full_width(slot, meta.get("full_width", "true")),
             "enabled": bool(slot_on),
             "allowed": bool(slot_allowed),
             "preview": bool(preview),

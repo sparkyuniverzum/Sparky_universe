@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 from modules.cta_presence_check.core.check import cta_presence_check
 from universe.ads import attach_ads_globals
 from universe.flows import resolve_flow_links
-from universe.settings import shared_templates_dir
+from universe.settings import configure_templates, shared_templates_dir
 
 app = FastAPI(title="CTA Presence Check")
 
@@ -24,8 +24,7 @@ MAX_BYTES = 4 * 1024 * 1024
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
 )
-templates.env.auto_reload = True
-templates.env.cache = {}
+configure_templates(templates)
 attach_ads_globals(templates)
 
 if BRAND_DIR.exists():

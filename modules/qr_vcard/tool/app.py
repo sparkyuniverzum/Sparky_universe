@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 from modules.qr_vcard.core.vcard import build_vcard_payload, render_qr_data_url
 from universe.ads import attach_ads_globals
 from universe.flows import resolve_flow_links
-from universe.settings import shared_templates_dir
+from universe.settings import configure_templates, shared_templates_dir
 
 app = FastAPI(title="QR vCard")
 
@@ -23,8 +23,7 @@ SHARED_TEMPLATES = shared_templates_dir(ROOT_DIR)
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
 )
-templates.env.auto_reload = True
-templates.env.cache = {}
+configure_templates(templates)
 attach_ads_globals(templates)
 
 if BRAND_DIR.exists():

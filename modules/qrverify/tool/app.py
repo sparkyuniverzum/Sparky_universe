@@ -10,8 +10,9 @@ from fastapi.templating import Jinja2Templates
 
 from modules.qrverify.core.decode import decode_input
 from modules.qrverify.core.verify import verify_decoded
+from modules.sparky_core.core.secrets import require_secret
 from universe.flows import resolve_flow_links
-from universe.settings import shared_templates_dir
+from universe.settings import configure_templates, shared_templates_dir
 from universe.ads import attach_ads_globals
 
 app = FastAPI(title="QR Verify")
@@ -22,15 +23,14 @@ SHARED_TEMPLATES = shared_templates_dir(ROOT_DIR)
 templates = Jinja2Templates(
     directory=[str(BASE_DIR / "templates"), str(SHARED_TEMPLATES)]
 )
-templates.env.auto_reload = True
-templates.env.cache = {}
+configure_templates(templates)
 attach_ads_globals(templates)
 BRAND_DIR = ROOT_DIR / "brand"
 
 if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")
 
-SECRET = os.getenv("QRFORGE_SECRET", "dev-secret")
+SECRET = require_secret("QRFORGE_SECRET")
 FORGE_URL = os.getenv("QRFORGE_URL")
 FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
 
