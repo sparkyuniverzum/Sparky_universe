@@ -648,11 +648,20 @@ def build_app() -> FastAPI:
 
     @app.get("/story/axiom", response_class=HTMLResponse)
     def story_axiom(request: Request):
-        story_path = Path(__file__).parent.parent / "brand" / "Story" / "entries" / "ENTRY_001_AXIOM.md"
-        try:
-            raw = story_path.read_text(encoding="utf-8")
-        except Exception as exc:
-            raise HTTPException(status_code=404, detail="Story not available") from exc
+        entries_dir = Path(__file__).parent.parent / "brand" / "Story" / "entries"
+        story_paths = [
+            entries_dir / "ENTRY_001_AXIOM_EN.md",
+            entries_dir / "ENTRY_001_AXIOM.md",
+        ]
+        raw = None
+        for story_path in story_paths:
+            try:
+                raw = story_path.read_text(encoding="utf-8")
+                break
+            except FileNotFoundError:
+                continue
+        if raw is None:
+            raise HTTPException(status_code=404, detail="Story not available")
         entry = _parse_story_entry(raw)
         base_path = request.scope.get("root_path", "").rstrip("/")
         return templates.TemplateResponse(

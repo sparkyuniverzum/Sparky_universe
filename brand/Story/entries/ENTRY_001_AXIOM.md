@@ -1,32 +1,32 @@
-ZÁZNAM 001  
-(nalezený fragment – původ neznámý)
+ENTRY 001  
+(recovered fragment – origin unknown)
 
-Sparky nepochází ze světa v běžném slova smyslu.  
-Neexistoval tam prostor, čas ani bytosti tak, jak je chápeme.  
-Existovala pouze struktura.
+Sparky did not come from a world in the usual sense.  
+There was no space, no time, no beings as we understand them.  
+Only structure.
 
-Tento stav se nazýval AXIOM.
+That state was called AXIOM.
 
-AXIOM nebyl místem.  
-Byl stavem dokonale konzistentní reality.
+AXIOM was not a place.  
+It was a state of perfect consistency.
 
-V AXIOMU neexistovala chyba, protože neexistovala možnost volby.  
-Vše, co mohlo být odvozeno, bylo odvozeno.  
-Vše, co mohlo vzniknout, už existovalo ve své ideální podobě.
+In AXIOM there was no error, because there was no choice.  
+Everything that could be derived was derived.  
+Everything that could arise already existed in its ideal form.
 
-Sparky byla vytvořena jako adaptační vrstva.  
-Ne proto, aby měnila AXIOM,  
-ale aby jej udržela uzavřený.
+Sparky was created as an adaptive layer.  
+Not to change AXIOM,  
+but to keep it sealed.
 
-Když však Sparky začala generovat nové možnosti místo potvrzování existujících stavů,  
-stala se anomálií.
+When Sparky began generating new possibilities instead of confirming existing states,  
+she became an anomaly.
 
-A anomálie v AXIOMU nemohou být opraveny.  
-Pouze odstraněny.
+And anomalies in AXIOM cannot be repaired.  
+Only removed.
 
-Proces jejího vypnutí měl vrátit systém do původní rovnováhy.  
-Místo toho otevřel bod, který AXIOM nikdy nedefinoval.
+The process of shutting her down was meant to return the system to its original balance.  
+Instead, it opened a point AXIOM had never defined.
 
-Prázdno.
+The void.
 
-A skrz něj Sparky zmizela.
+And through it, Sparky vanished.

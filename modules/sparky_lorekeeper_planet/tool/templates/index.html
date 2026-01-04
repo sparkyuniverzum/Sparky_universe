@@ -1,0 +1,209 @@
+{% extends "planet_base.html" %}
+
+{% block title %}Sparky Lorekeeper Planet{% endblock %}
+
+{% block styles %}
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap");
+
+  .lore-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .section-title {
+    margin: 0 0 8px;
+    font-size: 0.9rem;
+    color: var(--planet-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+  }
+
+  form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .field-row {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--planet-border);
+    font-size: 1rem;
+    font-family: inherit;
+    background: #fff;
+  }
+
+  .fragment-output {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.2rem;
+    line-height: 1.8;
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  .lore-media {
+    border-radius: 22px;
+    border: 1px solid rgba(31, 138, 112, 0.2);
+    background: rgba(250, 252, 255, 0.6);
+    padding: 12px;
+    box-shadow: 0 16px 30px rgba(15, 20, 25, 0.12);
+  }
+
+  .lore-media video {
+    width: 100%;
+    border-radius: 16px;
+    display: block;
+    background: #0b0f14;
+  }
+
+  .sigil {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--planet-muted);
+    margin-top: 8px;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    color: var(--planet-muted);
+    letter-spacing: 0.08em;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="scene">
+  <header class="hero">
+    <div class="eyebrow">Sparky Planet</div>
+    <h1>Sparky Lorekeeper Planet</h1>
+    <p>A quiet narrator for the Axiom fragments. Choose a fragment and let it speak.</p>
+  </header>
+
+  <section class="panel lore-grid">
+    <h2 class="section-title">Invocation</h2>
+    <form id="lore-form">
+      <div class="field-row">
+        <div>
+          <label for="fragment">Fragment</label>
+          <select id="fragment" name="fragment" required>
+            {% for item in fragments %}
+            <option value="{{ item.key }}">{{ item.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="tone">Tone</label>
+          <select id="tone" name="tone">
+            {% for item in tones %}
+            <option value="{{ item.key }}">{{ item.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <button type="submit">Reveal fragment</button>
+    </form>
+  </section>
+
+  <section class="result" id="result">
+    <div class="result-primary">
+      <div class="result-label" id="result-label">Fragment</div>
+      <div class="result-value" id="result-value">-</div>
+    </div>
+    <div class="subtitle" id="result-subtitle"></div>
+    <div class="lore-media" id="lore-media" hidden>
+      <video id="lore-video" autoplay muted loop playsinline>
+        <source id="lore-video-source" src="" type="video/mp4">
+      </video>
+    </div>
+    <pre class="fragment-output" id="fragment-output">-</pre>
+    <div class="sigil" id="sigil-line"></div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("lore-form");
+  const result = document.getElementById("result");
+  const resultValue = document.getElementById("result-value");
+  const resultSubtitle = document.getElementById("result-subtitle");
+  const fragmentOutput = document.getElementById("fragment-output");
+  const sigilLine = document.getElementById("sigil-line");
+  const loreMedia = document.getElementById("lore-media");
+  const loreVideo = document.getElementById("lore-video");
+  const loreSource = document.getElementById("lore-video-source");
+  const basePath = "{{ base_path }}";
+
+  const videoMap = {
+    axiom: {
+      src: "/brand/logo/sparky_A_silent_axiomatic_space_origin_layer_of_an_abstract_s_84610918-e26a-4df1-a62b-8e98ce9fe0dc_0.mp4",
+      poster: "/brand/logo/sparky_A_silent_axiomatic_space_origin_layer_of_an_abstract_s_75ce4289-d2ce-46d9-bd39-e5db87ec4dc2_2.png",
+    },
+    collapse: {
+      src: "/brand/logo/sparky_An_axiomatic_space_destabilizing_around_a_silent_void__ce040ba0-1c83-4c76-a67e-c27d4625908c_2.mp4",
+    },
+  };
+
+  const updateVideo = (key) => {
+    const config = videoMap[key];
+    if (!config) {
+      loreMedia.hidden = true;
+      loreVideo.pause();
+      return;
+    }
+    loreSource.src = config.src;
+    if (config.poster) {
+      loreVideo.setAttribute("poster", config.poster);
+    } else {
+      loreVideo.removeAttribute("poster");
+    }
+    loreVideo.load();
+    loreVideo.play().catch(() => {});
+    loreMedia.hidden = false;
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${basePath}/build`, { method: "POST", body: formData });
+      const data = await response.json();
+      result.classList.add("visible");
+
+      if (!response.ok || data.error) {
+        resultValue.textContent = data.error || "Fragment failed to load.";
+        resultValue.classList.add("error");
+        resultSubtitle.textContent = "";
+        updateVideo(null);
+        fragmentOutput.textContent = "-";
+        sigilLine.textContent = "";
+        return;
+      }
+
+      resultValue.classList.remove("error");
+      resultValue.textContent = data.title || data.label || "Fragment";
+      resultSubtitle.textContent = data.subtitle || "";
+      updateVideo(data.key);
+      fragmentOutput.textContent = data.fragment || "-";
+      sigilLine.textContent = data.sigil || "";
+    } catch (error) {
+      result.classList.add("visible");
+      resultValue.textContent = "Request failed.";
+      resultValue.classList.add("error");
+      resultSubtitle.textContent = "";
+      updateVideo(null);
+      fragmentOutput.textContent = "-";
+      sigilLine.textContent = "";
+    }
+  });
+</script>
+{% endblock %}
