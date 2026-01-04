@@ -157,6 +157,26 @@ def _slugify(value: str) -> str:
     return value.strip().lower().replace(" ", "-").replace("/", "-")
 
 
+def _parse_story_entry(raw: str) -> dict[str, Any]:
+    lines = [line.rstrip() for line in raw.splitlines()]
+    content_lines = [line for line in lines if line.strip()]
+    title = content_lines[0] if content_lines else "Story"
+    subtitle = content_lines[1] if len(content_lines) > 1 else ""
+    body_lines = lines[lines.index(content_lines[1]) + 1 :] if len(content_lines) > 1 else lines
+    paragraphs: list[list[str]] = []
+    current: list[str] = []
+    for line in body_lines:
+        if not line.strip():
+            if current:
+                paragraphs.append(current)
+                current = []
+            continue
+        current.append(line)
+    if current:
+        paragraphs.append(current)
+    return {"title": title, "subtitle": subtitle, "paragraphs": paragraphs}
+
+
 def build_categories() -> list[dict[str, Any]]:
     overrides = get_module_overrides()
     modules = []
@@ -301,6 +321,7 @@ def build_app() -> FastAPI:
                 "adsense_enabled": ads_enabled(),
                 "admin_link_enabled": admin_link_enabled(),
                 "admin_path": admin_prefix,
+                "story_path": f"{base_path}/story/axiom",
             },
         )
 
@@ -319,6 +340,7 @@ def build_app() -> FastAPI:
         categories = build_categories()
         satellites = list_satellites()
         urls = [f"{base_url}/"]
+        urls.append(f"{base_url}/story/axiom")
         if satellites:
             urls.append(f"{base_url}/satellites")
         for satellite in satellites:
@@ -623,6 +645,24 @@ def build_app() -> FastAPI:
         if snapshot_error and not snapshot:
             raise HTTPException(status_code=503, detail=snapshot_error)
         return JSONResponse(snapshot or {})
+
+    @app.get("/story/axiom", response_class=HTMLResponse)
+    def story_axiom(request: Request):
+        story_path = Path(__file__).parent.parent / "brand" / "Story" / "entries" / "ENTRY_001_AXIOM.md"
+        try:
+            raw = story_path.read_text(encoding="utf-8")
+        except Exception as exc:
+            raise HTTPException(status_code=404, detail="Story not available") from exc
+        entry = _parse_story_entry(raw)
+        base_path = request.scope.get("root_path", "").rstrip("/")
+        return templates.TemplateResponse(
+            "story_axiom.html",
+            {
+                "request": request,
+                "entry": entry,
+                "home_path": f"{base_path}/",
+            },
+        )
 
     @app.get("/satellites/bavaria-holiday-orbit", response_class=HTMLResponse)
     def bavaria_holiday_orbit_public(request: Request):

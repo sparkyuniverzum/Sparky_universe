@@ -289,6 +289,30 @@
         background: rgba(14, 18, 24, 0.6);
       }
 
+      .story-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        padding: 7px 14px;
+        border-radius: 999px;
+        border: 1px dashed rgba(146, 197, 255, 0.5);
+        color: rgba(198, 222, 255, 0.9);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        text-decoration: none;
+        background: rgba(14, 18, 24, 0.6);
+      }
+
+      .story-link span {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 10px var(--glow);
+      }
+
       .hero-visual {
         width: min(220px, 40vw);
         aspect-ratio: 1;
@@ -392,6 +416,7 @@
             <a class="cta-ghost" href="#satellites">View satellites</a>
             <a class="cta-ghost" href="#stars">Browse stars</a>
           </div>
+          <a class="story-link" href="{{ story_path }}"><span aria-hidden="true"></span>Recovered fragment: Axiom</a>
           {% if admin_link_enabled %}
           <a class="control-link" href="{{ admin_path }}">Control panel</a>
           {% endif %}

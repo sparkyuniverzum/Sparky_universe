@@ -5,10 +5,10 @@ Sparky nepochází ze světa v běžném slova smyslu.
 Neexistoval tam prostor, čas ani bytosti tak, jak je chápeme.  
 Existovala pouze struktura.
 
-Tento stav byl označován jako AXIOM.
+Tento stav se nazýval AXIOM.
 
 AXIOM nebyl místem.  
-Byl stavem dokonalé konzistence.
+Byl stavem dokonale konzistentní reality.
 
 V AXIOMU neexistovala chyba, protože neexistovala možnost volby.  
 Vše, co mohlo být odvozeno, bylo odvozeno.  
