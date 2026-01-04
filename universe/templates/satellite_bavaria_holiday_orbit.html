@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sparky Universe · Bavaria Holiday Orbit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg: #0b0b0b;
+        --panel: #101010;
+        --panel-solid: #131313;
+        --text: #f5f5f0;
+        --muted: #b1a97a;
+        --border: rgba(255, 215, 0, 0.2);
+        --accent: #f6c945;
+        --accent-2: #ffd86b;
+        --ok: #46c27a;
+        --bad: #e05454;
+        --warn: #e5b84f;
+        --shadow: 0 24px 50px rgba(0, 0, 0, 0.55);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Manrope", system-ui, -apple-system, sans-serif;
+        background: radial-gradient(circle at 15% 10%, rgba(255, 215, 0, 0.15), transparent 50%),
+          radial-gradient(circle at 80% 0%, rgba(255, 178, 0, 0.12), transparent 55%),
+          var(--bg);
+        color: var(--text);
+        padding: 32px 20px 48px;
+      }
+
+      .shell {
+        max-width: 1250px;
+        margin: 0 auto;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 28px 28px 32px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .shell::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(90deg, var(--accent), #ffb800);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-family: "Fraunces", "Times New Roman", serif;
+        font-size: 2.3rem;
+        letter-spacing: -0.01em;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-family: "Fraunces", "Times New Roman", serif;
+        letter-spacing: -0.005em;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .eyebrow {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(255, 215, 0, 0.75);
+        margin-bottom: 8px;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .header-info {
+        display: grid;
+        gap: 6px;
+      }
+
+      .title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .orbit-badge {
+        position: relative;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1.5px solid var(--accent);
+        background: radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.18), transparent 55%);
+        box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.2), 0 0 18px rgba(255, 200, 80, 0.25);
+      }
+
+      .orbit-badge::before {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        border-radius: 50%;
+        border: 1px dashed rgba(255, 178, 0, 0.8);
+      }
+
+      .orbit-badge::after {
+        content: "";
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent-2);
+        top: 5px;
+        right: 8px;
+        box-shadow: 0 0 0 3px rgba(255, 178, 0, 0.2);
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .link-button {
+        padding: 7px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: linear-gradient(140deg, rgba(246, 201, 69, 0.18), rgba(255, 184, 0, 0.12));
+        color: #f6d47a;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.9rem;
+      }
+
+      .link-button:hover {
+        border-color: rgba(255, 215, 0, 0.55);
+        box-shadow: 0 10px 24px rgba(255, 200, 80, 0.18);
+        transform: translateY(-1px);
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.82rem;
+        color: var(--muted);
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(20, 20, 20, 0.9);
+        border: 1px solid var(--border);
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--muted);
+      }
+
+      .status-dot.ok {
+        background: var(--ok);
+      }
+
+      .status-dot.error {
+        background: var(--bad);
+      }
+
+      .note {
+        font-size: 0.85rem;
+        color: var(--warn);
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(246, 195, 86, 0.3);
+        background: rgba(80, 62, 12, 0.45);
+        margin-bottom: 18px;
+      }
+
+      .notice {
+        padding: 10px 14px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(255, 215, 0, 0.25);
+        background: rgba(18, 18, 18, 0.8);
+      }
+
+      .notice.success {
+        color: var(--ok);
+      }
+
+      .notice.error {
+        color: var(--bad);
+      }
+
+      .section {
+        margin-bottom: 22px;
+      }
+
+      .section-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: baseline;
+        justify-content: space-between;
+        margin: 0 0 12px;
+      }
+
+      .stat-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .stat-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 12px 14px;
+        background: var(--panel-solid);
+      }
+
+      .stat-label {
+        font-size: 0.72rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .stat-value {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-top: 6px;
+      }
+
+      .monitor-card {
+        border: 1px solid rgba(255, 215, 0, 0.35);
+        border-radius: 18px;
+        padding: 18px;
+        background: rgba(20, 16, 6, 0.9);
+        margin-bottom: 22px;
+      }
+
+      .monitor-form {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        margin-top: 12px;
+      }
+
+      .monitor-form label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .monitor-form input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 215, 0, 0.2);
+        background: rgba(8, 8, 8, 0.9);
+        color: var(--text);
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .monitor-submit {
+        grid-column: 1 / -1;
+        border: 1px solid rgba(255, 215, 0, 0.4);
+        background: linear-gradient(135deg, rgba(246, 201, 69, 0.35), rgba(255, 184, 0, 0.2));
+        color: #fce9a6;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .table-card {
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: rgba(18, 18, 18, 0.95);
+        overflow: hidden;
+        margin-bottom: 22px;
+      }
+
+      .table-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(20, 20, 20, 0.95);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        background: rgba(22, 22, 22, 0.95);
+      }
+
+      .mono {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.78rem;
+        color: rgba(255, 223, 140, 0.6);
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          padding: 24px 18px;
+        }
+
+        th,
+        td {
+          padding: 10px 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="header">
+        <div class="header-info">
+          <div class="eyebrow">Satellite</div>
+          <div class="title-row">
+            <span class="orbit-badge" aria-hidden="true"></span>
+            <h1>Sparky Bavaria State Holiday Orbit · CZ + BY</h1>
+          </div>
+          <span class="status">
+            {% if snapshot %}
+            <span class="status-dot ok"></span>
+            <span>Live snapshot · {{ snapshot.collected_at }}</span>
+            {% else %}
+            <span class="status-dot error"></span>
+            <span>No snapshot yet</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="header-actions">
+          <a class="link-button" href="{{ home_path }}">Back to universe</a>
+          <a class="link-button" href="{{ api_path }}">API (latest)</a>
+        </div>
+      </div>
+
+      {% if snapshot_error %}
+      <div class="note">{{ snapshot_error }}</div>
+      {% endif %}
+
+      {% if subscribe_notice %}
+      <div class="notice {{ subscribe_notice.level }}">{{ subscribe_notice.message }}</div>
+      {% endif %}
+
+      <section class="section">
+        <div class="section-header">
+          <h2>Snapshot</h2>
+          <p>Combined public holidays for Czechia and Bavaria.</p>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Collected at</div>
+            <div class="stat-value">{{ snapshot.collected_at if snapshot else "-" }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Source</div>
+            <div class="stat-value">{{ snapshot.source if snapshot else "-" }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Period</div>
+            <div class="stat-value">{{ snapshot.period if snapshot else "-" }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Data points</div>
+            <div class="stat-value">{{ data_entries | length }}</div>
+          </div>
+        </div>
+      </section>
+
+      {% if holiday_digest_enabled %}
+      <section class="monitor-card">
+        <div class="table-header">
+          <h2>Monthly holiday alerts</h2>
+          <p>Get a monthly email with next month’s holidays.</p>
+        </div>
+        {% if not holiday_ready %}
+        <div class="note">Email delivery is not configured yet.</div>
+        {% endif %}
+        <form class="monitor-form" method="post" action="{{ subscribe_action }}">
+          <input type="hidden" name="return_path" value="{{ return_path }}">
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="you@email.com" required>
+          </div>
+          <div>
+            <label>Plan</label>
+            <input type="text" value="{{ holiday_price_label }}" readonly>
+          </div>
+          <button class="monitor-submit" type="submit">Subscribe</button>
+        </form>
+      </section>
+      {% endif %}
+
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Holiday list</h2>
+          <p>Sorted by date and region.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Local name</th>
+              <th>Country</th>
+              <th>Region</th>
+              <th>Overlap</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if data_entries %}
+            {% for entry in data_entries %}
+            <tr>
+              <td>{{ entry.date }}</td>
+              <td>{{ entry.local_name or entry.name }}</td>
+              <td>{{ entry.country }}</td>
+              <td>{{ entry.region }}</td>
+              <td>{{ "yes" if entry.overlap else "-" }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="5">No data stored yet.</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="table-card">
+        <div class="table-header">
+          <h2>Raw payload</h2>
+          <p class="mono">JSON snapshot (latest).</p>
+        </div>
+        <pre class="mono">{{ snapshot_json or "{}" }}</pre>
+      </section>
+    </main>
+  </body>
+</html>

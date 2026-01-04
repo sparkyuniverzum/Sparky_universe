@@ -22,6 +22,15 @@ _SATELLITES: List[Dict[str, str]] = [
         "api": "/satellites/crypto-orbit/latest",
         "status": "live",
     },
+    {
+        "id": "sparky-bavaria-holiday-orbit",
+        "slug": "bavaria-holiday-orbit",
+        "title": "Sparky Bavaria State Holiday Orbit · CZ + BY",
+        "description": "Public holiday calendar for Czechia and Bavaria (Germany), combined.",
+        "mount": "/satellites/bavaria-holiday-orbit",
+        "api": "/satellites/bavaria-holiday-orbit/latest",
+        "status": "live",
+    },
 ]
 
 

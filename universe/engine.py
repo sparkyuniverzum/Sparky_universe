@@ -55,6 +55,21 @@ from universe.satellite_crypto_orbit import (
     refresh_token_valid as crypto_token_valid,
     run_crypto_orbit,
 )
+from universe.satellite_bavaria_holiday_orbit import (
+    ensure_latest_snapshot as ensure_bavaria_snapshot,
+    fetch_latest_snapshot as fetch_bavaria_snapshot,
+)
+from universe.holiday_digest import (
+    active_subscription_for_email as holiday_subscription_for_email,
+    apply_stripe_event as holiday_apply_stripe_event,
+    create_checkout_session as holiday_create_checkout_session,
+    db_available as holiday_db_available,
+    holiday_digest_enabled,
+    holiday_price_label,
+    remove_subscription as holiday_remove_subscription,
+    smtp_configured as holiday_smtp_configured,
+    stripe_configured as holiday_stripe_configured,
+)
 from universe.monitoring import (
     apply_stripe_event,
     active_subscription_for_email,
@@ -121,6 +136,22 @@ WATCH_ERROR_MESSAGES = {
     "db_unavailable": "Database is not available.",
 }
 
+HOLIDAY_NOTICE = {
+    "ok": ("success", "Subscription active. You will receive monthly holiday alerts."),
+    "paid": ("success", "Payment confirmed. Alerts will start next month."),
+    "error": ("error", "We could not start the subscription."),
+    "active": ("info", "You already have an active subscription."),
+}
+
+HOLIDAY_ERROR_MESSAGES = {
+    "invalid_email": "Enter a valid email address.",
+    "email_not_configured": "Email delivery is not configured yet.",
+    "stripe_not_configured": "Billing is not configured yet.",
+    "stripe_missing": "Billing provider is not available.",
+    "db_unavailable": "Database is not available.",
+    "cancelled": "Payment was cancelled.",
+}
+
 
 def _slugify(value: str) -> str:
     return value.strip().lower().replace(" ", "-").replace("/", "-")
@@ -177,6 +208,19 @@ def _watch_notice(request: Request) -> dict[str, str] | None:
     return {"level": level, "message": message}
 
 
+def _holiday_notice(request: Request) -> dict[str, str] | None:
+    status = request.query_params.get("subscribe", "").strip().lower()
+    reason = request.query_params.get("reason", "").strip().lower()
+    if not status:
+        return None
+    level, message = HOLIDAY_NOTICE.get(status, ("info", ""))
+    if status == "error":
+        message = HOLIDAY_ERROR_MESSAGES.get(reason, message)
+    if not message:
+        return None
+    return {"level": level, "message": message}
+
+
 def _sanitize_return_path(value: str) -> str:
     if not value:
         return "/"
@@ -188,6 +232,16 @@ def _sanitize_return_path(value: str) -> str:
 def _watch_redirect(return_path: str, status: str, reason: str | None = None) -> RedirectResponse:
     safe_path = _sanitize_return_path(return_path)
     params = {"watch": status}
+    if reason:
+        params["reason"] = reason
+    query = "&".join(f"{key}={value}" for key, value in params.items())
+    url = f"{safe_path}?{query}"
+    return RedirectResponse(url=url, status_code=303)
+
+
+def _holiday_redirect(return_path: str, status: str, reason: str | None = None) -> RedirectResponse:
+    safe_path = _sanitize_return_path(return_path)
+    params = {"subscribe": status}
     if reason:
         params["reason"] = reason
     query = "&".join(f"{key}={value}" for key, value in params.items())
@@ -570,6 +624,99 @@ def build_app() -> FastAPI:
             raise HTTPException(status_code=503, detail=snapshot_error)
         return JSONResponse(snapshot or {})
 
+    @app.get("/satellites/bavaria-holiday-orbit", response_class=HTMLResponse)
+    def bavaria_holiday_orbit_public(request: Request):
+        snapshot, snapshot_error = ensure_bavaria_snapshot()
+        data_entries = snapshot.get("data", []) if snapshot else []
+        snapshot_json = (
+            json.dumps(snapshot, indent=2, ensure_ascii=True) if snapshot else ""
+        )
+        base_path = request.scope.get("root_path", "").rstrip("/")
+        subscribe_notice = _holiday_notice(request)
+        return templates.TemplateResponse(
+            "satellite_bavaria_holiday_orbit.html",
+            {
+                "request": request,
+                "snapshot": snapshot,
+                "snapshot_error": snapshot_error,
+                "snapshot_json": snapshot_json,
+                "data_entries": data_entries,
+                "api_path": f"{base_path}/satellites/bavaria-holiday-orbit/latest",
+                "home_path": f"{base_path}/",
+                "subscribe_action": f"{base_path}/satellites/bavaria-holiday-orbit/subscribe",
+                "return_path": request.url.path,
+                "subscribe_notice": subscribe_notice,
+                "holiday_digest_enabled": holiday_digest_enabled(),
+                "holiday_price_label": holiday_price_label(),
+                "holiday_ready": holiday_smtp_configured(),
+            },
+        )
+
+    @app.get("/satellites/bavaria-holiday-orbit/latest")
+    def bavaria_holiday_orbit_latest():
+        snapshot, _, snapshot_error = fetch_bavaria_snapshot()
+        if snapshot_error and not snapshot:
+            raise HTTPException(status_code=503, detail=snapshot_error)
+        return JSONResponse(snapshot or {})
+
+    @app.post("/satellites/bavaria-holiday-orbit/subscribe")
+    def bavaria_holiday_subscribe(
+        request: Request,
+        email: str = Form(...),
+        return_path: str = Form("/"),
+    ):
+        if not holiday_digest_enabled():
+            raise HTTPException(status_code=404, detail="Subscriptions disabled")
+        if not holiday_db_available():
+            return _holiday_redirect(return_path, "error", "db_unavailable")
+        if not holiday_smtp_configured():
+            return _holiday_redirect(return_path, "error", "email_not_configured")
+        if not email or "@" not in email:
+            return _holiday_redirect(return_path, "error", "invalid_email")
+
+        existing = holiday_subscription_for_email(email)
+        if existing:
+            return _holiday_redirect(return_path, "active")
+
+        if not holiday_stripe_configured():
+            return _holiday_redirect(return_path, "error", "stripe_not_configured")
+
+        base_url = public_base_url(str(request.base_url))
+        success_url = f"{base_url}/satellites/bavaria-holiday-orbit/thanks"
+        cancel_url = (
+            f"{base_url}{_sanitize_return_path(return_path)}"
+            "?subscribe=error&reason=cancelled"
+        )
+        checkout_url, error = holiday_create_checkout_session(
+            email=email.strip(),
+            success_url=success_url,
+            cancel_url=cancel_url,
+        )
+        if error or not checkout_url:
+            return _holiday_redirect(return_path, "error", error or "stripe_not_configured")
+        return RedirectResponse(url=checkout_url, status_code=303)
+
+    @app.get("/satellites/bavaria-holiday-orbit/thanks", response_class=HTMLResponse)
+    def bavaria_holiday_thanks(request: Request):
+        base_path = request.scope.get("root_path", "").rstrip("/")
+        return templates.TemplateResponse(
+            "holiday_digest_thanks.html",
+            {
+                "request": request,
+                "home_path": f"{base_path}/",
+            },
+        )
+
+    @app.get(
+        "/satellites/bavaria-holiday-orbit/unsubscribe",
+        response_class=PlainTextResponse,
+    )
+    def bavaria_holiday_unsubscribe(id: str, sig: str):
+        ok = holiday_remove_subscription(id, sig)
+        if not ok:
+            raise HTTPException(status_code=403, detail="Invalid unsubscribe link")
+        return PlainTextResponse("You have been unsubscribed.")
+
     @app.post("/satellites/crypto-orbit/refresh")
     def crypto_orbit_refresh(request: Request):
         token = request.headers.get("x-satellite-token", "")
@@ -685,6 +832,7 @@ def build_app() -> FastAPI:
         if error or not event:
             raise HTTPException(status_code=400, detail="Invalid webhook")
         apply_stripe_event(event)
+        holiday_apply_stripe_event(event)
         return JSONResponse({"ok": True})
 
     @app.post(f"{admin_prefix}/toggle")
