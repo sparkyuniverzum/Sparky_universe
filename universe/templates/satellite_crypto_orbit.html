@@ -252,6 +252,70 @@
         margin-bottom: 22px;
       }
 
+      .monitor-card {
+        border: 1px solid rgba(255, 215, 0, 0.35);
+        border-radius: 18px;
+        padding: 18px;
+        background: rgba(20, 16, 6, 0.9);
+        margin-bottom: 22px;
+      }
+
+      .monitor-form {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        margin-top: 12px;
+      }
+
+      .monitor-form label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .monitor-form input,
+      .monitor-form select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 215, 0, 0.2);
+        background: rgba(8, 8, 8, 0.9);
+        color: var(--text);
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .monitor-submit {
+        grid-column: 1 / -1;
+        border: 1px solid rgba(255, 215, 0, 0.4);
+        background: linear-gradient(
+          135deg,
+          rgba(246, 201, 69, 0.35),
+          rgba(255, 184, 0, 0.2)
+        );
+        color: #fce9a6;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .notice {
+        padding: 10px 14px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(255, 215, 0, 0.25);
+        background: rgba(18, 18, 18, 0.8);
+      }
+
+      .notice.success {
+        color: var(--ok);
+      }
+
+      .notice.error {
+        color: var(--bad);
+      }
+
       .table-header {
         display: flex;
         flex-wrap: wrap;
@@ -333,6 +397,10 @@
       <div class="note">{{ snapshot_error }}</div>
       {% endif %}
 
+      {% if watch_notice %}
+      <div class="notice {{ watch_notice.level }}">{{ watch_notice.message }}</div>
+      {% endif %}
+
       <section class="section">
         <div class="section-header">
           <h2>Snapshot</h2>
@@ -367,6 +435,54 @@
           </div>
         </div>
       </section>
+
+      {% if monitoring_enabled %}
+      <section class="monitor-card">
+        <div class="table-header">
+          <h2>Monitor this orbit</h2>
+          <p>Get an email when a value crosses your threshold.</p>
+        </div>
+        {% if not monitor_ready %}
+        <div class="note">Email delivery is not configured yet.</div>
+        {% endif %}
+        <form class="monitor-form" method="post" action="{{ monitor_action }}">
+          <input type="hidden" name="source_key" value="crypto-orbit">
+          <input type="hidden" name="return_path" value="{{ return_path }}">
+          <div>
+            <label for="metric_key">Metric</label>
+            <select id="metric_key" name="metric_key" required>
+              {% for metric in monitor_metrics %}
+              <option value="{{ metric.key }}">{{ metric.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="comparator">Condition</label>
+            <select id="comparator" name="comparator" required>
+              {% for key, label in comparator_labels.items() %}
+              <option value="{{ key }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="threshold">Threshold</label>
+            <input id="threshold" name="threshold" type="text" placeholder="45000" required>
+          </div>
+          <div>
+            <label for="frequency">Frequency</label>
+            <select id="frequency" name="frequency" required>
+              <option value="daily">Daily (free)</option>
+              <option value="hourly">Hourly ({{ monitor_price_label }})</option>
+            </select>
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="you@email.com" required>
+          </div>
+          <button class="monitor-submit" type="submit">Start monitoring</button>
+        </form>
+      </section>
+      {% endif %}
 
       <section class="table-card">
         <div class="table-header">

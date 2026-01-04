@@ -55,6 +55,24 @@ from universe.satellite_crypto_orbit import (
     refresh_token_valid as crypto_token_valid,
     run_crypto_orbit,
 )
+from universe.monitoring import (
+    apply_stripe_event,
+    active_subscription_for_email,
+    create_checkout_session,
+    create_free_watcher,
+    create_paid_watcher,
+    crypto_metrics,
+    finance_metrics,
+    metric_allowed,
+    monitor_price_label,
+    monitoring_enabled,
+    parse_threshold,
+    public_base_url,
+    remove_watcher,
+    smtp_configured,
+    stripe_configured,
+    verify_stripe_event,
+)
 from universe.satellites import list_satellites
 from universe.telemetry import attach_telemetry
 
@@ -77,6 +95,31 @@ CATEGORY_DESCRIPTIONS = {
 }
 DEFAULT_CATEGORY_DESCRIPTION = "Practical utilities for quick tasks."
 CATEGORY_ORDER = ["Planets"]
+COMPARATOR_LABELS = {
+    "gt": "Above",
+    "lt": "Below",
+    "change_abs": "Change (absolute)",
+    "change_pct": "Change (%)",
+}
+
+WATCH_NOTICE = {
+    "ok": ("success", "Monitoring is active. You will receive updates by email."),
+    "paid": ("success", "Payment confirmed. Monitoring will activate shortly."),
+    "error": ("error", "We could not create this monitor."),
+}
+
+WATCH_ERROR_MESSAGES = {
+    "duplicate": "This monitor already exists.",
+    "invalid_email": "Enter a valid email address.",
+    "invalid_metric": "Select a valid metric.",
+    "invalid_threshold": "Enter a numeric threshold.",
+    "invalid_request": "Request is invalid.",
+    "limit_reached": "Limit reached for this plan.",
+    "email_not_configured": "Email delivery is not configured yet.",
+    "stripe_not_configured": "Billing is not configured yet.",
+    "stripe_missing": "Billing provider is not available.",
+    "db_unavailable": "Database is not available.",
+}
 
 
 def _slugify(value: str) -> str:
@@ -119,6 +162,37 @@ def build_categories() -> list[dict[str, Any]]:
             }
         )
     return categories
+
+
+def _watch_notice(request: Request) -> dict[str, str] | None:
+    status = request.query_params.get("watch", "").strip().lower()
+    reason = request.query_params.get("reason", "").strip().lower()
+    if not status:
+        return None
+    level, message = WATCH_NOTICE.get(status, ("info", ""))
+    if status == "error":
+        message = WATCH_ERROR_MESSAGES.get(reason, message)
+    if not message:
+        return None
+    return {"level": level, "message": message}
+
+
+def _sanitize_return_path(value: str) -> str:
+    if not value:
+        return "/"
+    if not value.startswith("/"):
+        return "/" + value
+    return value
+
+
+def _watch_redirect(return_path: str, status: str, reason: str | None = None) -> RedirectResponse:
+    safe_path = _sanitize_return_path(return_path)
+    params = {"watch": status}
+    if reason:
+        params["reason"] = reason
+    query = "&".join(f"{key}={value}" for key, value in params.items())
+    url = f"{safe_path}?{query}"
+    return RedirectResponse(url=url, status_code=303)
 
 
 def import_attr(path: str) -> Any:
@@ -330,7 +404,7 @@ def build_app() -> FastAPI:
             "ok": True,
             "detail": metrics.get("detail", ""),
             "summary": {
-                "items": len(by_module_usage),
+                "item_count": len(by_module_usage),
                 "page_views_7d": total_views,
                 "actions_7d": total_actions,
                 "sessions_7d": total_sessions,
@@ -427,6 +501,7 @@ def build_app() -> FastAPI:
             json.dumps(snapshot, indent=2, ensure_ascii=True) if snapshot else ""
         )
         base_path = request.scope.get("root_path", "").rstrip("/")
+        watch_notice = _watch_notice(request)
         return templates.TemplateResponse(
             "satellite_finance_orbit.html",
             {
@@ -438,6 +513,14 @@ def build_app() -> FastAPI:
                 "repo_entry": repo_entry,
                 "api_path": f"{base_path}/satellites/finance-orbit/latest",
                 "home_path": f"{base_path}/",
+                "monitoring_enabled": monitoring_enabled(),
+                "monitor_metrics": finance_metrics(snapshot),
+                "monitor_price_label": monitor_price_label(),
+                "monitor_action": f"{base_path}/monitoring/watch",
+                "return_path": request.url.path,
+                "comparator_labels": COMPARATOR_LABELS,
+                "watch_notice": watch_notice,
+                "monitor_ready": smtp_configured(),
             },
         )
 
@@ -457,6 +540,7 @@ def build_app() -> FastAPI:
             json.dumps(snapshot, indent=2, ensure_ascii=True) if snapshot else ""
         )
         base_path = request.scope.get("root_path", "").rstrip("/")
+        watch_notice = _watch_notice(request)
         return templates.TemplateResponse(
             "satellite_crypto_orbit.html",
             {
@@ -468,6 +552,14 @@ def build_app() -> FastAPI:
                 "top_entry": top_entry,
                 "api_path": f"{base_path}/satellites/crypto-orbit/latest",
                 "home_path": f"{base_path}/",
+                "monitoring_enabled": monitoring_enabled(),
+                "monitor_metrics": crypto_metrics(snapshot),
+                "monitor_price_label": monitor_price_label(),
+                "monitor_action": f"{base_path}/monitoring/watch",
+                "return_path": request.url.path,
+                "comparator_labels": COMPARATOR_LABELS,
+                "watch_notice": watch_notice,
+                "monitor_ready": smtp_configured(),
             },
         )
 
@@ -487,6 +579,113 @@ def build_app() -> FastAPI:
         if error:
             raise HTTPException(status_code=503, detail=error)
         return JSONResponse({"ok": True, "snapshot": snapshot})
+
+    @app.post("/monitoring/watch")
+    def monitoring_watch(
+        request: Request,
+        email: str = Form(...),
+        source_key: str = Form(...),
+        metric_key: str = Form(...),
+        comparator: str = Form(...),
+        threshold: str = Form(...),
+        frequency: str = Form(...),
+        return_path: str = Form("/"),
+    ):
+        if not monitoring_enabled():
+            raise HTTPException(status_code=404, detail="Monitoring disabled")
+
+        normalized_comparator = comparator.strip().lower()
+        normalized_frequency = frequency.strip().lower()
+        if normalized_comparator not in COMPARATOR_LABELS:
+            return _watch_redirect(return_path, "error", "invalid_request")
+        if normalized_frequency not in {"daily", "hourly"}:
+            return _watch_redirect(return_path, "error", "invalid_request")
+
+        threshold_value = parse_threshold(threshold)
+        if threshold_value is None:
+            return _watch_redirect(return_path, "error", "invalid_threshold")
+        if not metric_allowed(source_key.strip(), metric_key.strip()):
+            return _watch_redirect(return_path, "error", "invalid_metric")
+        if not smtp_configured():
+            return _watch_redirect(return_path, "error", "email_not_configured")
+
+        if normalized_frequency == "hourly":
+            active_subscription = active_subscription_for_email(email.strip())
+            if active_subscription:
+                watcher_id, error = create_paid_watcher(
+                    email=email.strip(),
+                    source_key=source_key.strip(),
+                    metric_key=metric_key.strip(),
+                    comparator=normalized_comparator,
+                    threshold=threshold_value,
+                    frequency=normalized_frequency,
+                    subscription_id=active_subscription,
+                    customer_id=None,
+                )
+                if error:
+                    return _watch_redirect(return_path, "error", error)
+                return _watch_redirect(return_path, "ok")
+            if not stripe_configured():
+                return _watch_redirect(return_path, "error", "stripe_not_configured")
+            base_url = public_base_url(str(request.base_url))
+            success_url = f"{base_url}/monitoring/thanks"
+            cancel_url = (
+                f"{base_url}{_sanitize_return_path(return_path)}"
+                "?watch=error&reason=invalid_request"
+            )
+            checkout_url, error = create_checkout_session(
+                email=email.strip(),
+                source_key=source_key.strip(),
+                metric_key=metric_key.strip(),
+                comparator=normalized_comparator,
+                threshold=threshold_value,
+                frequency=normalized_frequency,
+                success_url=success_url,
+                cancel_url=cancel_url,
+            )
+            if error or not checkout_url:
+                return _watch_redirect(return_path, "error", error or "invalid_request")
+            return RedirectResponse(url=checkout_url, status_code=303)
+
+        watcher_id, error = create_free_watcher(
+            email=email.strip(),
+            source_key=source_key.strip(),
+            metric_key=metric_key.strip(),
+            comparator=normalized_comparator,
+            threshold=threshold_value,
+            frequency=normalized_frequency,
+        )
+        if error:
+            return _watch_redirect(return_path, "error", error)
+        return _watch_redirect(return_path, "ok")
+
+    @app.get("/monitoring/thanks", response_class=HTMLResponse)
+    def monitoring_thanks(request: Request):
+        base_path = request.scope.get("root_path", "").rstrip("/")
+        return templates.TemplateResponse(
+            "monitoring_thanks.html",
+            {
+                "request": request,
+                "home_path": f"{base_path}/",
+            },
+        )
+
+    @app.get("/monitoring/unsubscribe", response_class=PlainTextResponse)
+    def monitoring_unsubscribe(id: str, sig: str):
+        ok = remove_watcher(id, sig)
+        if not ok:
+            raise HTTPException(status_code=403, detail="Invalid unsubscribe link")
+        return PlainTextResponse("You have been unsubscribed.")
+
+    @app.post("/stripe/webhook")
+    async def stripe_webhook(request: Request):
+        payload = await request.body()
+        signature = request.headers.get("stripe-signature", "")
+        event, error = verify_stripe_event(payload, signature)
+        if error or not event:
+            raise HTTPException(status_code=400, detail="Invalid webhook")
+        apply_stripe_event(event)
+        return JSONResponse({"ok": True})
 
     @app.post(f"{admin_prefix}/toggle")
     def admin_toggle(
