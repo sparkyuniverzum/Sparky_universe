@@ -53,7 +53,12 @@ def create_batch(items: str | None = Form(None)):
             status_code=400,
         )
 
-    zip_bytes, count = build_batch_zip(items, secret=SECRET)
+    zip_bytes, count, error = build_batch_zip(items, secret=SECRET)
+    if error:
+        return JSONResponse(
+            {"error": error},
+            status_code=400,
+        )
     if count == 0:
         return JSONResponse(
             {"error": "No valid rows found."},

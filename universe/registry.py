@@ -41,7 +41,7 @@ def _normalize_module(
         return None
 
     slug = data.get("slug") or name.replace("_", "-")
-    mount = data.get("mount") or f"/{slug}"
+    mount = _normalize_mount(data.get("mount"), slug=slug)
     public = data.get("public")
     if public is None:
         public = True
@@ -65,6 +65,20 @@ def _normalize_module(
         normalized["entry_point"] = entry_point
 
     return normalized
+
+
+def _normalize_mount(value: Any, *, slug: str) -> str:
+    raw = str(value).strip() if value is not None else ""
+    if not raw:
+        raw = f"/{slug}"
+    if "://" in raw or "\\" in raw or raw.startswith("//"):
+        logger.warning("Invalid mount '%s'; using default for slug '%s'.", raw, slug)
+        raw = f"/{slug}"
+    if not raw.startswith("/"):
+        raw = "/" + raw
+    if raw != "/" and raw.endswith("/"):
+        raw = raw.rstrip("/")
+    return raw
 
 
 def load_filesystem_modules(modules_path: Path = MODULES_PATH) -> Dict[str, Dict[str, Any]]:

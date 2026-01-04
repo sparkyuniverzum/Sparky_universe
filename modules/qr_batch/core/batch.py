@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import os
 import tempfile
 import zipfile
 from pathlib import Path
@@ -12,6 +13,21 @@ from modules.qrforge.core.ids import generate_public_id
 from modules.qrforge.core.payload import build_identity_payload
 from modules.qrforge.core.render import render_qr
 from modules.qrforge.core.sign import sign_payload
+
+
+def _parse_limit(name: str, default: int) -> int:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return max(1, value)
+
+
+MAX_ROWS = _parse_limit("SPARKY_QR_BATCH_MAX_ROWS", 500)
+MAX_INPUT_CHARS = _parse_limit("SPARKY_QR_BATCH_MAX_CHARS", 200000)
 
 
 def _normalize_row(row: List[str]) -> Dict[str, str | None] | None:
@@ -33,7 +49,10 @@ def _normalize_row(row: List[str]) -> Dict[str, str | None] | None:
     }
 
 
-def parse_rows(raw_text: str) -> List[Dict[str, str | None]]:
+def parse_rows(raw_text: str) -> Tuple[List[Dict[str, str | None]], str | None]:
+    if len(raw_text) > MAX_INPUT_CHARS:
+        return [], f"Input is too large (max {MAX_INPUT_CHARS} characters)."
+
     rows: List[Dict[str, str | None]] = []
     reader = csv.reader(io.StringIO(raw_text))
 
@@ -51,14 +70,18 @@ def parse_rows(raw_text: str) -> List[Dict[str, str | None]]:
                 continue
 
         rows.append(normalized)
+        if len(rows) >= MAX_ROWS:
+            return [], f"Too many rows (max {MAX_ROWS})."
 
-    return rows
+    return rows, None
 
 
-def build_batch_zip(raw_text: str, secret: str) -> Tuple[bytes, int]:
-    rows = parse_rows(raw_text)
+def build_batch_zip(raw_text: str, secret: str) -> Tuple[bytes, int, str | None]:
+    rows, error = parse_rows(raw_text)
+    if error:
+        return b"", 0, error
     if not rows:
-        return b"", 0
+        return b"", 0, None
 
     manifest: List[Dict[str, object]] = []
     files: List[Tuple[str, Path]] = []
@@ -97,4 +120,4 @@ def build_batch_zip(raw_text: str, secret: str) -> Tuple[bytes, int]:
                 zip_file.write(path, arcname=filename)
             zip_file.writestr("manifest.json", json.dumps(manifest, indent=2))
 
-    return zip_buffer.getvalue(), len(manifest)
+    return zip_buffer.getvalue(), len(manifest), None

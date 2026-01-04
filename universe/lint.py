@@ -60,6 +60,21 @@ def lint_module(meta: Dict[str, Any]) -> Dict[str, Any]:
         elif isinstance(value, str) and not value.strip():
             issues.append(f"missing field: {field}")
 
+    if public:
+        mount_value = manifest_data.get("mount")
+        if mount_value is not None:
+            if not isinstance(mount_value, str):
+                issues.append("mount must be a string")
+            else:
+                mount_value = mount_value.strip()
+                if mount_value:
+                    if not mount_value.startswith("/"):
+                        issues.append("mount must start with /")
+                    if mount_value != "/" and mount_value.endswith("/"):
+                        issues.append("mount must not end with /")
+                    if "://" in mount_value or mount_value.startswith("//") or "\\" in mount_value:
+                        issues.append("mount must be a path")
+
     entrypoint = ""
     entrypoint_ok = True
     entrypoint_error = ""

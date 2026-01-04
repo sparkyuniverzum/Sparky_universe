@@ -76,6 +76,17 @@ def _sample_rate(name: str, default: float) -> float:
     return value
 
 
+def _telemetry_inflight_limit() -> int:
+    raw = os.getenv("SPARKY_TELEMETRY_MAX_INFLIGHT", "200").strip()
+    if not raw:
+        return 200
+    try:
+        value = int(raw)
+    except ValueError:
+        return 200
+    return max(0, value)
+
+
 def _should_sample(event_type: str, outcome: str) -> Tuple[bool, float]:
     if outcome in {"error", "client_error", "validation_error", "not_found"}:
         return True, 1.0
@@ -295,10 +306,19 @@ class TelemetryClient:
 
 
 class TelemetryMiddleware:
-    def __init__(self, app: Any, client: TelemetryClient, mount_map: Dict[str, str]) -> None:
+    def __init__(
+        self,
+        app: Any,
+        client: TelemetryClient,
+        mount_map: Dict[str, str],
+        *,
+        max_inflight: int,
+    ) -> None:
         self.app = app
         self.client = client
         self.mount_map = mount_map
+        self._inflight = asyncio.Semaphore(max_inflight) if max_inflight > 0 else None
+        self._dropped = 0
 
     async def __call__(self, scope: Dict[str, Any], receive: Any, send: Any) -> None:
         if scope["type"] != "http":
@@ -409,13 +429,27 @@ class TelemetryMiddleware:
             "payload": payload,
         }
 
+        if self._inflight is not None and self._inflight.locked():
+            self._dropped += 1
+            if self._dropped % 100 == 1:
+                logger.warning(
+                    "Telemetry backpressure: dropped %s events.",
+                    self._dropped,
+                )
+            return
+
         asyncio.create_task(self._capture(event))
 
     async def _capture(self, event: Dict[str, Any]) -> None:
+        if self._inflight is not None:
+            await self._inflight.acquire()
         try:
             await asyncio.to_thread(self.client.capture, event)
         except Exception:
             logger.exception("Failed to capture telemetry event.")
+        finally:
+            if self._inflight is not None:
+                self._inflight.release()
 
 
 def attach_telemetry(app: Any) -> None:
@@ -434,4 +468,9 @@ def attach_telemetry(app: Any) -> None:
         return
 
     mount_map = _build_module_map()
-    app.add_middleware(TelemetryMiddleware, client=client, mount_map=mount_map)
+    app.add_middleware(
+        TelemetryMiddleware,
+        client=client,
+        mount_map=mount_map,
+        max_inflight=_telemetry_inflight_limit(),
+    )

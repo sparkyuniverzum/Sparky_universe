@@ -1000,6 +1000,7 @@ def build_app() -> FastAPI:
 
     modules = load_modules()
     mounted_modules: set[str] = set()
+    used_mounts: set[str] = set()
     for meta in modules.values():
         if not meta.get("public", True):
             continue
@@ -1019,6 +1020,22 @@ def build_app() -> FastAPI:
             continue
 
         mount_path = meta.get("mount") or f"/{meta.get('slug', meta['name'])}"
+        if not mount_path.startswith("/"):
+            mount_path = "/" + mount_path
+        if mount_path == "/":
+            logger.error(
+                "Invalid mount path '/' for module %s; skipping.",
+                meta.get("name", "<unknown>"),
+            )
+            continue
+        if mount_path in used_mounts:
+            logger.error(
+                "Duplicate mount path %s for module %s; skipping.",
+                mount_path,
+                meta.get("name", "<unknown>"),
+            )
+            continue
+        used_mounts.add(mount_path)
         app.mount(mount_path, subapp)
         if meta.get("name"):
             mounted_modules.add(meta["name"])

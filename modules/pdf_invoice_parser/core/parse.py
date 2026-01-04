@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
@@ -14,6 +15,22 @@ PRICE_PATTERN = re.compile(
     r"(?P<total>[0-9\s]+\d,[0-9]{2})\s+"
     r"(?P<vat>\d{1,2})\s?%$"
 )
+
+
+def _parse_limit(name: str, default: int) -> int:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return max(1, value)
+
+
+MAX_PDF_BYTES = _parse_limit("SPARKY_PDF_INVOICE_MAX_BYTES", 5_000_000)
+MAX_PDF_PAGES = _parse_limit("SPARKY_PDF_INVOICE_MAX_PAGES", 25)
+MAX_TEXT_CHARS = _parse_limit("SPARKY_PDF_INVOICE_MAX_TEXT", 200000)
 
 
 def _clean_line(raw: str) -> str:
@@ -112,9 +129,24 @@ def _extract_items(lines: List[str]) -> List[Dict[str, Any]]:
 def parse_invoice_pdf_bytes(content: bytes) -> Tuple[Dict[str, Any] | None, str | None]:
     if not content:
         return None, "Upload a PDF file."
+    if len(content) > MAX_PDF_BYTES:
+        return None, f"PDF is too large (max {MAX_PDF_BYTES} bytes)."
 
     reader = PdfReader(BytesIO(content))
-    full_text = "\n".join(filter(None, (page.extract_text() or "" for page in reader.pages)))
+    if len(reader.pages) > MAX_PDF_PAGES:
+        return None, f"PDF has too many pages (max {MAX_PDF_PAGES})."
+
+    full_text_parts: List[str] = []
+    total_chars = 0
+    for page in reader.pages:
+        text = page.extract_text() or ""
+        if not text:
+            continue
+        total_chars += len(text)
+        if total_chars > MAX_TEXT_CHARS:
+            return None, f"PDF text is too large (max {MAX_TEXT_CHARS} characters)."
+        full_text_parts.append(text)
+    full_text = "\n".join(full_text_parts)
     if not full_text.strip():
         return None, "No text detected in the PDF."
 

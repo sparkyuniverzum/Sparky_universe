@@ -8,6 +8,19 @@ MAX_MATCHES = 200
 MAX_SAMPLES = 10
 MAX_TEXT_CHARS = 50000
 MAX_PATTERN_CHARS = 500
+MAX_COMPLEXITY_SCORE = 2000
+_NESTED_QUANTIFIER = re.compile(
+    r"\((?:[^()\\]|\\.)*([*+]|{\d+,?\d*})\)(?:[*+]|{\d+,?\d*})"
+)
+
+
+def _pattern_too_complex(pattern: str) -> bool:
+    if _NESTED_QUANTIFIER.search(pattern):
+        return True
+    # Rough score: length plus weighted metacharacters to avoid pathological inputs.
+    score = len(pattern) + pattern.count("(") * 10 + pattern.count("[") * 5
+    score += pattern.count("*") * 15 + pattern.count("+") * 15 + pattern.count("{") * 20
+    return score > MAX_COMPLEXITY_SCORE
 
 
 def test_regex(
@@ -28,6 +41,8 @@ def test_regex(
         return None, f"Text is too long (max {MAX_TEXT_CHARS} characters)."
     if len(pattern_value) > MAX_PATTERN_CHARS:
         return None, f"Pattern is too long (max {MAX_PATTERN_CHARS} characters)."
+    if _pattern_too_complex(pattern_value):
+        return None, "Pattern is too complex to run safely."
 
     flags = 0
     if ignore_case:
