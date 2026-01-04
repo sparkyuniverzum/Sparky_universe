@@ -222,19 +222,19 @@
         {% for section in station.sections %}
         <article class="section-card{% if section.kind == 'last_verified' %} verify-card{% endif %}">
           <h2>{{ section.title }}</h2>
-          {% if section.text %}
-          <p>{{ section.text }}</p>
+          {% if section.get("text") %}
+          <p>{{ section.get("text") }}</p>
           {% endif %}
-          {% if section.items %}
+          {% if section.get("items") %}
           <ul>
-            {% for item in section.items %}
+            {% for item in section.get("items") %}
             <li>{{ item }}</li>
             {% endfor %}
           </ul>
           {% endif %}
-          {% if section.sources %}
+          {% if section.get("sources") %}
           <ul>
-            {% for source in section.sources %}
+            {% for source in section.get("sources") %}
             <li><a href="{{ source.url }}" target="_blank" rel="noreferrer">{{ source.label }}</a></li>
             {% endfor %}
           </ul>
