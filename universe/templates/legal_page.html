@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="cs">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -122,27 +122,27 @@
   </head>
   <body>
     <main class="panel">
-      <a class="back-link" href="{{ base_path }}/">Zpět na úvod</a>
+      <a class="back-link" href="{{ base_path }}/">Back to home</a>
       <h1>{{ page.title }}</h1>
       <p class="subtitle">{{ page.subtitle }}</p>
 
       {% if page.slug == "contact" %}
       <div class="contact-card">
-        <span>E-mail: {{ contact.email }}</span>
+        <span>Email: {{ contact.email }}</span>
         {% if contact.phone %}
-        <span>Telefon: {{ contact.phone }}</span>
+        <span>Phone: {{ contact.phone }}</span>
         {% endif %}
         {% if contact.company %}
-        <span>Subjekt: {{ contact.company }}</span>
+        <span>Company: {{ contact.company }}</span>
         {% endif %}
         {% if contact.address %}
-        <span>Adresa: {{ contact.address }}</span>
+        <span>Address: {{ contact.address }}</span>
         {% endif %}
         {% if contact.company_id %}
-        <span>IČ: {{ contact.company_id }}</span>
+        <span>Company ID: {{ contact.company_id }}</span>
         {% endif %}
         {% if contact.vat_id %}
-        <span>DIČ: {{ contact.vat_id }}</span>
+        <span>VAT ID: {{ contact.vat_id }}</span>
         {% endif %}
       </div>
       {% endif %}

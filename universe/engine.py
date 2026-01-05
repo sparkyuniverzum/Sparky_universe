@@ -45,6 +45,7 @@ from universe.limits import (
     request_timeout_seconds,
 )
 from universe.registry import load_modules
+from universe.redirects import WwwRedirectMiddleware
 from universe.seo import (
     seo_collection_json_ld,
     seo_enabled,
@@ -161,131 +162,131 @@ HOLIDAY_ERROR_MESSAGES = {
 }
 
 LEGAL_NAV = [
-    {"slug": "privacy", "label": "Soukromí"},
-    {"slug": "terms", "label": "Podmínky"},
-    {"slug": "about", "label": "O nás"},
-    {"slug": "contact", "label": "Kontakt"},
+    {"slug": "privacy", "label": "Privacy"},
+    {"slug": "terms", "label": "Terms"},
+    {"slug": "about", "label": "About"},
+    {"slug": "contact", "label": "Contact"},
 ]
 
 LEGAL_PAGES = {
     "privacy": {
         "slug": "privacy",
-        "title": "Zásady ochrany osobních údajů",
-        "subtitle": "Jak pracujeme s daty a co to znamená pro Google AdSense.",
+        "title": "Privacy Policy",
+        "subtitle": "How we handle data and what it means for Google AdSense.",
         "sections": [
             {
-                "title": "Jaká data zpracováváme",
+                "title": "Data we process",
                 "body": [
-                    "Zpracováváme data, která vložíte do nástrojů, aby bylo možné doručit výsledek.",
-                    "Můžeme zpracovat technické údaje o používání (zobrazení stránek, odeslání akcí, chybové stavy).",
-                    "Pokud zadáte e-mail pro notifikace nebo odběr, ukládáme jej pouze pro tento účel.",
+                    "We process the inputs you provide to deliver the requested output.",
+                    "We may process technical usage data such as page views, submitted actions, and error states.",
+                    "If you enter an email for alerts or subscriptions, we store it only for that purpose.",
                 ],
             },
             {
-                "title": "Právní základ zpracování",
+                "title": "Legal basis",
                 "body": [
-                    "Plnění smlouvy: poskytujeme výsledek nástroje, který si vyžádáte.",
-                    "Oprávněný zájem: měření výkonu, bezpečnost a zlepšování služby.",
-                    "Souhlas: pokud vyžaduje vaše jurisdikce pro marketingové nebo reklamní cookies.",
+                    "Contract performance: we provide the tool output you request.",
+                    "Legitimate interest: performance measurement, security, and service improvement.",
+                    "Consent: where required in your jurisdiction for marketing or advertising cookies.",
                 ],
             },
             {
-                "title": "Cookies a personalizovaná reklama",
+                "title": "Cookies and personalized ads",
                 "body": [
-                    "Používáme cookies a obdobné technologie pro provoz a měření.",
-                    "Google AdSense může používat cookies nebo identifikátory k zobrazování reklam na základě vašich návštěv.",
-                    "Personalizované reklamy můžete spravovat v Nastavení reklam Google (https://adssettings.google.com) a více informací je v zásadách Google (https://policies.google.com/technologies/ads).",
+                    "We use cookies and similar technologies for operation and measurement.",
+                    "Google AdSense may use cookies or identifiers to show ads based on your visits.",
+                    "You can manage personalized ads in Google Ads Settings (https://adssettings.google.com) and read more in Google policies (https://policies.google.com/technologies/ads).",
                 ],
             },
             {
-                "title": "Sdílení a zpracovatelé",
+                "title": "Sharing and processors",
                 "body": [
-                    "K provozu používáme ověřené poskytovatele infrastruktury a analytiky.",
-                    "Reklamní systémy (např. Google AdSense) mohou zpracovávat údaje dle svých zásad.",
+                    "We use trusted infrastructure and analytics providers to operate the service.",
+                    "Ad systems (for example Google AdSense) may process data under their own policies.",
                 ],
             },
             {
-                "title": "Ukládání a doba uchování",
+                "title": "Retention",
                 "body": [
-                    "Vstupy nejsou standardně ukládány, pokud to výslovně nevyžaduje funkce nebo nastavení.",
-                    "Telemetrie je agregovaná a slouží ke zlepšování služby.",
+                    "Inputs are not stored by default unless required by a feature or explicit setting.",
+                    "Telemetry is aggregated and used to improve the service.",
                 ],
             },
             {
-                "title": "Vaše práva",
+                "title": "Your rights",
                 "body": [
-                    "Máte právo na přístup, opravu a výmaz osobních údajů.",
-                    "Máte právo vznést námitku proti zpracování a požadovat omezení.",
-                    "Pro uplatnění práv nás kontaktujte.",
+                    "You have the right to access, correct, and delete personal data.",
+                    "You have the right to object to processing and request restriction.",
+                    "Contact us to exercise your rights.",
                 ],
             },
         ],
     },
     "terms": {
         "slug": "terms",
-        "title": "Podmínky užití",
-        "subtitle": "Základní pravidla pro používání Sparky Universe.",
+        "title": "Terms of Use",
+        "subtitle": "Basic rules for using Sparky Universe.",
         "sections": [
             {
-                "title": "Použití služby",
+                "title": "Service use",
                 "body": [
-                    "Služba je poskytována bez záruk a slouží k rychlým orientačním výstupům.",
-                    "Než se na výsledky spolehnete, ověřte je pro svůj konkrétní případ.",
+                    "The service is provided without warranties and is intended for quick guidance outputs.",
+                    "Verify results before relying on them for your specific case.",
                 ],
             },
             {
-                "title": "Obsah a vstupy",
+                "title": "Content and inputs",
                 "body": [
-                    "Za data, která zadáváte, odpovídáte vy.",
-                    "Nevkládejte nezákonný, škodlivý nebo neoprávněný obsah.",
+                    "You are responsible for the data you submit.",
+                    "Do not submit illegal, harmful, or unauthorized content.",
                 ],
             },
             {
-                "title": "Reklamy a partnerské odkazy",
+                "title": "Ads and affiliate links",
                 "body": [
-                    "Na stránkách se mohou zobrazovat reklamy nebo partnerské odkazy.",
-                    "Reklamní systémy mohou používat cookies a identifikátory dle svých zásad.",
+                    "Pages may display ads or affiliate links.",
+                    "Ad systems may use cookies and identifiers under their own policies.",
                 ],
             },
             {
-                "title": "Omezení odpovědnosti",
+                "title": "Limitation of liability",
                 "body": [
-                    "Nenese se odpovědnost za škody vzniklé použitím služby.",
-                    "Služba může být kdykoliv upravena nebo ukončena.",
+                    "We are not liable for damages arising from use of the service.",
+                    "The service may be changed or discontinued at any time.",
                 ],
             },
         ],
     },
     "about": {
         "slug": "about",
-        "title": "O nás",
-        "subtitle": "Proč Sparky Universe vzniklo a kam míří.",
+        "title": "About",
+        "subtitle": "Why Sparky Universe exists and where it is heading.",
         "sections": [
             {
                 "title": "Sparky Universe",
                 "body": [
-                    "Sparky Universe je síť rychlých nástrojů, které řeší jednu věc najednou.",
-                    "Každý modul je malý, ale dohromady tvoří praktický ekosystém.",
+                    "Sparky Universe is a network of fast tools that solve one task at a time.",
+                    "Each module is small, but together they form a practical ecosystem.",
                 ],
             },
             {
-                "title": "Jak fungujeme",
+                "title": "How we work",
                 "body": [
-                    "Nevyžadujeme účty ani složité nastavování.",
-                    "Nástroje jsou optimalizované na rychlé použití a jasné výstupy.",
+                    "No accounts or complicated setup required.",
+                    "Tools are optimized for speed and clear outputs.",
                 ],
             },
         ],
     },
     "contact": {
         "slug": "contact",
-        "title": "Kontakt",
-        "subtitle": "Potřebujete pomoc nebo chcete spolupracovat?",
+        "title": "Contact",
+        "subtitle": "Need help or want to collaborate?",
         "sections": [
             {
-                "title": "Napište nám",
+                "title": "Write to us",
                 "body": [
-                    "Ozvěte se přes e-mail nebo použijte kontaktní údaje níže.",
+                    "Reach us by email or use the contact details below.",
                 ],
             },
         ],
@@ -455,17 +456,17 @@ def _contact_lines(contact: dict[str, str]) -> list[str]:
     lines: list[str] = []
     company = contact.get("company")
     if company:
-        lines.append(f"Provozovatel: {company}")
+        lines.append(f"Controller: {company}")
     if contact.get("company_id"):
-        lines.append(f"IČ: {contact['company_id']}")
+        lines.append(f"Company ID: {contact['company_id']}")
     if contact.get("vat_id"):
-        lines.append(f"DIČ: {contact['vat_id']}")
+        lines.append(f"VAT ID: {contact['vat_id']}")
     if contact.get("address"):
-        lines.append(f"Adresa: {contact['address']}")
+        lines.append(f"Address: {contact['address']}")
     if contact.get("email"):
-        lines.append(f"E-mail: {contact['email']}")
+        lines.append(f"Email: {contact['email']}")
     if contact.get("phone"):
-        lines.append(f"Telefon: {contact['phone']}")
+        lines.append(f"Phone: {contact['phone']}")
     return lines
 
 
@@ -493,7 +494,7 @@ def _format_legal_page(page: dict[str, Any], contact: dict[str, str]) -> dict[st
     if page.get("slug") in {"privacy", "terms"}:
         controller = _contact_lines(contact)
         if controller:
-            sections.append({"title": "Správce a kontakt", "body": controller})
+            sections.append({"title": "Controller and contact", "body": controller})
 
     return {**page, "sections": sections}
 
@@ -548,6 +549,7 @@ def build_app() -> FastAPI:
     app = FastAPI(title="Sparky Universe")
     mount_map = build_mount_map()
     admin_prefix = admin_path()
+    app.add_middleware(WwwRedirectMiddleware)
     app.add_middleware(ValidationNormalizeMiddleware)
     app.add_middleware(DisabledModulesMiddleware, mount_map=mount_map)
     app.add_middleware(
