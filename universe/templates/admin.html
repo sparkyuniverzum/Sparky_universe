@@ -87,6 +87,18 @@
         align-items: center;
       }
 
+      .note.ok {
+        color: var(--ok);
+        border-color: rgba(83, 211, 143, 0.35);
+        background: rgba(83, 211, 143, 0.08);
+      }
+
+      .note.error {
+        color: var(--bad);
+        border-color: rgba(255, 123, 123, 0.35);
+        background: rgba(255, 123, 123, 0.08);
+      }
+
       .header {
         display: flex;
         flex-wrap: wrap;
@@ -397,9 +409,15 @@
           <form method="post" action="{{ admin_base }}/test-db">
             <button type="submit">Test DB</button>
           </form>
+          <form method="post" action="{{ admin_base }}/solana-refresh">
+            <button type="submit">Refresh Solana</button>
+          </form>
           <a class="link-button" href="{{ admin_base }}/metrics">View metrics</a>
         </div>
       </div>
+      {% if solana_notice %}
+      <div class="note {{ solana_notice.level }}">{{ solana_notice.message }}</div>
+      {% endif %}
       {% if overrides_source != "db" %}
       <div class="note">Warning: overrides are in memory only until Postgres is configured.</div>
       {% endif %}

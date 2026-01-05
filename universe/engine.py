@@ -93,6 +93,8 @@ from universe.satellites import list_satellites
 from universe.settings import configure_templates
 from universe.stations import get_station, list_stations
 from universe.telemetry import attach_telemetry
+from modules.solana_constellation.core.ingest import refresh_from_rpc
+from modules.solana_constellation.core.rpc import SolanaRpcError
 
 logger = logging.getLogger(__name__)
 
@@ -271,6 +273,24 @@ def _holiday_notice(request: Request) -> dict[str, str] | None:
         message = HOLIDAY_ERROR_MESSAGES.get(reason, message)
     if not message:
         return None
+    return {"level": level, "message": message}
+
+
+def _solana_notice(request: Request) -> dict[str, str] | None:
+    status = request.query_params.get("solana", "").strip().lower()
+    detail = request.query_params.get("detail", "").strip()
+    if not status:
+        return None
+    if status == "ok":
+        level = "ok"
+        message = "Solana refresh completed."
+    elif status == "error":
+        level = "error"
+        message = "Solana refresh failed."
+    else:
+        return None
+    if detail:
+        message = f"{message} {detail}"
     return {"level": level, "message": message}
 
 
@@ -488,6 +508,7 @@ def build_app() -> FastAPI:
         modules = load_modules()
         overrides = get_module_overrides()
         db_check = last_db_check()
+        solana_notice = _solana_notice(request)
         items: list[dict[str, Any]] = []
         for meta in modules.values():
             name = meta.get("name", "")
@@ -530,6 +551,7 @@ def build_app() -> FastAPI:
                 "overrides_source": overrides_source(),
                 "db_check": db_check,
                 "admin_base": admin_prefix,
+                "solana_notice": solana_notice,
             },
         )
 
@@ -997,6 +1019,21 @@ def build_app() -> FastAPI:
     def admin_test_db(_: None = Depends(require_admin)):
         test_db_health()
         return RedirectResponse(url=admin_prefix, status_code=303)
+
+    @app.post(f"{admin_prefix}/solana-refresh")
+    def admin_solana_refresh(_: None = Depends(require_admin)):
+        try:
+            result = refresh_from_rpc()
+        except SolanaRpcError as exc:
+            query = urlencode([("solana", "error"), ("detail", str(exc))])
+            return RedirectResponse(url=f"{admin_prefix}?{query}", status_code=303)
+        if not result.get("ok", True):
+            detail = str(result.get("detail") or "Refresh failed.")
+            query = urlencode([("solana", "error"), ("detail", detail)])
+            return RedirectResponse(url=f"{admin_prefix}?{query}", status_code=303)
+        detail = f"Raw {result.get('raw_added', 0)} · Events {result.get('events_added', 0)}"
+        query = urlencode([("solana", "ok"), ("detail", detail)])
+        return RedirectResponse(url=f"{admin_prefix}?{query}", status_code=303)
 
     modules = load_modules()
     mounted_modules: set[str] = set()

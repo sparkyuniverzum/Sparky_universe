@@ -30,3 +30,22 @@ def require_secret(
     raise RuntimeError(
         f"{env_name} is required; set it or enable {allow_insecure_env}=on for local dev."
     )
+
+
+def optional_secret(
+    env_name: str,
+    *,
+    allow_insecure_env: str | None = "SPARKY_ALLOW_INSECURE_SECRETS",
+    insecure_default: str = "dev-secret",
+) -> tuple[str | None, str | None]:
+    try:
+        return (
+            require_secret(
+                env_name,
+                allow_insecure_env=allow_insecure_env,
+                insecure_default=insecure_default,
+            ),
+            None,
+        )
+    except RuntimeError as exc:
+        return None, str(exc)

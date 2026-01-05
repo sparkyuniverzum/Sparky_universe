@@ -4,13 +4,13 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from modules.qrverify.core.decode import decode_input
 from modules.qrverify.core.verify import verify_decoded
-from modules.sparky_core.core.secrets import require_secret
+from modules.sparky_core.core.secrets import optional_secret
 from universe.flows import resolve_flow_links
 from universe.settings import configure_templates, shared_templates_dir
 from universe.ads import attach_ads_globals
@@ -30,7 +30,6 @@ BRAND_DIR = ROOT_DIR / "brand"
 if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")
 
-SECRET = require_secret("QRFORGE_SECRET")
 FORGE_URL = os.getenv("QRFORGE_URL")
 FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
 
@@ -50,6 +49,9 @@ async def verify_qr(
     file: UploadFile | None = File(None),
     payload: str | None = Form(None),
 ):
+    secret, error = optional_secret("QRFORGE_SECRET")
+    if error:
+        return JSONResponse({"valid": False, "error": error}, status_code=503)
     file_bytes = await file.read() if file else None
     decoded, error = decode_input(file_bytes, payload)
     if error:

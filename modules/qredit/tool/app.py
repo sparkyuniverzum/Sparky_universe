@@ -12,7 +12,7 @@ from fastapi.templating import Jinja2Templates
 
 from modules.qredit.core.edit import decode_to_payload, parse_payload_json, render_qr_bytes
 from modules.qrforge.core.sign import sign_payload
-from modules.sparky_core.core.secrets import require_secret
+from modules.sparky_core.core.secrets import optional_secret
 from universe.flows import resolve_flow_links
 from universe.settings import configure_templates, shared_templates_dir
 from universe.ads import attach_ads_globals
@@ -34,7 +34,6 @@ if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")
 
 FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
-SECRET = require_secret("QRFORGE_SECRET")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -66,7 +65,10 @@ def render_qr(payload_json: str | None = Form(None)):
     if error:
         return JSONResponse({"error": error}, status_code=400)
 
-    signature = sign_payload(payload, SECRET)
+    secret, error = optional_secret("QRFORGE_SECRET")
+    if error:
+        return JSONResponse({"error": error}, status_code=503)
+    signature = sign_payload(payload, secret)
     png_bytes = render_qr_bytes(payload, signature)
     headers = {"Content-Disposition": "attachment; filename=qr-edit.png"}
     return StreamingResponse(

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -9,7 +9,7 @@ from modules.qrforge.core.ids import generate_public_id
 from modules.qrforge.core.payload import build_identity_payload
 from modules.qrforge.core.sign import sign_payload
 from modules.qrforge.core.render import render_qr_bytes
-from modules.sparky_core.core.secrets import require_secret
+from modules.sparky_core.core.secrets import optional_secret
 from universe.flows import resolve_flow_links
 from universe.settings import configure_templates, shared_templates_dir
 from universe.ads import attach_ads_globals
@@ -29,7 +29,6 @@ BRAND_DIR = ROOT_DIR / "brand"
 if BRAND_DIR.exists():
     app.mount("/brand", StaticFiles(directory=BRAND_DIR), name="brand")
 
-SECRET = require_secret("QRFORGE_SECRET")
 FLOW_BASE_URL = os.getenv("SPARKY_FLOW_BASE_URL")
 
 
@@ -49,6 +48,9 @@ def create_qr(
     supplier: str = Form(None),
     supplier_sku: str = Form(None),
 ):
+    secret, error = optional_secret("QRFORGE_SECRET")
+    if error:
+        return JSONResponse({"error": error}, status_code=503)
     public_id = generate_public_id()
 
     payload = build_identity_payload(
@@ -58,7 +60,7 @@ def create_qr(
         supplier_sku=supplier_sku,
     )
 
-    signature = sign_payload(payload, SECRET)
+    signature = sign_payload(payload, secret)
     png_bytes = render_qr_bytes(payload, signature)
     headers = {"Content-Disposition": "attachment; filename=qr.png"}
     return Response(content=png_bytes, media_type="image/png", headers=headers)
