@@ -24,6 +24,8 @@ class SolanaConfig:
     supply_unlock_threshold: float
     supply_allow_mint: bool
     refresh_token: str
+    signature_batch_limit: int
+    signature_max_pages: int
 
 
 def _split_env(name: str) -> List[str]:
@@ -39,6 +41,17 @@ def _float_env(name: str, default: float) -> float:
         return default
     try:
         value = float(raw)
+    except ValueError:
+        return default
+    return value
+
+
+def _int_env(name: str, default: int) -> int:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
     except ValueError:
         return default
     return value
@@ -80,4 +93,6 @@ def load_config() -> SolanaConfig:
         supply_unlock_threshold=_float_env("SOLANA_SUPPLY_UNLOCK_THRESHOLD", 0.0),
         supply_allow_mint=_flag("SOLANA_SUPPLY_ALLOW_MINT", "off"),
         refresh_token=os.getenv("SPARKY_SOLANA_REFRESH_TOKEN", "").strip(),
+        signature_batch_limit=_int_env("SOLANA_SIGNATURE_BATCH_LIMIT", 100),
+        signature_max_pages=_int_env("SOLANA_SIGNATURE_MAX_PAGES", 0),
     )

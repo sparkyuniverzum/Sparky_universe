@@ -3,6 +3,8 @@ from __future__ import annotations
 from importlib import import_module
 import json
 import logging
+import os
+import re
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit
@@ -158,6 +160,138 @@ HOLIDAY_ERROR_MESSAGES = {
     "cancelled": "Payment was cancelled.",
 }
 
+LEGAL_NAV = [
+    {"slug": "privacy", "label": "Soukromí"},
+    {"slug": "terms", "label": "Podmínky"},
+    {"slug": "about", "label": "O nás"},
+    {"slug": "contact", "label": "Kontakt"},
+]
+
+LEGAL_PAGES = {
+    "privacy": {
+        "slug": "privacy",
+        "title": "Zásady ochrany osobních údajů",
+        "subtitle": "Jak pracujeme s daty a co to znamená pro Google AdSense.",
+        "sections": [
+            {
+                "title": "Jaká data zpracováváme",
+                "body": [
+                    "Zpracováváme data, která vložíte do nástrojů, aby bylo možné doručit výsledek.",
+                    "Můžeme zpracovat technické údaje o používání (zobrazení stránek, odeslání akcí, chybové stavy).",
+                    "Pokud zadáte e-mail pro notifikace nebo odběr, ukládáme jej pouze pro tento účel.",
+                ],
+            },
+            {
+                "title": "Právní základ zpracování",
+                "body": [
+                    "Plnění smlouvy: poskytujeme výsledek nástroje, který si vyžádáte.",
+                    "Oprávněný zájem: měření výkonu, bezpečnost a zlepšování služby.",
+                    "Souhlas: pokud vyžaduje vaše jurisdikce pro marketingové nebo reklamní cookies.",
+                ],
+            },
+            {
+                "title": "Cookies a personalizovaná reklama",
+                "body": [
+                    "Používáme cookies a obdobné technologie pro provoz a měření.",
+                    "Google AdSense může používat cookies nebo identifikátory k zobrazování reklam na základě vašich návštěv.",
+                    "Personalizované reklamy můžete spravovat v Nastavení reklam Google (https://adssettings.google.com) a více informací je v zásadách Google (https://policies.google.com/technologies/ads).",
+                ],
+            },
+            {
+                "title": "Sdílení a zpracovatelé",
+                "body": [
+                    "K provozu používáme ověřené poskytovatele infrastruktury a analytiky.",
+                    "Reklamní systémy (např. Google AdSense) mohou zpracovávat údaje dle svých zásad.",
+                ],
+            },
+            {
+                "title": "Ukládání a doba uchování",
+                "body": [
+                    "Vstupy nejsou standardně ukládány, pokud to výslovně nevyžaduje funkce nebo nastavení.",
+                    "Telemetrie je agregovaná a slouží ke zlepšování služby.",
+                ],
+            },
+            {
+                "title": "Vaše práva",
+                "body": [
+                    "Máte právo na přístup, opravu a výmaz osobních údajů.",
+                    "Máte právo vznést námitku proti zpracování a požadovat omezení.",
+                    "Pro uplatnění práv nás kontaktujte.",
+                ],
+            },
+        ],
+    },
+    "terms": {
+        "slug": "terms",
+        "title": "Podmínky užití",
+        "subtitle": "Základní pravidla pro používání Sparky Universe.",
+        "sections": [
+            {
+                "title": "Použití služby",
+                "body": [
+                    "Služba je poskytována bez záruk a slouží k rychlým orientačním výstupům.",
+                    "Než se na výsledky spolehnete, ověřte je pro svůj konkrétní případ.",
+                ],
+            },
+            {
+                "title": "Obsah a vstupy",
+                "body": [
+                    "Za data, která zadáváte, odpovídáte vy.",
+                    "Nevkládejte nezákonný, škodlivý nebo neoprávněný obsah.",
+                ],
+            },
+            {
+                "title": "Reklamy a partnerské odkazy",
+                "body": [
+                    "Na stránkách se mohou zobrazovat reklamy nebo partnerské odkazy.",
+                    "Reklamní systémy mohou používat cookies a identifikátory dle svých zásad.",
+                ],
+            },
+            {
+                "title": "Omezení odpovědnosti",
+                "body": [
+                    "Nenese se odpovědnost za škody vzniklé použitím služby.",
+                    "Služba může být kdykoliv upravena nebo ukončena.",
+                ],
+            },
+        ],
+    },
+    "about": {
+        "slug": "about",
+        "title": "O nás",
+        "subtitle": "Proč Sparky Universe vzniklo a kam míří.",
+        "sections": [
+            {
+                "title": "Sparky Universe",
+                "body": [
+                    "Sparky Universe je síť rychlých nástrojů, které řeší jednu věc najednou.",
+                    "Každý modul je malý, ale dohromady tvoří praktický ekosystém.",
+                ],
+            },
+            {
+                "title": "Jak fungujeme",
+                "body": [
+                    "Nevyžadujeme účty ani složité nastavování.",
+                    "Nástroje jsou optimalizované na rychlé použití a jasné výstupy.",
+                ],
+            },
+        ],
+    },
+    "contact": {
+        "slug": "contact",
+        "title": "Kontakt",
+        "subtitle": "Potřebujete pomoc nebo chcete spolupracovat?",
+        "sections": [
+            {
+                "title": "Napište nám",
+                "body": [
+                    "Ozvěte se přes e-mail nebo použijte kontaktní údaje níže.",
+                ],
+            },
+        ],
+    },
+}
+
 
 def _slugify(value: str) -> str:
     return value.strip().lower().replace(" ", "-").replace("/", "-")
@@ -294,6 +428,76 @@ def _solana_notice(request: Request) -> dict[str, str] | None:
     return {"level": level, "message": message}
 
 
+def _contact_info() -> dict[str, str]:
+    email = os.getenv("SPARKY_CONTACT_EMAIL", "").strip()
+    if not email:
+        smtp_from = os.getenv("SPARKY_SMTP_FROM", "")
+        match = re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", smtp_from)
+        if match:
+            email = match.group(0)
+    if not email:
+        email = "hello@sparky-universe.com"
+    return {
+        "email": email,
+        "phone": os.getenv("SPARKY_CONTACT_PHONE", "").strip(),
+        "company": os.getenv("SPARKY_CONTACT_COMPANY", "").strip(),
+        "address": os.getenv("SPARKY_CONTACT_ADDRESS", "").strip(),
+        "company_id": os.getenv("SPARKY_CONTACT_ID", "").strip(),
+        "vat_id": os.getenv("SPARKY_CONTACT_VAT", "").strip(),
+    }
+
+
+def _legal_page(slug: str) -> dict[str, Any] | None:
+    return LEGAL_PAGES.get(slug)
+
+
+def _contact_lines(contact: dict[str, str]) -> list[str]:
+    lines: list[str] = []
+    company = contact.get("company")
+    if company:
+        lines.append(f"Provozovatel: {company}")
+    if contact.get("company_id"):
+        lines.append(f"IČ: {contact['company_id']}")
+    if contact.get("vat_id"):
+        lines.append(f"DIČ: {contact['vat_id']}")
+    if contact.get("address"):
+        lines.append(f"Adresa: {contact['address']}")
+    if contact.get("email"):
+        lines.append(f"E-mail: {contact['email']}")
+    if contact.get("phone"):
+        lines.append(f"Telefon: {contact['phone']}")
+    return lines
+
+
+def _format_legal_page(page: dict[str, Any], contact: dict[str, str]) -> dict[str, Any]:
+    context = {
+        "company": contact.get("company") or "Sparky Universe",
+        "email": contact.get("email") or "hello@sparky-universe.com",
+        "address": contact.get("address") or "",
+        "company_id": contact.get("company_id") or "",
+        "vat_id": contact.get("vat_id") or "",
+    }
+    sections: list[dict[str, Any]] = []
+    for section in page.get("sections", []):
+        body = []
+        for line in section.get("body", []):
+            try:
+                formatted = str(line).format(**context)
+            except Exception:
+                formatted = str(line)
+            if formatted.strip():
+                body.append(formatted)
+        if body:
+            sections.append({"title": section.get("title", ""), "body": body})
+
+    if page.get("slug") in {"privacy", "terms"}:
+        controller = _contact_lines(contact)
+        if controller:
+            sections.append({"title": "Správce a kontakt", "body": controller})
+
+    return {**page, "sections": sections}
+
+
 def _parse_return_path(value: str) -> tuple[str, list[tuple[str, str]]]:
     if not value:
         return "/", []
@@ -407,6 +611,8 @@ def build_app() -> FastAPI:
         satellites = list_satellites()
         stations = list_stations()
         urls = [f"{base_url}/"]
+        for entry in LEGAL_NAV:
+            urls.append(f"{base_url}/{entry['slug']}")
         urls.append(f"{base_url}/story/axiom")
         if satellites:
             urls.append(f"{base_url}/satellites")
@@ -447,6 +653,40 @@ def build_app() -> FastAPI:
                 "adsense_enabled": ads_enabled(),
             },
         )
+
+    def _render_legal(request: Request, slug: str):
+        page = _legal_page(slug)
+        if not page:
+            raise HTTPException(status_code=404, detail="Page not found")
+        base_path = request.scope.get("root_path", "").rstrip("/")
+        contact = _contact_info()
+        page_view = _format_legal_page(page, contact)
+        return templates.TemplateResponse(
+            "legal_page.html",
+            {
+                "request": request,
+                "page": page_view,
+                "base_path": base_path,
+                "nav_links": LEGAL_NAV,
+                "contact": contact,
+            },
+        )
+
+    @app.get("/privacy", response_class=HTMLResponse)
+    def privacy_page(request: Request):
+        return _render_legal(request, "privacy")
+
+    @app.get("/terms", response_class=HTMLResponse)
+    def terms_page(request: Request):
+        return _render_legal(request, "terms")
+
+    @app.get("/about", response_class=HTMLResponse)
+    def about_page(request: Request):
+        return _render_legal(request, "about")
+
+    @app.get("/contact", response_class=HTMLResponse)
+    def contact_page(request: Request):
+        return _render_legal(request, "contact")
 
     @app.get("/satellites", response_class=HTMLResponse)
     def satellites_index(request: Request):
@@ -704,6 +944,7 @@ def build_app() -> FastAPI:
                 "snapshot_json": snapshot_json,
                 "data_entries": data_entries,
                 "repo_entry": repo_entry,
+                "base_path": base_path,
                 "api_path": f"{base_path}/satellites/finance-orbit/latest",
                 "home_path": f"{base_path}/",
                 "monitoring_enabled": monitoring_enabled(),
@@ -743,6 +984,7 @@ def build_app() -> FastAPI:
                 "snapshot_json": snapshot_json,
                 "data_entries": data_entries,
                 "top_entry": top_entry,
+                "base_path": base_path,
                 "api_path": f"{base_path}/satellites/crypto-orbit/latest",
                 "home_path": f"{base_path}/",
                 "monitoring_enabled": monitoring_enabled(),
@@ -786,6 +1028,7 @@ def build_app() -> FastAPI:
             {
                 "request": request,
                 "entry": entry,
+                "base_path": base_path,
                 "home_path": f"{base_path}/",
             },
         )
@@ -807,6 +1050,7 @@ def build_app() -> FastAPI:
                 "snapshot_error": snapshot_error,
                 "snapshot_json": snapshot_json,
                 "data_entries": data_entries,
+                "base_path": base_path,
                 "api_path": f"{base_path}/satellites/bavaria-holiday-orbit/latest",
                 "home_path": f"{base_path}/",
                 "subscribe_action": f"{base_path}/satellites/bavaria-holiday-orbit/subscribe",

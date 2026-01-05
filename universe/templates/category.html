@@ -4,10 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sparky Universe · {{ category.name }}</title>
-    {% if adsense_enabled %}
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7363912383995147"
-      crossorigin="anonymous"></script>
-    {% endif %}
     {% if seo_enabled() %}
     <script type="application/ld+json">
       {{ seo_collection_json_ld(request, category.name, category.description) | safe }}
@@ -128,6 +124,7 @@
         </article>
         {% endfor %}
       </div>
+      {% include "partials/legal_footer.html" %}
     </main>
   </body>
 </html>

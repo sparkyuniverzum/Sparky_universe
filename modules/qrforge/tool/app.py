@@ -60,6 +60,8 @@ def create_qr(
         supplier_sku=supplier_sku,
     )
 
+    if secret is None:
+        return JSONResponse({"error": "Secret is missing"}, status_code=503)
     signature = sign_payload(payload, secret)
     png_bytes = render_qr_bytes(payload, signature)
     headers = {"Content-Disposition": "attachment; filename=qr.png"}

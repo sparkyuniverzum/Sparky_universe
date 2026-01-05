@@ -170,6 +170,30 @@
         font-weight: 600;
       }
 
+      .legal-footer {
+        margin-top: 28px;
+        padding-top: 16px;
+        border-top: 1px solid var(--planet-border);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.82rem;
+        color: var(--planet-muted);
+      }
+
+      .legal-links {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .legal-links a {
+        color: var(--planet-accent-dark);
+        text-decoration: none;
+      }
+
       @keyframes rise {
         from {
           opacity: 0;
@@ -204,6 +228,7 @@
   </head>
   <body>
     {% block body %}{% endblock %}
+    {% include "partials/legal_footer.html" %}
     {% block scripts %}{% endblock %}
   </body>
 </html>

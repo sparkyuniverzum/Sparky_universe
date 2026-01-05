@@ -15,6 +15,8 @@ from modules.solana_constellation.core.storage import (
     record_raw,
     event_count,
     raw_count,
+    get_cursor,
+    set_cursor,
     set_last_ingest_at,
 )
 from modules.solana_constellation.core.stars import STAR_DEFS
@@ -64,6 +66,63 @@ def _log_contains(logs: Iterable[str], token: str) -> bool:
         if token_lower in str(line).lower():
             return True
     return False
+
+
+def _cursor_key(address: str) -> str:
+    return f"sig:{address}"
+
+
+def _load_last_signature(address: str) -> str:
+    cursor = get_cursor(_cursor_key(address)) or {}
+    signature = cursor.get("signature")
+    if not signature:
+        return ""
+    return str(signature).strip()
+
+
+def _store_last_signature(address: str, signature: str) -> None:
+    if not signature:
+        return
+    set_cursor(_cursor_key(address), {"signature": signature})
+
+
+def _collect_new_signatures(
+    *,
+    address: str,
+    limit: int,
+    max_pages: int,
+    last_signature: str,
+) -> tuple[List[Dict[str, Any]], str]:
+    before = None
+    newest = ""
+    entries: List[Dict[str, Any]] = []
+    pages = 0
+    while True:
+        batch = get_signatures_for_address(address, limit=limit, before=before)
+        if not batch:
+            break
+        if not newest:
+            newest = str(batch[0].get("signature") or "").strip()
+        stop = False
+        for entry in batch:
+            signature = str(entry.get("signature") or "").strip()
+            if not signature:
+                continue
+            if last_signature and signature == last_signature:
+                stop = True
+                break
+            entries.append(entry)
+        if stop:
+            break
+        if len(batch) < limit:
+            break
+        before = str(batch[-1].get("signature") or "").strip()
+        if not before:
+            break
+        pages += 1
+        if max_pages > 0 and pages >= max_pages:
+            break
+    return entries, newest
 
 
 def _base_event(
@@ -444,7 +503,7 @@ def _events_from_transaction(signature: str, entry: Dict[str, Any]) -> List[Dict
     return events
 
 
-def refresh_from_rpc(max_signatures: int = 20) -> Dict[str, Any]:
+def refresh_from_rpc(max_signatures: int | None = None) -> Dict[str, Any]:
     config = load_config()
     if not config.rpc_url:
         raise SolanaRpcError("SOLANA_RPC_URL is not configured.")
@@ -470,8 +529,17 @@ def refresh_from_rpc(max_signatures: int = 20) -> Dict[str, Any]:
     events_before = event_count()
     seen_signatures = set()
 
+    batch_limit = max_signatures or config.signature_batch_limit
+    max_pages = config.signature_max_pages
+
     for address in watch_addresses:
-        signatures = get_signatures_for_address(address, limit=max_signatures)
+        last_signature = _load_last_signature(address)
+        signatures, newest_signature = _collect_new_signatures(
+            address=address,
+            limit=batch_limit,
+            max_pages=max_pages,
+            last_signature=last_signature,
+        )
         for entry in signatures:
             signature = entry.get("signature")
             if not signature or signature in seen_signatures:
@@ -501,6 +569,8 @@ def refresh_from_rpc(max_signatures: int = 20) -> Dict[str, Any]:
                 continue
             for event in _events_from_transaction(signature, tx):
                 record_event(event)
+        if newest_signature:
+            _store_last_signature(address, newest_signature)
 
     set_last_ingest_at()
     return {

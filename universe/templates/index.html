@@ -579,7 +579,7 @@
       {% endif %}
       <p id="stars" class="planet-desc">Everything below are Stars: single-step tools, not Planets or Satellites.</p>
       <div class="categories">
-        {% for category in other_categories %}
+      {% for category in other_categories %}
         <section class="category-card">
           <div class="category-header">
             <h2 class="category-title">{{ category.name }}</h2>
@@ -592,6 +592,7 @@
         </section>
         {% endfor %}
       </div>
+      {% include "partials/legal_footer.html" %}
     </main>
   </body>
 </html>
