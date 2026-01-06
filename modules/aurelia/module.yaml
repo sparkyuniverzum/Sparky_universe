@@ -1,0 +1,15 @@
+name: aurelia
+title: Aurelia
+version: 0.1.0
+description: A journaling planet that evolves with daily rituals.
+public: true
+category: Planets
+entrypoints:
+  api: modules.aurelia.tool.app:app
+mount: /planet/aurelia
+standard_version: "1.0"
+status: alpha
+priority: P0
+owner: ''
+privacy:
+  no_raw_inputs: true
