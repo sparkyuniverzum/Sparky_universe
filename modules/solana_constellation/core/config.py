@@ -62,13 +62,22 @@ def _flag(name: str, default: str = "off") -> bool:
     return value in {"1", "true", "yes", "on"}
 
 
+def _strip_quotes(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        return value[1:-1].strip()
+    return value
+
+
 def _resolve_rpc_url() -> str:
-    base = os.getenv("SOLANA_RPC_URL", "").strip()
-    api_key = os.getenv("HELIUS_API_KEY", "").strip()
+    base = _strip_quotes(os.getenv("SOLANA_RPC_URL", ""))
+    api_key = _strip_quotes(os.getenv("HELIUS_API_KEY", ""))
     if not base and api_key:
-        base = "https://api-mainnet.helius-rpc.com/"
+        base = "https://mainnet.helius-rpc.com/"
     if not base:
         return ""
+    if "api-mainnet.helius-rpc.com" in base:
+        base = base.replace("api-mainnet.helius-rpc.com", "mainnet.helius-rpc.com")
     if not api_key:
         return base
     parts = urlsplit(base)
