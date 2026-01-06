@@ -8,6 +8,7 @@ from modules.solana_constellation.core.config import (
     TOKEN_PROGRAM_ID,
     UPGRADEABLE_LOADER_ID,
     load_config,
+    load_rpc_urls,
 )
 from modules.solana_constellation.core.rpc import SolanaRpcError, get_signatures_for_address, get_transaction
 from modules.solana_constellation.core.storage import (
@@ -505,7 +506,7 @@ def _events_from_transaction(signature: str, entry: Dict[str, Any]) -> List[Dict
 
 def refresh_from_rpc(max_signatures: int | None = None) -> Dict[str, Any]:
     config = load_config()
-    if not config.rpc_url:
+    if not load_rpc_urls():
         raise SolanaRpcError("SOLANA_RPC_URL is not configured.")
 
     governance_watch = (

@@ -9,6 +9,7 @@ from typing import List
 TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
 UPGRADEABLE_LOADER_ID = "BPFLoaderUpgradeab1e11111111111111111111111"
 LAMPORTS_PER_SOL = 1_000_000_000
+DEFAULT_PUBLIC_RPC = "https://api.mainnet-beta.solana.com"
 
 
 @dataclass(frozen=True)
@@ -69,6 +70,36 @@ def _strip_quotes(value: str) -> str:
     return value
 
 
+def _split_url_env(name: str) -> List[str]:
+    raw = os.getenv(name, "")
+    if not raw:
+        return []
+    raw = raw.replace("\n", ",")
+    items: List[str] = []
+    for chunk in raw.split(","):
+        value = _strip_quotes(chunk)
+        if value:
+            items.append(value)
+    return items
+
+
+def _normalize_rpc_url(url: str, api_key: str) -> str:
+    value = _strip_quotes(url)
+    if "api-mainnet.helius-rpc.com" in value:
+        value = value.replace("api-mainnet.helius-rpc.com", "mainnet.helius-rpc.com")
+    if not api_key:
+        return value
+    if "helius-rpc.com" not in value and "rpc.helius.xyz" not in value:
+        return value
+    parts = urlsplit(value)
+    query = dict(parse_qsl(parts.query))
+    if any(key in query for key in ("api-key", "api_key", "apikey")):
+        return value
+    query["api-key"] = api_key
+    new_query = urlencode(query)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, new_query, parts.fragment))
+
+
 def _resolve_rpc_url() -> str:
     base = _strip_quotes(os.getenv("SOLANA_RPC_URL", ""))
     api_key = _strip_quotes(os.getenv("HELIUS_API_KEY", ""))
@@ -76,17 +107,38 @@ def _resolve_rpc_url() -> str:
         base = "https://mainnet.helius-rpc.com/"
     if not base:
         return ""
-    if "api-mainnet.helius-rpc.com" in base:
-        base = base.replace("api-mainnet.helius-rpc.com", "mainnet.helius-rpc.com")
-    if not api_key:
-        return base
-    parts = urlsplit(base)
-    query = dict(parse_qsl(parts.query))
-    if any(key in query for key in ("api-key", "api_key", "apikey")):
-        return base
-    query["api-key"] = api_key
-    new_query = urlencode(query)
-    return urlunsplit((parts.scheme, parts.netloc, parts.path, new_query, parts.fragment))
+    return _normalize_rpc_url(base, api_key)
+
+
+def _public_rpc_fallback_enabled() -> bool:
+    return _flag("SOLANA_PUBLIC_RPC_FALLBACK", "on")
+
+
+def load_rpc_urls() -> List[str]:
+    api_key = _strip_quotes(os.getenv("HELIUS_API_KEY", ""))
+    urls: List[str] = []
+
+    primary_list = _split_url_env("SOLANA_RPC_URLS")
+    if primary_list:
+        urls.extend(_normalize_rpc_url(url, api_key) for url in primary_list if url)
+    else:
+        primary = _resolve_rpc_url()
+        if primary:
+            urls.append(primary)
+
+    fallback_list = _split_url_env("SOLANA_RPC_FALLBACK_URLS")
+    urls.extend(_normalize_rpc_url(url, api_key) for url in fallback_list if url)
+
+    if _public_rpc_fallback_enabled():
+        urls.append(DEFAULT_PUBLIC_RPC)
+
+    seen = set()
+    ordered: List[str] = []
+    for url in urls:
+        if url and url not in seen:
+            ordered.append(url)
+            seen.add(url)
+    return ordered
 
 
 def load_config() -> SolanaConfig:
